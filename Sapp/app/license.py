@@ -1,3 +1,4 @@
+from datetime import date, timedelta
 from django.db import models
 from django import forms
 from django.forms import ModelForm
@@ -22,10 +23,30 @@ class License(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    def save(self, *args, **kwargs):
+        if self.license_type == 'trial':
+            self.max_users = 1 # 1 company is implicit
+            if self.issue_date:
+                self.expiry_date = self.issue_date + timedelta(days=7)
+        elif self.license_type == 'basic':
+            self.max_users = 5 # 1 company is implicit
+            if self.issue_date:
+                self.expiry_date = self.issue_date + timedelta(days=365)
+        elif self.license_type == 'premium':
+            self.max_users = 10 # 10 companies
+            if self.issue_date:
+                self.expiry_date = self.issue_date + timedelta(days=365 * 3)
+        elif self.license_type == 'enterprise':
+            self.max_users = 999999  # Unlimited users
+            # The concept of 100+ companies is not well-defined for a single license
+            if self.issue_date:
+                self.expiry_date = self.issue_date + timedelta(days=365 * 10)
+        
+        super().save(*args, **kwargs)
+
     @classmethod
     def has_valid_license(cls, company):
         """Check if a company has any active, non-expired license."""
-        from datetime import date
         return cls.objects.filter(
             company=company,
             is_active=True,
@@ -40,7 +61,6 @@ class License(models.Model):
         ordering = ['-expiry_date']
 
     def is_expired(self):
-        from datetime import date
         return self.expiry_date < date.today()
 
 class LicenseForm(ModelForm):
