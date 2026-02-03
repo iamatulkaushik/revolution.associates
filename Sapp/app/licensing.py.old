@@ -1,0 +1,129 @@
+from django.db import models
+from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
+from django_cryptography import fields as crypto_fields
+from Sapp.app import company
+from revolution import settings
+
+class License(models.Model):
+    """
+    Model representing a software license with encrypted license key.
+    """
+    name = models.CharField(max_length=255, verbose_name=_("License Name"))
+    company_id = crypto_fields.encrypt(company.Company.company_id, settings.key)
+    license_key = crypto_fields.EncryptedCharField(max_length=512, verbose_name=_("License Key"))
+    issued_date = models.DateField(verbose_name=_("Issued Date"))
+    expiry_date = models.DateField(verbose_name=_("Expiry Date"))
+
+    class Meta:
+        verbose_name = _("License")
+        verbose_name_plural = _("Licenses")
+
+    def __str__(self):
+        return f"{self.name} - {self.issued_date} to {self.expiry_date}"
+
+    def checking(self, expiry_date, is_expired, day_until_expiry):
+        expiry_date = self.expiry_date >= timezone.now().date()
+        is_expired = self.expiry_date < timezone.now().date()
+        delta = self.expiry_date - timezone.now().date()
+        day_until_expiry = delta.days if delta.days >= 0 else 0
+
+    def renew(self, new_expiry_date):
+        """
+        Renew the license by updating the expiry date.
+        """
+        self.expiry_date = new_expiry_date
+        self.save()
+    def revoke(self):
+        """
+        Revoke the license by setting the expiry date to today.
+        """
+        self.expiry_date = timezone.now().date()
+        self.save()
+    def get_license_info(self):
+        """
+        Return a dictionary with license information.
+        """
+        return {
+            "name": self.name,
+            "license_key": self.license_key,
+            "issued_date": self.issued_date,
+            "expiry_date": self.expiry_date,
+            "is_valid": self.checking(),
+            "is_expired": self.checking(),
+            "days_until_expiry": self.days_until_expiry()
+        }
+    def update_license_key(self, new_license_key):
+        """
+        Update the license key for this license.
+        """
+        self.license_key = new_license_key
+        self.save()
+    def extend_license(self, additional_days):
+        """
+        Extend the license expiry date by a given number of days.
+        """
+        from django.utils import timezone
+        self.expiry_date += timezone.timedelta(days=additional_days)
+        self.save()
+    def shorten_license(self, reduction_days):
+        """
+        Shorten the license expiry date by a given number of days.
+        """
+        from django.utils import timezone
+        self.expiry_date -= timezone.timedelta(days=reduction_days)
+        self.save()
+    def clone_license(self):
+        """
+        Create a copy of the current license.
+        """
+        new_license = License.objects.create(
+            name=self.name,
+            license_key=self.license_key,
+            issued_date=self.issued_date,
+            expiry_date=self.expiry_date
+        )
+        return new_license
+    def deactivate(self):
+        """
+        Deactivate the license by setting the name to indicate deactivation.
+        """
+        self.name = f"{self.name} (Deactivated)"
+        self.save()
+    def activate(self):
+        """
+        Activate the license by removing the deactivation indicator from the name.
+        """
+        if self.name.endswith(" (Deactivated)"):
+            self.name = self.name[:-13]  # Remove " (Deactivated)" from the end
+            self.save()
+    def get_remaining_days(self):
+        """
+        Get the number of days remaining until the license expires.
+        """
+        from django.utils import timezone
+        delta = self.expiry_date - timezone.now().date()
+        return max(delta.days, 0)
+    def set_issued_date(self, new_issued_date):
+        """
+        Update the issued date for this license.
+        """
+        self.issued_date = new_issued_date
+        self.save()
+    def set_expiry_date(self, new_expiry_date):
+        """
+        Update the expiry date for this license.
+        """
+        self.expiry_date = new_expiry_date
+        self.save()
+    def get_license_duration(self):
+        """
+        Get the total duration of the license in days.
+        """
+        delta = self.expiry_date - self.issued_date
+        return delta.days
+    def is_near_expiry(self, threshold_days=30):
+        """
+        Check if the license is nearing expiry within a given threshold of days.
+        """
+        return self.days_until_expiry() <= threshold_days
