@@ -1,0 +1,45 @@
+{% extends "Sapp/base.html" %}
+{% block title %}Companies{% endblock %}
+{% load static %}
+{% block additionalcss_js %}
+<style>
+.container{max-width:1200px;margin:20px auto;padding:20px}
+.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.btn{padding:10px 20px;border:none;border-radius:4px;cursor:pointer;text-decoration:none;display:inline-block}
+.btn-primary{background:#007bff;color:#fff}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px}
+.card{border:1px solid #ddd;border-radius:8px;padding:20px;background:#fff}
+.card h3{margin:0 0 10px;color:#333}
+.card p{margin:5px 0;color:#666;font-size:14px}
+.card-actions{margin-top:15px;display:flex;gap:10px}
+.btn-sm{padding:6px 12px;font-size:13px}
+.btn-edit{background:#28a745;color:#fff}
+.btn-shut{background:#dc3545;color:#fff}
+</style>
+{% endblock %}
+{% block content %}
+<div class="container">
+<div class="header">
+<h2>Companies</h2>
+<a href="{% url 'create_company' %}" class="btn btn-primary">+ New Company</a>
+</div>
+<div class="grid">
+{% for company in companies %}
+<div class="card">
+<h3>{{company.company_name}}</h3>
+<p><strong>PAN:</strong> {{company.pan}}</p>
+<p><strong>Mobile:</strong> {{company.mobile}}</p>
+<p><strong>Email:</strong> {{company.email1}}</p>
+<p><strong>Start Date:</strong> {{company.start_date}}</p>
+{% if company.shut_date %}<p><strong>Shut Date:</strong> {{company.shut_date}}</p>{% endif %}
+<div class="card-actions">
+<a href="{% url 'alter_company' company.company_id %}" class="btn btn-sm btn-edit">Edit</a>
+<a href="{% url 'shut_company' company.company_id %}" class="btn btn-sm btn-shut">Shut</a>
+</div>
+</div>
+{% empty %}
+<p>No companies found.</p>
+{% endfor %}
+</div>
+</div>
+{% endblock %}

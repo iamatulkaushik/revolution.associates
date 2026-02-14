@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/ico" href="{% static 'favicon.ico' %}" />
+    <title>Login</title>
+    <link      rel="preload"      href="{% static 'fonts/Infinitude.ttf' %}"      as="font"      type="font/ttf"      crossorigin    />
+    <link      rel="preload"      href="{% static 'fonts/Ubuntu-R.ttf' %}"      as="font"      type="font/ttf"      crossorigin    />
+    <style>
+    @font-face {
+        font-family: 'Infinitude';
+        src: url('/static/fonts/Infinitude.ttf') format('truetype');
+        font-weight: normal;
+        font-style: normal;}   
+    @font-face {
+        font-family: 'Ubuntu';
+        src: url('/static/fonts/Ubuntu-R.ttf') format('truetype');
+        font-weight: normal;
+        font-style: normal; }
+html {  padding: 0;margin: 0 auto;	scroll-behavior: smooth;
+/* background: url(img/basic_background.jpg) no-repeat center center fixed;  */
+-webkit-background-size: cover;			-moz-background-size: cover;			-o-background-size: cover;			background-size: cover;
+}
+body {font-size:15px;font-family:'Ubuntu';position:relative;margin: 0;	background-color: #0000000f;}
+a	{text-decoration:none; color:inherit;}
+ul, li{list-style:none;padding:0;margin:0;}
+h1, h2, h3, h4 {padding:0;margin:0;}
+p{padding:0;margin:0;}
+
+.main_container{padding:12px 0; display: inline-block; width:100vw;	margin: 0 auto; text-align:center; position: relative;vertical-align: text-top;}
+form{position: inherit;display: inherit;width: auto;vertical-align: top; text-align: justify;}
+.first_container{position: relative; display: inline-block;height: 65vh; padding: 2% 0;}
+
+#trclass{background: linear-gradient(200deg, transparent 50%, white 50%), #26547C;	position: relative;	display: inline-block;
+ height:70vh;                    background-size: 550px 250px;                   background-repeat: no-repeat;
+ background-position: left bottom;                   box-shadow: 4px 4px 4px rgba(0, 0, 0, .5);}
+.login_panel{background:linear-gradient(-71deg, #26547C, #26547C), #0094ff;padding:12px 24px; position:relative;display:inline-block;width:25vw;}
+.login_text{font-family:'Ubuntu';font-size:25px;color:white;padding:25px 0 12px 0;position:relative;display:inline-block;width:100%;}
+label{font-family:'Ubuntu';font-size:12px;color:white;padding-top:15px;position:relative;display:inline-block;width:80%;}
+input[type="text"],input[type="password"],input[type="email"],select
+{font-size:18px; color:white; border:2px;background-color:transparent;border-bottom:2px solid #fff;padding:2% 0;  font-family: ubuntu;  width:100%;}
+input:last-of-type
+{margin-bottom: 15px;}
+select{background-color: #EF476F;}
+select:last-of-type{margin-bottom: 15px;}
+.errors{	color:red;}
+.forgotlink{color:white;right:0;position:relative;display:inline-block;padding:9px 0}
+.forgotlink a {color:white;text-decoration:none;}
+.button{    padding:9px 25px;    background-color: white;    border:2px solid black;    border-radius:8px;    font-family:Ubuntu;    font-size:19px;}
+.button:hover{    background-color: rgba(255, 255, 255, 1.9);   border:2px solid #0094ff;    color:#0094ff;    border-radius:10px;    }
+.new-user{vertical-align:bottom;bottom:10px;position:absolute;width:100%;}
+.new-user > a{text-align:right;text-decoration:none;position:absolute;right:1px; padding:4% 12%; bottom:1px;}
+.termslink{color:#353535;bottom:0;position:relative;display:inline-block;padding:9px 0;
+		& a {color:#353535;text-decoration:none;font-size:12px; bottom:0;position:relative;}
+		& a:not(:last-child)::after{ content:" Р ";font-family: 'Infinitude';}
+	}
+.signupbtn{font-family:Infinitude;font-size:60px;color:#EF476F;}
+.loginbtn{font-family:Infinitude;font-size:60px;color:#26547C;}
+.noselect {  -webkit-touch-callout: none; /* iOS Safari */    -webkit-user-select: none; /* Safari */     -khtml-user-select: none; /* Konqueror HTML */       
+	-moz-user-select: none; /* Firefox */        -ms-user-select: none; /* Internet Explorer/Edge */            user-select: none; /* Non-prefixed version, currently supported by Chrome and Opera */}
+/*******Signup*******/
+#signup_box{background: linear-gradient(200deg, transparent 50%, white 50%), #EF476F;	width:25vw;
+	height:90vh;                    background-size: 450px 200px;                   background-repeat: no-repeat;
+	background-position: left bottom;                   box-shadow: 4px 4px 4px rgba(0, 0, 0, .5);}
+.signup_panel{background:linear-gradient(-10deg, #EF476F, #EF476F);padding:3% 4%; position:relative;display:inline-block;height: 90vh;}
+.signup_text{font-family:'Ubuntu';font-size:25px;color:white;padding:15px 0 12px 0;position:relative;display:inline-block;width:100%;}
+    </style>
+</head>
+<body>
+        <div class="body-content">
+        <div class="main_container">
+    <div class="first_container">
+        <h1>revo hrms app</h1>
+        <p class="small">by Revolution Associates</p>
+        <br/>
+        <h2 style="text-align: center; margin-bottom: 20px;">Key Features</h2>
+        <div>
+            <div style="flex: 1; min-width: 250px; background: white; color: #333; padding: 20px; margin: 10px; border-radius: 5px;">
+                <h3>Employee Management</h3>
+                <p>Centralize employee records and data.</p>
+            </div>
+            <div style="flex: 1; min-width: 250px; background: white; color: #333; padding: 20px; margin: 10px; border-radius: 5px;">
+                <h3>Time & Attendance</h3>
+                <p>Track employee hours and attendance.</p>
+            </div>
+            <div style="flex: 1; min-width: 250px; background: white; color: #333; padding: 20px; margin: 10px; border-radius: 5px;">
+                <h3>Payroll Processing</h3>
+                <p>Automate salary calculations and payments.</p>
+            </div>
+            <div style="flex: 1; min-width: 250px; background: white; color: #333; padding: 20px; margin: 10px; border-radius: 5px;">
+                <h3>Statuary Compliance</h3>
+                <p>Statuary Compliance for various departments.</p>
+            </div>
+        </div>
+    </div>
+    <form method="post">
+        <div id="trclass" class="login_panel">
+          <span class="login_text">Admin Control Panel Login</span>
+            {% csrf_token %}
+            {% if form.errors %}
+            <div class="errors">
+            Your username and password didn't match. <br/>Please try again with correct ID/Password.
+            </div>
+            {% endif %}
+            <label for="id_username">Username:</label>
+            {{ form.username }}
+            <label for="id_password">Password:</label>
+            {{ form.password }}
+        <div class="button_panel">
+            <button class="button" type="submit">Log In</button></div>
+        </form>
+          <span class="forgotlink"></span>
+          <div class="new-user">
+            <span class="termslink">need help ?<br/>
+              <a href="#" title="reset password">forgot password</a><br/>
+              <a href="#" title="Terms & Conditions">(*)terms and conditions</a> <a href="#" title="Privacy Policy">privacy policy</a></span>
+              <a href="#" class="signupbtn">Ň</a><br/>
+              <small><small>© 2021-26 Revolution Associates |
+              All Rights Reserved.</small></small>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+</body>
+</html>

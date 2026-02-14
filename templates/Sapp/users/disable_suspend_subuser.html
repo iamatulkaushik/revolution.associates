@@ -1,0 +1,145 @@
+{% extends "Sapp/base.html" %}
+{% block title %}Disable/Suspend Sub User{% endblock %}
+{% load static %}
+{% block additionalcss_js %}
+<style>
+.container{max-width:700px;margin:40px auto;padding:30px;background:#fff;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,0.1)}
+.user-info{background:#f8f9fa;padding:20px;border-radius:6px;margin-bottom:25px;border-left:4px solid #007bff}
+.user-info h3{margin:0 0 15px;color:#333}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:15px}
+.associate-info{background:#e7f3ff;padding:15px;border-radius:6px;margin-bottom:20px;border-left:4px solid #0056b3}
+.action-section{background:#fff3cd;border:1px solid #ffc107;padding:20px;border-radius:6px;margin-bottom:20px}
+.form-group{margin-bottom:20px}
+.form-group label{display:block;margin-bottom:8px;font-weight:600;color:#dc3545}
+.form-control{width:100%;padding:12px;border:2px solid #ddd;border-radius:4px}
+.btn{padding:15px 30px;border:none;border-radius:4px;cursor:pointer;font-size:16px;font-weight:600;margin:5px}
+.btn-danger{background:#dc3545;color:#fff}
+.btn-warning{background:#ffc107;color:#212529}
+.btn-secondary{background:#6c757d;color:#fff}
+.btn-success{background:#28a745;color:#fff}
+.actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.status-badge{padding:5px 10px;border-radius:4px;font-size:12px;font-weight:600}
+.status-active{background:#d4edda;color:#155724}
+.status-suspended{background:#fff3cd;color:#856404}
+.status-disabled{background:#f8d7da;color:#721c24}
+.suspension-info{background:#e2e3e5;padding:15px;border-radius:6px;margin-top:15px}
+.role-badge{background:#17a2b8;color:#fff;padding:3px 8px;border-radius:3px;font-size:11px}
+</style>
+{% endblock %}
+{% block content %}
+<div class="container">
+<h2 style="color:#dc3545;margin-bottom:25px">🚫 Disable/Suspend Sub User</h2>
+<div class="user-info">
+<h3>{{subuser.user.get_full_name}} <span class="role-badge">{{subuser.role|title}}</span></h3>
+<div class="info-grid">
+<p><strong>Username:</strong> {{subuser.user.username}}</p>
+<p><strong>Email:</strong> {{subuser.user.email}}</p>
+<p><strong>Mobile:</strong> {{subuser.mobile|default:"Not provided"}}</p>
+<p><strong>Status:</strong> 
+{% if subuser.is_active %}
+<span class="status-badge status-active">Active</span>
+{% else %}
+<span class="status-badge status-disabled">Disabled</span>
+{% endif %}
+</p>
+</div>
+<p><strong>Company Access:</strong> {{subuser.get_companies.count}} companies</p>
+{% if subuser.suspension_end_time %}
+<div class="suspension-info">
+<p><strong>⏰ Suspension Status:</strong> Suspended until {{subuser.suspension_end_time|date:"M d, Y H:i"}}</p>
+</div>
+{% endif %}
+</div>
+
+<div class="associate-info">
+<h4>👤 Associate: {{subuser.associate.user.get_full_name}} ({{subuser.associate.associate_id}})</h4>
+<p><strong>Associate Status:</strong> 
+{% if subuser.associate.is_active %}
+<span class="status-badge status-active">Active</span>
+{% else %}
+<span class="status-badge status-disabled">Disabled</span>
+{% endif %}
+</p>
+<p><strong>Associate Companies:</strong> {{subuser.associate.get_companies.count}} companies</p>
+</div>
+
+<div class="action-section">
+<h4>⚠️ Action Required</h4>
+<p>Choose the appropriate action for this sub user:</p>
+<ul>
+<li><strong>Suspend 24h:</strong> Temporarily block login and system access for 24 hours</li>
+<li><strong>Disable:</strong> Permanently disable the sub user account</li>
+<li><strong>Enable:</strong> Restore full access to the system</li>
+</ul>
+<p><small style="color:#856404"><strong>Note:</strong> Sub user access is also dependent on their associate's status.</small></p>
+</div>
+
+<form method="post" id="actionForm">
+{% csrf_token %}
+<div class="form-group">
+<label>Action Type</label>
+<select name="action_type" class="form-control" required onchange="updateButtons()">
+<option value="">Select Action</option>
+<option value="suspend_24h">Suspend for 24 Hours</option>
+<option value="disable">Disable Permanently</option>
+<option value="enable">Enable User</option>
+</select>
+</div>
+<div class="form-group">
+<label>Reason</label>
+<textarea name="reason" class="form-control" rows="3" placeholder="Enter reason for this action" required></textarea>
+</div>
+<div class="actions">
+<a href="{% url 'list_subusers' %}" class="btn btn-secondary">Cancel</a>
+<button type="submit" name="action" value="suspend_24h" class="btn btn-warning" id="suspendBtn" style="display:none">
+🕒 Suspend 24h
+</button>
+<button type="submit" name="action" value="disable" class="btn btn-danger" id="disableBtn" style="display:none">
+🚫 Disable User
+</button>
+<button type="submit" name="action" value="enable" class="btn btn-success" id="enableBtn" style="display:none">
+✅ Enable User
+</button>
+</div>
+</form>
+</div>
+<script>
+function updateButtons() {
+const actionType = document.querySelector('[name="action_type"]').value;
+const suspendBtn = document.getElementById('suspendBtn');
+const disableBtn = document.getElementById('disableBtn');
+const enableBtn = document.getElementById('enableBtn');
+
+// Hide all buttons
+suspendBtn.style.display = 'none';
+disableBtn.style.display = 'none';
+enableBtn.style.display = 'none';
+
+// Show relevant button
+if (actionType === 'suspend_24h') {
+suspendBtn.style.display = 'inline-block';
+} else if (actionType === 'disable') {
+disableBtn.style.display = 'inline-block';
+} else if (actionType === 'enable') {
+enableBtn.style.display = 'inline-block';
+}
+}
+
+document.getElementById('actionForm').addEventListener('submit', function(e) {
+const actionType = document.querySelector('[name="action_type"]').value;
+let confirmMsg = '';
+
+if (actionType === 'suspend_24h') {
+confirmMsg = 'Suspend this sub user for 24 hours?';
+} else if (actionType === 'disable') {
+confirmMsg = 'Permanently disable this sub user? This action can be reversed later.';
+} else if (actionType === 'enable') {
+confirmMsg = 'Enable this sub user and restore full access?';
+}
+
+if (!confirm(confirmMsg)) {
+e.preventDefault();
+}
+});
+</script>
+{% endblock %}

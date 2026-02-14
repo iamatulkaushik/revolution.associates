@@ -1,0 +1,160 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %} {% endblock %} Admin : Revolution Associates</title>
+    <link rel="icon" type="image/ico" href="{% static 'favicon.ico' %}" />
+    <link rel="stylesheet" type="text/css" href="{% static 'css/base.css' %}" />
+    <link      rel="preload"      href="{% static 'fonts/Infinitude.ttf' %}"      as="font"      type="font/ttf"      crossorigin    />
+    <link      rel="preload"      href="{% static 'fonts/Ubuntu-R.ttf' %}"      as="font"      type="font/ttf"      crossorigin    />
+    <style>
+    /* Navbar Core Styles */
+    .navbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #fff;
+        padding: 0 5%;
+        height: 70px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+    }
+
+    .nav-links {
+        display: flex;
+        list-style: none;
+    }
+
+    .nav-links li {
+        position: relative;
+    }
+
+    .nav-links li a {
+        display: block;
+        padding: 20px 25px;
+        color: #333;
+        font-weight: 500;
+        text-decoration: none;
+        transition: 0.3s;
+    }
+
+    .nav-links li:hover > a {
+        color: var(--primary);
+        background: #f8fafc;
+    }
+
+    /* Dropdown Level 1 */
+    .nav-links ul {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        background: #fff;
+        min-width: 200px;
+        box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+        display: none;
+        list-style: none;
+    }
+
+    /* Dropdown Level 2 (The 3rd Level) */
+    .nav-links ul ul {
+        top: 0;
+        left: 100%; /* Opens to the right */
+    }
+
+    /* Show menus on hover (Desktop) */
+    .nav-links li:hover > ul {
+        display: block;
+        animation: fadeIn 0.2s ease-in;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(5px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Mobile Menu Toggle (Hidden on Desktop) */
+    .menu-toggle {
+        display: none;
+        font-size: 24px;
+        cursor: pointer;
+    }
+
+    #checkbox_toggle { display: none; }
+
+    /* Responsive Design for Tablets/Phones */
+    @media (max-width: 792px) {
+        .menu-toggle { display: block; }
+        
+        .nav-links {
+            display: none;
+            position: absolute;
+            background-color: #fff;
+            right: 0;
+            left: 0;
+            top: 70px;
+            flex-direction: column;
+            box-shadow: 0 10px 10px rgba(0,0,0,0.1);
+        }
+
+        /* Show menu when checkbox is checked */
+        #checkbox_toggle:checked ~ .nav-links {
+            display: block;
+        }
+
+        .nav-links li a { padding: 15px; border-bottom: 1px solid #eee; }
+
+        /* Mobile Dropdowns (Simple stack) */
+        .nav-links ul, .nav-links ul ul {
+            position: static;
+            display: block;
+            box-shadow: none;
+            background: #fdfdfd;
+            padding-left: 20px;
+        }
+    }
+</style>
+    {% block additionalcss_js %} {% endblock %}
+  </head>
+  <body>
+    <header>
+    <nav class="navbar">
+        <span class="logo_icon">Ń</span>
+        <!-- <div class="logo">REVOLUTION ASSOCIATES</div> -->
+        <!-- <span class="tagline">Innovate. Integrate. Elevate.</span> -->
+        <input type="checkbox" id="checkbox_toggle" />
+        <label for="checkbox_toggle" class="menu-toggle">&#9776;</label>
+        <ul class="nav-links">
+            <li><a href="{% url 'dashboard' %}">Home</a></li>
+            <li>
+                <a href="#">Masters &#9662;</a>
+                <ul>
+                    <li><a href="{% url 'create_company' %}">Create Company</a></li>
+                </ul>
+            </li>
+            <li>
+                <a href="#">Solutions &#9662;</a>
+                <ul>
+                    <li><a href="#">HRMS Portal</a></li>
+                    <li>
+                        <a href="#">Data Mgmt &#9656;</a>
+                        <ul>
+                            <li><a href="#">Private Cloud</a></li>
+                            <li><a href="#">Local Server</a></li>
+                            <li><a href="#">Hybrid Sync</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#">Payroll Tools</a></li>
+                </ul>
+            </li>
+            <li><a href="#">Associates</a></li>
+            <li><a href="#contact">Contact</a></li>
+        </ul>
+    </nav>
+</header>
+    {% block content %} {% endblock %}
+  </body>
+</html>

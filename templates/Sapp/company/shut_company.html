@@ -1,0 +1,56 @@
+{% extends "Sapp/base.html" %}
+{% block title %}Shut Company{% endblock %}
+{% load static %}
+{% block additionalcss_js %}
+<style>
+.container{max-width:700px;margin:40px auto;padding:30px;background:#fff;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,0.1)}
+.company-info{background:#f8f9fa;padding:20px;border-radius:6px;margin-bottom:25px;border-left:4px solid #007bff}
+.company-info h3{margin:0 0 15px;color:#333;font-size:20px}
+.company-info p{margin:8px 0;color:#666;font-size:14px}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-top:10px}
+.form-group{margin-bottom:20px}
+.form-group label{display:block;margin-bottom:8px;font-weight:600;color:#dc3545;font-size:16px}
+.form-control{width:100%;padding:12px;border:2px solid #ddd;border-radius:4px;font-size:14px}
+.form-control:focus{border-color:#dc3545;outline:none}
+.btn{padding:15px 30px;border:none;border-radius:4px;cursor:pointer;width:100%;font-size:16px;font-weight:600}
+.btn-danger{background:#dc3545;color:#fff}
+.btn-danger:hover{background:#c82333}
+.warning{background:#fff3cd;border:1px solid #ffc107;padding:20px;border-radius:6px;margin-bottom:25px;color:#856404}
+.warning strong{color:#b45309}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-top:20px}
+.btn-secondary{background:#6c757d;color:#fff}
+.btn-secondary:hover{background:#545b62}
+</style>
+{% endblock %}
+{% block content %}
+<div class="container">
+<h2 style="color:#dc3545;margin-bottom:25px">🔒 Shut Company</h2>
+<div class="company-info">
+<h3>{{company.company_name}}</h3>
+<div class="info-grid">
+<p><strong>PAN:</strong> {{company.pan}}</p>
+<p><strong>Mobile:</strong> {{company.mobile}}</p>
+<p><strong>Email:</strong> {{company.email1}}</p>
+<p><strong>Start Date:</strong> {{company.start_date}}</p>
+</div>
+{% if company.shut_date %}
+<p style="color:#dc3545;font-weight:600;margin-top:15px"><strong>Current Shut Date:</strong> {{company.shut_date}}</p>
+{% endif %}
+</div>
+<div class="warning">
+<strong>⚠️ Warning:</strong> Setting a shut date will mark this company as closed. This action can be reversed by editing the company details and removing the shut date.
+</div>
+<form method="post">
+{% csrf_token %}
+<div class="form-group">
+<label>📅 Shut Date *</label>
+<input type="date" name="shut_date" class="form-control" value="{{company.shut_date|date:'Y-m-d'}}" required>
+<small style="color:#666;margin-top:5px;display:block">Select the date when the company operations were shut down</small>
+</div>
+<div class="actions">
+<a href="{% url 'list_company' %}" class="btn btn-secondary">Cancel</a>
+<button type="submit" class="btn btn-danger">Set Shut Date</button>
+</div>
+</form>
+</div>
+{% endblock %}

@@ -17,9 +17,12 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from django.views.generic import RedirectView
+from Sapp.views import base_home
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('sapp/', include('Sapp.urls')),
-    path('', RedirectView.as_view(url='/sapp/login/', permanent=True)),
+    path('',base_home, name="base"),
+    path('baseurls/', admin.site.urls),
+    path('admin/', include('Sapp.urls')),
 ]
+urlpatterns + staticfiles_urlpatterns()

@@ -1,0 +1,134 @@
+@font-face {
+  font-family: Infinitude;
+  src: url("../fonts/Infinitude.ttf");
+}
+@font-face {
+    font-family: Ubuntu;
+    src: url("../fonts/Ubuntu-R.ttf");
+}
+:root {
+    --defaultFont: 'Ubuntu', sans-serif;
+    --splfont: "Infinitude";
+    --Color1: #e63946;
+    --Color2: #f1faee;
+    --Color3: #a8dadc;
+    --Color4: #457b9d;
+    --Color5: #1d3557;
+    --HighlightColor: #ff6f61;
+}
+html {
+  padding: 0;       margin: 0 auto;     scroll-behavior: smooth;        -webkit-background-size: cover;
+  -moz-background-size: cover;      -o-background-size: cover;      background-size: cover;
+}
+body {
+  font-size: 15px;
+  font-family: var(--defaultFont);
+  position: relative;
+  margin: 0;
+  padding: 0;
+  background-color: var(--Color2);
+  min-height: 100vh;
+}
+a {
+  text-decoration: none;
+  color: inherit;
+}
+ul,
+li {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+h1,
+h2,
+h3,
+h4 {
+  padding: 0;
+  margin: 0;
+}
+p {
+  padding: 0;
+  margin: 0;
+}
+.noselect {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+.logo {
+  font-family: var(--splfont);
+  font-size: 24px;
+  color: var(--Color4);
+}
+
+.logo_icon {
+  font-family: var(--splfont);
+  content: "Ń";
+  font-size: 20px;
+  color: var(--Color4);
+}
+
+.card {
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+    overflow: hidden;
+}
+
+.card-header {
+    background-color: var(--Color4);
+    color: var(--Color2);
+    padding: 15px;
+    border-bottom: 1px solid #ddd;
+}
+
+.card-header h3 {
+    margin: 0;
+    font-size: 1.25rem;
+}
+
+.card-body {
+    padding: 15px;
+}
+
+.list-group {
+    padding-left: 0;
+    margin-bottom: 0;
+}
+
+.list-group-item {
+    position: relative;
+    display: block;
+    padding: 10px 15px;
+    background-color: #fff;
+    border-bottom: 1px solid #ddd;
+}
+
+.list-group-item:last-child {
+    border-bottom: none;
+}
+
+.container {
+    padding: 20px;
+}
+
+.row {
+    display: flex;
+    flex-wrap: wrap;
+    margin-right: -15px;
+    margin-left: -15px;
+}
+
+.col-md-4 {
+    position: relative;
+    width: 100%;
+    padding-right: 15px;
+    padding-left: 15px;
+    flex: 0 0 33.333333%;
+    max-width: 33.333333%;
+}

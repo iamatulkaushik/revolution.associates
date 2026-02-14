@@ -3,6 +3,9 @@ from django.db import models
 from django.forms import ModelForm
 from Sapp.app.state_district import State, District
 from Sapp.app.bank import bank_name
+from django.db.models import TextField
+from django.forms.widgets import DateInput, EmailInput, TextInput, URLInput
+
 
 class Company(models.Model):
     company_id = models.AutoField(primary_key=True)
@@ -94,34 +97,34 @@ class company_statury(models.Model):
             return False
         return True
     
-class create_company_form_superadmin(ModelForm):
+class create_company_form_superadmin(forms.ModelForm):
     class Meta:
         model = Company
         fields = ['company_name', 'start_date', 'shut_date', 'tagline1', 'address1', 'address2', 'address3',
                   'state_id', 'district_id', 'pin', 'phone', 'phone2', 'mobile', 'mobile2', 'email1', 'email2',
                   'website', 'pan', 'tan', 'cin', 'bank_id', 'account', 'ifsc', 'branch_address']
         widgets = {
-            'company_name': models.CharField(max_length=255, widget=models.TextInput(attrs={'class': 'form-control', 'placeholder': 'Company Name'})),
-            'start_date': models.DateField(widget=models.DateInput(attrs={'class': 'form-control', 'type': 'date'})),
-            'shut_date': models.DateField(widget=models.DateInput(attrs={'class': 'form-control', 'type': 'date'})),
-            'tagline1': models.CharField(max_length=255, widget=models.TextInput(attrs={'class': 'form-control', 'placeholder': 'Tagline'})),
-            'address1': models.CharField(max_length=255, widget=models.TextInput(attrs={'class': 'form-control', 'placeholder': 'Address Line 1'})),
-            'address2': models.CharField(max_length=255, widget=models.TextInput(attrs={'class': 'form-control', 'placeholder': 'Address Line 2'})),
-            'address3': models.CharField(max_length=255, widget=models.TextInput(attrs={'class': 'form-control', 'placeholder': 'Address Line 3'})),
-            'pin': models.CharField(max_length=6, widget=models.TextInput(attrs={'class': 'form-control', 'placeholder': 'Pin Code'})),
-            'phone': models.CharField(max_length=10, widget=models.TextInput(attrs={'class': 'form-control', 'placeholder': 'Phone Number'})),
-            'phone2': models.CharField(max_length=10, widget=models.TextInput(attrs={'class': 'form-control', 'placeholder': 'Alternate Phone Number'})),
-            'mobile': models.CharField(max_length=10, widget=models.TextInput(attrs={'class': 'form-control', 'placeholder': 'Mobile Number'})),
-            'mobile2': models.CharField(max_length=10, widget=models.TextInput(attrs={'class': 'form-control', 'placeholder': 'Alternate Mobile Number'})),
-            'email1': models.EmailField(widget=models.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Email Address'})),
-            'email2': models.EmailField(widget=models.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Alternate Email Address'})),
-            'website': models.URLField(widget=models.URLInput(attrs={'class': 'form-control', 'placeholder': 'Website URL'})),
-            'pan': models.CharField(max_length=10, widget=models.TextInput(attrs={'class': 'form-control', 'placeholder': 'PAN Number'})),
-            'tan': models.CharField(max_length=10, widget=models.TextInput(attrs={'class': 'form-control', 'placeholder': 'TAN Number'})),
-            'cin': models.CharField(max_length=21, widget=models.TextInput(attrs={'class': 'form-control', 'placeholder': 'CIN Number'})),
-            'account': models.CharField(max_length=20, widget=models.TextInput(attrs={'class': 'form-control', 'placeholder': 'Bank Account Number'})),
-            'ifsc': models.CharField(max_length=11, widget=models.TextInput(attrs={'class': 'form-control', 'placeholder': 'IFSC Code'})),
-            'branch_address': models.CharField(max_length=255, widget=models.TextInput(attrs={'class': 'form-control', 'placeholder': 'Bank Branch Address'})),
+            'company_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Company Name'}),
+            'start_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'shut_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'tagline1': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Tagline'}),
+            'address1': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Address Line 1'}),
+            'address2': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Address Line 2'}),
+            'address3': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Address Line 3'}),
+            'pin': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Pin Code'}),
+            'phone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Phone Number'}),
+            'phone2': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Alternate Phone Number'}),
+            'mobile': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Mobile Number'}),
+            'mobile2': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Alternate Mobile Number'}),
+            'email1': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Email Address'}),
+            'email2': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Alternate Email Address'}),
+            'website': forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'Website URL'}),
+            'pan': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'PAN Number'}),
+            'tan': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'TAN Number'}),
+            'cin': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'CIN Number'}),
+            'account': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Bank Account Number'}),
+            'ifsc': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'IFSC Code'}),
+            'branch_address': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Bank Branch Address'}),
         }
 
     def clean_pan(self):
@@ -153,12 +156,18 @@ class create_company_form_superadmin(ModelForm):
             return pan
         def save(self, commit=True):
             data = self.cleaned_data
+            # Get default state and district (first available)
+            default_state = State.objects.first()
+            default_district = District.objects.filter(state=default_state).first() if default_state else None
+            
             company_instance = Company(
                 company_name=data['company_name'],
                 start_date=data['start_date'],
                 mobile=data['mobile'],
                 email1=data['email1'],
-                pan=data['pan']
+                pan=data['pan'],
+                state_id=default_state,
+                district_id=default_district
             )
             if commit:
                 company_instance.save()

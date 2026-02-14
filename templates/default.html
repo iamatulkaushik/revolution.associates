@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+      {% block title %}{% endblock %} : Revolution Associates
+    </title>
+    {% load static %}
+    <link rel="icon" type="image/ico" href="{% static 'favicon.ico' %}" />
+    <link rel="stylesheet" type="text/css" href="{% static 'css/base.css' %}" />
+    <link
+      rel="preload"
+      href="{% static 'fonts/Infinitude.ttf' %}"
+      as="font"
+      type="font/ttf"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      href="{% static 'fonts/Ubuntu-R.ttf' %}"
+      as="font"
+      type="font/ttf"
+      crossorigin
+    />
+    <meta name="author" content="Atul Kaushik" />
+    <meta name="contact" content="Admin@revolution.associates" />
+    <meta name="rights" content="Revolution Associates" />
+    <meta name="copyright" content="© 2021-2026 Revolution Associates" />
+    <meta name="theme-color" content="#247CCB" />
+    <meta name="description" content="Revolution Associates is an outcome-determinative and detail-oriented company situated in Sonipat, Haryana"/>
+	  <meta name="keywords" content="website, revolution, internet, google, india, hr, Haryana, haryanvi, sonipat, Sonepat, SNP, associates, human resources, HR EPF, EPF, ESIC, HR ESIC, Employees Funds, Incometax, Digital Signature Certificate etc"/>
+    <meta name="googlebot" content="index,follow"/>
+    <meta name="robots" content="index,follow"/>
+    <meta name="Bingbot" content="index,follow"/>
+    <meta name="Slurp" content="index,follow"/>
+    <meta name="facebot" content="index,follow"/>
+    <meta name="ia_archiver" content="index,follow"/>
+    <meta name="Applebot" content="index,follow"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+	<script type="application/ld+json">
+            { 	"@context" : "http://schema.org",
+                "@type" : "LocalBusiness",
+                "Name" : "Revolution Associates",
+                "url" : "https://revolution.associates/",
+                "email" : "admin@revolution.associates",
+                "telephone" : "+91-7015457566",
+                "contactType" :"",
+                            "address" : { 
+                            "@type" : "PostalAddress",
+                            "streetAddress" : "Village and Post office Sitawali", 
+                            "addressLocality" : "Sonipat", 
+                            "addressRegion" : "Haryana", 
+                            "addressCountry" : "India", 
+                            "postalCode" : "131024" }, 
+                "sameAs" : ["https://www.instagram.com/revolution.associates/",],
+				"areaServed" : "Sonipat",
+           		"brand" : "Revolution Associates",
+           		"ethicsPolicy" : "Revolutionary Solution for Everything",
+           		"founder" : "Atul Kaushik",
+           		"knowsLanguage" : "Hindi, English, Haryanvi"
+            }
+    </script>    
+    {% block additionalcss_js %} {% endblock %}
+  </head>
+  <body>
+    {% block content %} {% endblock %}
+  </body>
+</html>

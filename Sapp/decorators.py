@@ -1,5 +1,7 @@
 from functools import wraps
+from django.http import HttpResponseForbidden
 from django.shortcuts import redirect
+from django.contrib.auth.decorators import login_required
 from Sapp.app.license import License
 from Sapp.app.user import associateuser
 
@@ -28,3 +30,16 @@ def license_required(view_func):
 
         return view_func(request, *args, **kwargs)
     return _wrapped_view
+
+def permission_required(module, action):
+    def decorator(view_func):
+        @wraps(view_func)
+        @login_required
+        def _wrapped_view(request, *args, **kwargs):
+            user = request.user
+            if hasattr(user, 'profile') and user.profile.has_permission(module, action):
+                return view_func(request, *args, **kwargs)
+            else:
+                return HttpResponseForbidden("You do not have permission to access this resource.")
+        return _wrapped_view
+    return decorator
