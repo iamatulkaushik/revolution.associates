@@ -115,6 +115,16 @@
         background: #dc3545;
         color: #fff
     }
+
+    .btn-warning {
+        background: #ffc107;
+        color: #000
+    }
+
+    .password-reset-link {
+        margin-left: 15px;
+        text-decoration: none
+    }
 </style>
 {% endblock %}
 {% block content %}
@@ -157,7 +167,7 @@
                     <label>Associate</label>
                     <select name="associate" class="form-control" onchange="loadAssociateCompanies()">
                         {% for assoc in associates %}
-                        <option value="{{assoc.id}}" {% if assoc.id==subuser.associate.id %}selected{% endif %}>
+                        <option value="{{assoc.id}}" {% if assoc.id == subuser.associate.id %}selected{% endif %}>
                             {{assoc.user.get_full_name}} - {{assoc.associate_id}}
                         </option>
                         {% endfor %}
@@ -172,8 +182,8 @@
                 <div class="form-group">
                     <label>User Role</label>
                     <select name="role" class="form-control">
-                        <option value="operator" {% if subuser.role=='operator' %}selected{% endif %}>Operator</option>
-                        <option value="employee" {% if subuser.role=='employee' %}selected{% endif %}>Employee</option>
+                        <option value="operator" {% if subuser.role == 'operator' %}selected{% endif %}>Operator</option>
+                        <option value="employee" {% if subuser.role == 'employee' %}selected{% endif %}>Employee</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -195,7 +205,7 @@
                 <label>Update Company Access</label>
                 <select name="companies" class="form-control" multiple id="companySelect">
                     {% for company in subuser.associate.get_companies %}
-                    <option value="{{company.id}}" {% if company in subuser.get_companies %}selected{% endif %}>
+                    <option value="{{company.company_id}}" {% if company in subuser.get_companies %}selected{% endif %}>
                         {{company.company_name}} - {{company.pan}}
                     </option>
                     {% endfor %}
@@ -215,7 +225,7 @@
                     </p>
                     <div class="company-actions">
                         <button type="button" class="btn btn-danger btn-sm"
-                            onclick="removeCompanyAccess({{company.id}})">
+                            onclick="removeCompanyAccess({{company.company_id}})">
                             Remove Access
                         </button>
                     </div>
@@ -238,6 +248,7 @@
             </div>
         </div>
         <button type="submit" class="btn btn-primary">Update Sub User</button>
+        <a href="{% url 'reset_subuser_password' subuser.id %}" class="btn btn-warning password-reset-link">Reset Password</a>
     </form>
 </div>
 <script>
@@ -261,7 +272,7 @@
                     companySelect.innerHTML = '';
                     data.companies.forEach(company => {
                         const option = document.createElement('option');
-                        option.value = company.id;
+                        option.value = company.company_id;
                         option.textContent = `${company.company_name} - ${company.pan}`;
                         companySelect.appendChild(option);
                     });

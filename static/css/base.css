@@ -59,6 +59,17 @@ p {
   user-select: none;
 }
 
+input[type="text"],input[type="password"],input[type="email"],select, input[type="date"],input[type="url"], input[type="tel"], textarea
+{font-size:18px; color:black; border:1px;border-bottom:2px solid var(--Color3);padding:4px 0;  font-family: ubuntu;  width:100%;}
+input[type="text"]:focus,input[type="password"]:focus,input[type="email"]:focus, input[type="date"]:focus,input[type="url"]:focus, input[type="tel"]:focus{outline:none; border-bottom:2px solid var(--HighlightColor);}
+select:focus{outline:none; border-bottom:2px solid var(--HighlightColor);}
+
+.button{    padding:10px 20px;    background-color: white;    
+  border:2px solid black;    border-radius:10px;    
+  font-family:Ubuntu;    font-size:14px;}
+.button:hover{    background-color: rgba(255, 255, 255, 1.9);   
+  border:2px solid #0094ff;    color:#0094ff;    border-radius:10px;    }
+
 .logo {
   font-family: var(--splfont);
   font-size: 24px;
@@ -67,18 +78,78 @@ p {
 
 .logo_icon {
   font-family: var(--splfont);
-  content: "Ń";
-  font-size: 20px;
-  color: var(--Color4);
+  font-size: 48px;
+  color: #d7d7d7;
 }
 
+.l-container {
+  justify-content: center;
+  align-items: center;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  grid-gap: 2px;
+  width: 100%;
+  max-width: 1366px;
+  padding: 10px;
+}
+
+.card{
+  width:15vw;
+  height:10vh;
+  color:white;
+  padding:10px;
+  background-color:#f0f0f0;
+  border-radius:10px;
+  border:1px solid #fff;
+  background: linear-gradient(45deg,rgba(168, 218, 220, 1) 0%, rgba(29, 53, 87, 0.5) 100%);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+
+}
+.card:hover{
+  background: linear-gradient(45deg,rgba(29, 53, 87, 0.51) 0%, rgba(168, 218, 220, 0.5) 100%);
+    transition: background-color 0.2s ease-in;
+}
+.icon{
+  right:0;
+  font-family: 'Infinitude';
+  text-overflow:cover;
+  float:right;
+  filter:drop-shadow(1px 1px 5px #252545);
+}
+.data{
+  Font-size:18px;
+  padding-top:25px;
+  z-index:2;
+}
+.title{
+  font-size:14px;
+}
+.comments{
+  font-size:10px;
+}
+#icon{
+  font-size:60px;
+  position:static;
+  text-overflow:cover;
+  z-index:1;
+}
+@media screen and (max-width: 760px) {
+  .l-container {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .card{
+    width:40vw;
+  }
+}
+
+/* 
 .card {
     background-color: #fff;
     border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     margin-bottom: 20px;
     overflow: hidden;
-}
+} */
 
 .card-header {
     background-color: var(--Color4);

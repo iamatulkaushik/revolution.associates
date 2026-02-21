@@ -15,6 +15,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
+from django_hosts import patterns, host
 from django.urls import path, include
 from django.views.generic import RedirectView
 from Sapp.views import base_home
@@ -24,5 +25,13 @@ urlpatterns = [
     path('',base_home, name="base"),
     path('baseurls/', admin.site.urls),
     path('admin/', include('Sapp.urls')),
+    path('associate/',include('Aapp.urls')),
 ]
+host_patterns = patterns('',
+    host(r'www', 'revolution.urls', name='www'),
+    host(r'associate', 'Aapp.urls', name='associate'),
+    host(r'admin', 'Sapp.urls', name='admin'),
+    host(r'api', 'api.urls', name='api'),
+)
+
 urlpatterns + staticfiles_urlpatterns()

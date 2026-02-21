@@ -1,0 +1,158 @@
+{% extends 'default.html' %}
+{% block title %}Dashboard{% endblock %}
+{% block additionalcss_js %}
+<style>
+    /* Dashboard Specific Enhancements */
+    .top-bar {
+        background: white;
+        padding: 1rem 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .user-panel {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .login-info {
+        text-align: right;
+        font-size: 0.8rem;
+        color: #64748b;
+    }
+
+    .logout-btn {
+        color: #ef4444;
+        font-weight: 600;
+        font-size: 0.85rem;
+        text-decoration: none;
+        border: 1px solid #fee2e2;
+        padding: 5px 12px;
+        border-radius: 6px;
+    }
+
+    /* Selected Company Header */
+    .company-focus-banner {
+        background: var(--white);
+        padding: 1.5rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+        border-left: 5px solid var(--primary);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+    }
+
+    .company-meta h2 { margin: 0; color: var(--dark); }
+    .company-contact-tags {
+        display: flex;
+        gap: 15px;
+        margin-top: 8px;
+        font-size: 0.85rem;
+    }
+
+    /* Metric Grid */
+    .metrics-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .metric-card {
+        background: white;
+        padding: 1.25rem;
+        border-radius: 10px;
+        border: 1px solid #e2e8f0;
+    }
+
+    .metric-card .label { font-size: 0.75rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; }
+    .metric-card .count { font-size: 1.5rem; font-weight: 800; color: var(--dark); display: block; margin-top: 5px; }
+
+    /* Action Grid */
+    .dual-grid {
+        display: grid;
+        grid-template-columns: 1.5fr 1fr;
+        gap: 1.5rem;
+    }
+
+    .approval-list { list-style: none; }
+    .approval-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 12px 0;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .btn-small { padding: 4px 8px; font-size: 0.75rem; border-radius: 4px; cursor: pointer; border: none; }
+    .btn-approve { background: #dcfce7; color: #166534; }
+</style>
+{% endblock %}
+{% block content %}
+<!-- {% include 'Aapp/navbar.html' %} -->
+<div class="dashboard-container">
+    <div style="flex: 1; display: flex; flex-direction: column;">
+        <div class="top-bar">
+            <div class="breadcrumb">Dashboard / Associate Panel</div>
+            <div class="user-panel">
+                <div class="login-info">
+                    <strong>{{ user.username }} | {% if user.associate_profile %}Associate{% elif user.profile %}{{ user.profile.get_role_display }}{% else %}User{% endif %} <br/> {{ user.email }}  </strong><br>
+                    <span>{{ user.last_login }}</span>
+                </div>
+                <a href="{% url 'logout' %}" class="button">Logout</a>
+            </div>
+        </div>
+        <main class="main-content">
+            <div class="company-focus-banner">
+                <div class="company-meta">
+                    <span style="color: var(--primary); font-size: 0.8rem; font-weight: 700;">ACTIVE COMPANY</span>
+                    <h2>TechVanguard Solutions Pvt Ltd</h2>
+                    <div class="company-contact-tags">
+                        <span>📞 +91-9000012345</span>
+                        <span>✉️ hr@techvanguard.in</span>
+                        <span>📍 Gurgaon, HR</span>
+                    </div>
+                </div>
+                <button class="button"> <span style="font-family: 'Webdings';font-size: x-large;" >q</span></button>
+            </div>
+
+            <div class="l-container">
+                <div class="card">
+                    <div class="icon" id="icon">ŧ</div>
+                    <div class="data">₹ 1.2M</div>
+                    <div class="title">Monthly Payroll</div>
+                    <div class="comments">Total Payroll for Current Month</div>
+                </div>
+                <div class="card">
+                    <div class="icon" id="icon">ı</div>
+                    <div class="data">1,240</div>
+                    <div class="title">Employees</div>
+                    <div class="comments">Total No of Employees in company</div>
+                </div>
+                <div class="card">
+                    <div class="icon" id="icon">У</div>
+                    <div class="data">12 | 04</div>
+                    <div class="title">Departments | Branches</div>
+                    <div class="comments">Total No of Departments in company</div>
+                </div>
+                <div class="card">
+                    <div class="icon" id="icon">Ī</div>
+                    <div class="data">08</div>
+                    <div class="title">Active Sub-Users</div>
+                    <div class="comments">Total No of Sub-Users</div>
+                </div>
+                <div class="card">
+                    <div class="icon" id="icon">П</div>
+                    <div class="data">05</div>
+                    <div class="title">Total Companies</div>
+                    <div class="comments">my total companies</div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+{% endblock %}

@@ -52,8 +52,13 @@
 
     .main-grid {
         display: grid;
-        grid-template-columns: 1fr 1fr 1fr;
-        gap: 30px
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+        margin-bottom: 30px
+    }
+
+    .full-width {
+        grid-column: 1 / -1
     }
 
     .section-card {
@@ -111,6 +116,29 @@
         font-size: 14px
     }
 
+    .status-badge {
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 600;
+        display: inline-block
+    }
+
+    .status-active {
+        background: #d4edda;
+        color: #155724
+    }
+
+    .status-suspended {
+        background: #fff3cd;
+        color: #856404
+    }
+
+    .status-disabled {
+        background: #f8d7da;
+        color: #721c24
+    }
+
     .btn {
         padding: 8px 16px;
         border: none;
@@ -155,26 +183,21 @@
 {% endblock %}
 {% block content %}
 <div class="container">
-    <div class="dashboard-header">
-        <h1>Revolution Associates</h1>
-        <p>Company Management Dashboard</p>
-    </div>
-
     <div class="stats-grid">
         <div class="stat-card">
-            <h3>{{CompanyDetails|length}}</h3>
+            <h3><a href="{% url 'list_company' %}">{{CompanyDetails|length}}</a></h3>
             <p>Total Companies</p>
         </div>
         <div class="stat-card">
-            <h3>{{associates_count}}</h3>
+            <h3><a href="{% url 'list_associates' %}">{{associates_count}}</a></h3>
             <p>Associates</p>
         </div>
         <div class="stat-card">
-            <h3>{{subusers_count}}</h3>
+            <h3><a href="{% url 'list_subusers' %}">{{subusers_count}}</a></h3>
             <p>Sub Users</p>
         </div>
         <div class="stat-card">
-            <h3>{{LicenseDetails|length}}</h3>
+            <h3><a href="{% url 'list_licenses' %}">{{LicenseDetails|length}}</a></h3>
             <p>Active Licenses</p>
         </div>
     </div>
@@ -182,47 +205,8 @@
     <div class="main-grid">
         <div class="section-card">
             <div class="section-header">
-                <h3>🏢 Companies</h3>
-                <div class="company-actions">
-                    <a href="{% url 'quick_company' %}" class="btn btn-success btn-sm">Quick Add</a>
-                    <a href="{% url 'create_company' %}" class="btn btn-primary btn-sm">New Company</a>
-                </div>
-            </div>
-            <div class="section-body">
-                {% if CompanyDetails %}
-                <ul class="item-list">
-                    {% for company in CompanyDetails %}
-                    <li>
-                        <div>
-                            <div class="item-name">{{company.company_name}}</div>
-                            <div class="item-detail">PAN: {{company.pan}} | {{company.mobile}}</div>
-                        </div>
-                        <div>
-                            <a href="{% url 'alter_company' company.company_id %}"
-                                class="btn btn-warning btn-sm">Edit</a>
-                        </div>
-                    </li>
-                    {% endfor %}
-                </ul>
-                <div style="text-align:center;margin-top:15px">
-                    <a href="{% url 'list_company' %}" class="btn btn-primary">View All Companies</a>
-                </div>
-                {% else %}
-                <div class="empty-state">
-                    <p>No companies registered yet</p>
-                    <a href="{% url 'create_company' %}" class="btn btn-primary">Create First Company</a>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-
-        <div class="section-card">
-            <div class="section-header">
                 <h3>👥 Associates</h3>
-                <div class="company-actions">
-                    <a href="{% url 'create_associate' %}" class="btn btn-success btn-sm">New Associate</a>
-                    <a href="{% url 'list_associates' %}" class="btn btn-primary btn-sm">View All</a>
-                </div>
+                <a href="{% url 'create_associate' %}" class="btn btn-success btn-sm">New Associate</a>
             </div>
             <div class="section-body">
                 {% if associates_list %}
@@ -230,16 +214,24 @@
                     {% for associate in associates_list %}
                     <li>
                         <div>
-                            <div class="item-name">{{associate.user.username}}</div>
-                            <div class="item-detail">ID: {{associate.associate_id}} | {{associate.user.email}}</div>
+                            <div class="item-name">{{associate.user.get_full_name}}</div>
+                            <div class="item-detail">
+                                ID: {{associate.associate_id}} | 
+                                Companies: {{associate.get_companies.count}} | 
+                                <span class="status-badge {% if associate.is_active %}status-active{% else %}status-disabled{% endif %}">
+                                    {{associate.get_status_display}}
+                                </span>
+                            </div>
                         </div>
                         <div>
                             <a href="{% url 'alter_associate' associate.id %}" class="btn btn-warning btn-sm">Edit</a>
-                            <a href="{% url 'disable_suspend_associate' associate.id %}" class="btn btn-sm" style="background:#dc3545;color:#fff">Disable</a>
                         </div>
                     </li>
                     {% endfor %}
                 </ul>
+                <div style="text-align:center;margin-top:15px">
+                    <a href="{% url 'list_associates' %}" class="btn btn-primary">View All Associates</a>
+                </div>
                 {% else %}
                 <div class="empty-state">
                     <p>No associates created yet</p>
@@ -252,10 +244,7 @@
         <div class="section-card">
             <div class="section-header">
                 <h3>👤 Sub Users</h3>
-                <div class="company-actions">
-                    <a href="{% url 'create_subuser' %}" class="btn btn-success btn-sm">New Sub User</a>
-                    <a href="{% url 'list_subusers' %}" class="btn btn-primary btn-sm">View All</a>
-                </div>
+                <a href="{% url 'create_subuser' %}" class="btn btn-success btn-sm">New Sub User</a>
             </div>
             <div class="section-body">
                 {% if subusers_list %}
@@ -263,20 +252,68 @@
                     {% for subuser in subusers_list %}
                     <li>
                         <div>
-                            <div class="item-name">{{subuser.user.username}}</div>
-                            <div class="item-detail">{{subuser.role|title}} | {{subuser.associate.associate_id}}</div>
+                            <div class="item-name">{{subuser.user.get_full_name}}</div>
+                            <div class="item-detail">
+                                {{subuser.role|title}} | Associate: {{subuser.associate.associate_id}} | 
+                                <span class="status-badge {% if subuser.is_active %}status-active{% else %}status-disabled{% endif %}">
+                                    {{subuser.get_status_display}}
+                                </span>
+                            </div>
                         </div>
                         <div>
                             <a href="{% url 'alter_subuser' subuser.id %}" class="btn btn-warning btn-sm">Edit</a>
-                            <a href="{% url 'disable_suspend_subuser' subuser.id %}" class="btn btn-sm" style="background:#dc3545;color:#fff">Disable</a>
                         </div>
                     </li>
                     {% endfor %}
                 </ul>
+                <div style="text-align:center;margin-top:15px">
+                    <a href="{% url 'list_subusers' %}" class="btn btn-primary">View All Sub Users</a>
+                </div>
                 {% else %}
                 <div class="empty-state">
                     <p>No sub users created yet</p>
                     <a href="{% url 'create_subuser' %}" class="btn btn-primary">Create First Sub User</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="main-grid">
+        <div class="section-card full-width">
+            <div class="section-header">
+                <h3>📄 Licenses</h3>
+                <a href="{% url 'issue_license' %}" class="btn btn-success btn-sm">Issue License</a>
+            </div>
+            <div class="section-body">
+                {% if LicenseDetails %}
+                <ul class="item-list">
+                    {% for license in LicenseDetails %}
+                    <li>
+                        <div>
+                            <div class="item-name">{{license.company.company_name}}</div>
+                            <div class="item-detail">
+                                {{license.get_license_type_display}} | Key: {{license.license_key}} | 
+                                Expires: {{license.expiry_date}} | 
+                                <span class="status-badge {% if license.status == 'active' %}status-active{% elif license.status == 'suspended' %}status-suspended{% else %}status-disabled{% endif %}">
+                                    {{license.get_status_display}}
+                                </span>
+                            </div>
+                        </div>
+                        <div>
+                            <a href="{% url 'alter_license' license.license_id %}" class="btn btn-warning btn-sm">Edit</a>
+                            <a href="{% url 'revoke_suspend_license' license.license_id %}" class="btn btn-sm" style="background:#dc3545;color:#fff">Manage</a>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+                <div style="text-align:center;margin-top:15px">
+                    <a href="{% url 'list_licenses' %}" class="btn btn-primary">View All Licenses</a>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <p>No licenses issued yet</p>
+                    <a href="{% url 'issue_license' %}" class="btn btn-primary">Issue First License</a>
                 </div>
                 {% endif %}
             </div>

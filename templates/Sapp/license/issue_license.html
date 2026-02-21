@@ -1,0 +1,138 @@
+{% extends "Sapp/base.html" %}
+{% block title %}Issue License{% endblock %}
+{% block additionalcss_js %}
+<style>
+    .form-container {
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 30px;
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1)
+    }
+
+    .form-group {
+        margin-bottom: 20px
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 600;
+        color: #333
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 14px
+    }
+
+    .btn {
+        padding: 12px 30px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px
+    }
+
+    .btn-primary {
+        background: #007bff;
+        color: #fff
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px
+    }
+
+    .license-info {
+        background: #e7f3ff;
+        padding: 15px;
+        border-radius: 6px;
+        margin-bottom: 20px;
+        border-left: 4px solid #007bff
+    }
+</style>
+{% endblock %}
+{% block content %}
+<div class="form-container">
+    <h2>Issue New License</h2>
+    {% if messages %}
+    <div style="margin-bottom:20px">
+        {% for message in messages %}
+        <div
+            style="padding:10px;border-radius:4px;background:{% if message.tags == 'error' %}#f8d7da;color:#721c24{% else %}#d4edda;color:#155724{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    <div class="license-info">
+        <p><strong>Note:</strong> Company licenses are valid for 1 year. License key will be auto-generated if not
+            provided.</p>
+    </div>
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-row">
+            <div class="form-group">
+                <label>Company *</label>
+                <select name="company" class="form-control" required>
+                    <option value="">Select Company</option>
+                    {% for company in companies %}
+                    <option value="{{company.company_id}}">{{company.company_name}} - {{company.pan}}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Associate (Optional)</label>
+                <select name="associate" class="form-control">
+                    <option value="">None</option>
+                    {% for assoc in associates %}
+                    <option value="{{assoc.id}}">{{assoc.user.get_full_name}} - {{assoc.associate_id}}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label>License Type *</label>
+                <select name="license_type" class="form-control" required onchange="updateLicenseInfo()">
+                    <option value="trial">Trial (7 days, 1 user)</option>
+                    <option value="basic">Basic (1 year, 5 users)</option>
+                    <option value="premium">Premium (3 years, 10 users)</option>
+                    <option value="enterprise">Enterprise (10 years, unlimited)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Issue Date *</label>
+                <input type="date" name="issue_date" class="form-control" required>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label>License Key (Optional)</label>
+                <input type="text" name="license_key" class="form-control" placeholder="Auto-generated">
+            </div>
+            <div class="form-group">
+                <label>Max Users</label>
+                <input type="number" name="max_users" class="form-control" value="5" id="maxUsers">
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Issue License</button>
+    </form>
+</div>
+<script>
+    function updateLicenseInfo() {
+        const type = document.querySelector('[name="license_type"]').value;
+        const maxUsers = document.getElementById('maxUsers');
+        if (type === 'trial') maxUsers.value = 1;
+        else if (type === 'basic') maxUsers.value = 5;
+        else if (type === 'premium') maxUsers.value = 10;
+        else if (type === 'enterprise') maxUsers.value = 999999;
+    }
+</script>
+{% endblock %}

@@ -424,7 +424,7 @@ def can_user_access_system(user):
         return profile.can_login() if profile else user.is_active
     else:
         return user.is_active
-    
+            
     def get_status_display(self):
         """Get human readable status"""
         if not self.is_active:
@@ -449,3 +449,33 @@ def can_user_access_system(user):
         companies_to_remove = current_companies - associate_companies
         for company in companies_to_remove:
             self.remove_company(company)
+
+# utility function to change associate user password
+def change_associate_password(associate, new_password):
+    """Change password for associate user"""
+    user = associate.user
+    user.set_password(new_password)
+    user.save()
+    
+    # Log the action
+    UserActivityLog.objects.create(
+        user=user,
+        action=f"Associate password changed"
+    )
+    
+    return True
+
+#utility function to change sub user password
+def change_subuser_password(subuser, new_password):
+    """Change password for sub user"""
+    user = subuser.user
+    user.set_password(new_password)
+    user.save()
+    
+    # Log the action
+    UserActivityLog.objects.create(
+        user=user,
+        action=f"Sub user password changed"
+    )
+    
+    return True

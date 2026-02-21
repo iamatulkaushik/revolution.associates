@@ -1,0 +1,58 @@
+{% extends 'default.html' %}
+{% block title %}Create Branch {% endblock %}
+{% block additionalcss_js %}
+{% endblock %}
+{% block content %}
+<h2 class="text-2xl font-bold mb-4">Create Branch</h2>
+<form method="post" action="{% url 'create_branch' %}">
+    {% csrf_token %}
+    <table>
+        <th>create branch</th>
+        <tr><td><label for="branch_name" class="block text-gray-700 font-bold mb-2">Branch Name:</label></td>
+        <td><input type="text" id="branch_name" name="branch_name" required></td></tr>
+        <tr>
+            <td><label for="branch_code" class="block text-gray-700 font-bold mb-2">Branch Code:</label></td>
+            <td><input type="text" id="branch_code" name="branch_code" required></td>
+        </tr>        
+        <tr>
+            <td><label for="branch_location" class="block text-gray-700 font-bold mb-2">Branch Location:</label></td>
+            <td><input type="text" id="branch_location" name="branch_location" required></td>
+        </tr>
+        <tr>
+            <td><label for="branch_manager" class="block text-gray-700 font-bold mb-2">Branch Manager:</label></td>
+            <td><input type="text" id="branch_manager" name="branch_manager" required></td>
+        </tr>
+        <td colspan="2">
+            <button type="submit" class="button">Create Branch</button>
+            <a href="{% url 'branch_list' %}" class="button">Cancel</a>
+        </td>
+        <td>
+            <!--Branch List grid of selected company and selected associate-->
+            {% if branches %}
+            <h3 class="text-xl font-bold mb-2">Branch List</h3>
+            <table class="min-w-full">
+                <thead>
+                    <tr>
+                        <th class="px-4 py-2">Branch Name</th>
+                        <th class="px-4 py-2">Branch Code</th>
+                        <th class="px-4 py-2">Branch Location</th>
+                        <th class="px-4 py-2">Branch Manager</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for branch in branches %}
+                    <tr>
+                        <td class="px-4 py-2">{{ branch.branch_name }}</td>
+                        <td class="px-4 py-2">{{ branch.branch_code }}</td>
+                        <td class="px-4 py-2">{{ branch.branch_location }}</td>
+                        <td class="px-4 py-2">{{ branch.branch_manager }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% endif %}
+        </td>
+    </table>
+    </form>
+
+{% endblock%}

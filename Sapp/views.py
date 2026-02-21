@@ -7,7 +7,7 @@ from django.db import transaction
 
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth import authenticate, login as auth_login
+from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
 from Sapp.app.company import Company, create_company_form_superadmin
 from Sapp.app.user import UserProfile, associateuser, SubUser, create_associate_user, create_sub_user
 from Sapp.app.license import License
@@ -35,6 +35,11 @@ def login(request):
 
 def signup(request):
     return render(request, 'signup.html')
+
+def logout(request):
+    auth_logout(request)
+    messages.success(request, "Logged Out Successfully")
+    return redirect('../signin')
 
 @login_required
 def dashboard(request):
@@ -155,8 +160,7 @@ def create_associate(request):
             print("Starting transaction...")
             with transaction.atomic():
                 companies = request.POST.getlist('companies')
-                company_objects = Company.objects.filter(id__in=companies) if companies else []
-                print(f"Selected companies: {companies}")
+                companies = [c for c in companies if c]  # Filter out empty strings
                 
                 associate = create_associate_user(
                     username=username,
@@ -167,9 +171,16 @@ def create_associate(request):
                     associate_id=associate_id,
                     mobile=request.POST.get('mobile'),
                     address=request.POST.get('address'),
-                    companies=company_objects
+                    companies=None  # Don't pass companies yet
                 )
+                
+                # Add companies after associate is created
+                if companies:
+                    company_objects = Company.objects.filter(company_id__in=companies)
+                    associate.companyid.set(company_objects)
+                
                 print(f"Associate created: {associate}")
+                print(f"Selected companies: {companies}")
                 messages.success(request, f'Associate {associate.associate_id} created successfully!')
                 return redirect('list_associates')
         except Exception as e:
@@ -203,8 +214,9 @@ def alter_associate(request, associate_id):
                 
                 # Update companies
                 companies = request.POST.getlist('companies')
+                companies = [c for c in companies if c]  # Filter out empty strings
                 if companies:
-                    company_objects = Company.objects.filter(id__in=companies)
+                    company_objects = Company.objects.filter(company_id__in=companies)
                     associate.companyid.set(company_objects)
                 
                 messages.success(request, 'Associate updated successfully!')
@@ -248,6 +260,28 @@ def list_associates(request):
     associates = associateuser.objects.all().select_related('user')
     return render(request, 'Sapp/users/list_associates.html', {'associates': associates})
 
+@login_required
+def reset_associate_password(request, associate_id):
+    associate = get_object_or_404(associateuser, id=associate_id)
+    
+    if request.method == 'POST':
+        new_password = request.POST.get('new_password')
+        confirm_password = request.POST.get('confirm_password')
+        
+        if new_password == confirm_password:
+            associate.user.set_password(new_password)
+            associate.user.save()
+            messages.success(request, f'Password reset successfully for {associate.user.username}!')
+            return redirect('alter_associate', associate_id=associate_id)
+        else:
+            messages.error(request, 'Passwords do not match!')
+    
+    return render(request, 'Sapp/users/reset_password.html', {
+        'user_obj': associate,
+        'user_type': 'Associate',
+        'redirect_url': 'alter_associate'
+    })
+
 # Sub User Management Views
 @login_required
 def create_subuser(request, associate_id=None):
@@ -260,7 +294,8 @@ def create_subuser(request, associate_id=None):
             with transaction.atomic():
                 associate_obj = get_object_or_404(associateuser, id=request.POST['associate'])
                 companies = request.POST.getlist('companies')
-                company_objects = Company.objects.filter(id__in=companies) if companies else []
+                companies = [c for c in companies if c]  # Filter out empty strings
+                company_objects = Company.objects.filter(company_id__in=companies) if companies else []
                 
                 subuser = create_sub_user(
                     username=request.POST['username'],
@@ -312,11 +347,12 @@ def alter_subuser(request, subuser_id):
                 
                 # Update companies (only those available through associate)
                 companies = request.POST.getlist('companies')
+                companies = [c for c in companies if c]  # Filter out empty strings
                 if companies:
                     company_objects = Company.objects.filter(
-                        id__in=companies
+                        company_id__in=companies
                     ).filter(
-                        id__in=new_associate.companyid.values_list('id', flat=True)
+                        company_id__in=new_associate.companyid.values_list('company_id', flat=True)
                     )
                     subuser.companyid.set(company_objects)
                 
@@ -361,12 +397,34 @@ def list_subusers(request):
     subusers = SubUser.objects.all().select_related('user', 'associate__user')
     return render(request, 'Sapp/users/list_subusers.html', {'subusers': subusers})
 
+@login_required
+def reset_subuser_password(request, subuser_id):
+    subuser = get_object_or_404(SubUser, id=subuser_id)
+    
+    if request.method == 'POST':
+        new_password = request.POST.get('new_password')
+        confirm_password = request.POST.get('confirm_password')
+        
+        if new_password == confirm_password:
+            subuser.user.set_password(new_password)
+            subuser.user.save()
+            messages.success(request, f'Password reset successfully for {subuser.user.username}!')
+            return redirect('alter_subuser', subuser_id=subuser_id)
+        else:
+            messages.error(request, 'Passwords do not match!')
+    
+    return render(request, 'Sapp/users/reset_password.html', {
+        'user_obj': subuser,
+        'user_type': 'Sub User',
+        'redirect_url': 'alter_subuser'
+    })
+
 # AJAX Views
 @login_required
 def get_associate_companies(request, associate_id):
     try:
         associate = get_object_or_404(associateuser, id=associate_id)
-        companies = associate.get_companies().values('id', 'company_name', 'pan')
+        companies = associate.get_companies().values('company_id', 'company_name', 'pan')
         return JsonResponse({'companies': list(companies)})
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
@@ -392,3 +450,93 @@ def remove_subuser_company_access(request, company_id):
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)
     return JsonResponse({'error': 'Invalid request'}, status=400)
+
+
+# License Management Views
+@login_required
+def issue_license(request):
+    if request.method == 'POST':
+        try:
+            from datetime import datetime
+            import uuid
+            
+            company = get_object_or_404(Company, company_id=request.POST['company'])
+            associate_id = request.POST.get('associate')
+            associate = get_object_or_404(associateuser, id=associate_id) if associate_id else None
+            
+            license_key = request.POST.get('license_key') or str(uuid.uuid4())[:16].upper()
+            issue_date = datetime.strptime(request.POST['issue_date'], '%Y-%m-%d').date()
+            
+            license = License.objects.create(
+                company=company,
+                associate=associate,
+                license_key=license_key,
+                license_type=request.POST['license_type'],
+                issue_date=issue_date,
+                max_users=request.POST.get('max_users', 5)
+            )
+            messages.success(request, f'License {license.license_key} issued successfully!')
+            return redirect('list_licenses')
+        except Exception as e:
+            messages.error(request, f'Error issuing license: {str(e)}')
+    
+    companies = Company.objects.all()
+    associates = associateuser.objects.filter(is_active=True)
+    return render(request, 'Sapp/license/issue_license.html', {
+        'companies': companies,
+        'associates': associates
+    })
+
+@login_required
+def list_licenses(request):
+    licenses = License.objects.all().select_related('company', 'associate__user')
+    return render(request, 'Sapp/license/list_licenses.html', {'licenses': licenses})
+
+@login_required
+def alter_license(request, license_id):
+    license = get_object_or_404(License, license_id=license_id)
+    
+    if request.method == 'POST':
+        try:
+            associate_id = request.POST.get('associate')
+            license.associate = get_object_or_404(associateuser, id=associate_id) if associate_id else None
+            license.license_type = request.POST['license_type']
+            license.max_users = request.POST['max_users']
+            license.issue_date = request.POST['issue_date']
+            license.expiry_date = request.POST['expiry_date']
+            license.save()
+            messages.success(request, 'License updated successfully!')
+            return redirect('list_licenses')
+        except Exception as e:
+            messages.error(request, f'Error updating license: {str(e)}')
+    
+    associates = associateuser.objects.filter(is_active=True)
+    return render(request, 'Sapp/license/alter_licese.html', {
+        'license': license,
+        'associates': associates
+    })
+
+@login_required
+def revoke_suspend_license(request, license_id):
+    license = get_object_or_404(License, license_id=license_id)
+    
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        reason = request.POST.get('reason', '')
+        
+        try:
+            if action == 'suspend':
+                license.suspend(reason)
+                messages.success(request, 'License suspended successfully.')
+            elif action == 'revoke':
+                license.revoke(reason)
+                messages.success(request, 'License revoked successfully.')
+            elif action == 'activate':
+                license.activate()
+                messages.success(request, 'License activated successfully.')
+            
+            return redirect('list_licenses')
+        except Exception as e:
+            messages.error(request, f'Error: {str(e)}')
+    
+    return render(request, 'Sapp/license/revoke_suspend_licese.html', {'license': license})

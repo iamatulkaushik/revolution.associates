@@ -73,6 +73,15 @@
 {% block content %}
 <div class="form-container">
     <h2>Create Associate User</h2>
+    {% if messages %}
+    <div style="margin-bottom:20px">
+        {% for message in messages %}
+        <div style="padding:10px;border-radius:4px;background:{% if message.tags == 'error' %}#f8d7da;color:#721c24{% else %}#d4edda;color:#155724{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
     <div class="role-info">
         <h4>👤 Role: Associate</h4>
         <p>Associates can manage companies, employees, and create sub-users with limited access.</p>
@@ -132,7 +141,7 @@
                 <label>Companies Access</label>
                 <select name="companies" class="form-control" multiple>
                     {% for company in companies %}
-                    <option value="{{company.id}}">{{company.company_name}} - {{company.pan}}</option>
+                    <option value="{{company.company_id}}">{{company.company_name}} - {{company.pan}}</option>
                     {% endfor %}
                 </select>
                 <small style="color:#666">Hold Ctrl to select multiple companies</small>

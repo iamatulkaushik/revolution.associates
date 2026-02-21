@@ -122,7 +122,7 @@
   <body>
     <header>
     <nav class="navbar">
-        <span class="logo_icon">Ń</span>
+        <span class="logo_icon">Ň</span>
         <!-- <div class="logo">REVOLUTION ASSOCIATES</div> -->
         <!-- <span class="tagline">Innovate. Integrate. Elevate.</span> -->
         <input type="checkbox" id="checkbox_toggle" />
@@ -132,26 +132,15 @@
             <li>
                 <a href="#">Masters &#9662;</a>
                 <ul>
-                    <li><a href="{% url 'create_company' %}">Create Company</a></li>
+                    <li><a href="{% url 'list_company' %}">Company</a></li>
+                    <li><a href="{% url 'list_associates' %}">👥Associates</a></li>
+                    <li><a href="{% url 'list_subusers' %}">👤Sub Users</a></li>
+                    <li><a href="{% url 'list_licenses' %}">📄Licenses</a></li>
                 </ul>
             </li>
-            <li>
-                <a href="#">Solutions &#9662;</a>
-                <ul>
-                    <li><a href="#">HRMS Portal</a></li>
-                    <li>
-                        <a href="#">Data Mgmt &#9656;</a>
-                        <ul>
-                            <li><a href="#">Private Cloud</a></li>
-                            <li><a href="#">Local Server</a></li>
-                            <li><a href="#">Hybrid Sync</a></li>
-                        </ul>
-                    </li>
-                    <li><a href="#">Payroll Tools</a></li>
-                </ul>
-            </li>
-            <li><a href="#">Associates</a></li>
-            <li><a href="#contact">Contact</a></li>
+            <li><form method="post" action="{% url 'logout' %}">{% csrf_token %}
+                <a href="{% url 'logout' %}" class="button" style="margin-left: 15px;">Logout</a>
+        </form></li>
         </ul>
     </nav>
 </header>

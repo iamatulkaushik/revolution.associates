@@ -26,13 +26,19 @@ SECRET_KEY = 'django-insecure-!7c_9c^9d^hpw*hg=9akn_@ol^+6b%3k^6grg5eh!shxz@g^xd
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.localhost']
 
+# Django Hosts Configuration
+DEFAULT_HOST = 'www'
+ROOT_HOSTCONF = 'revolution.hosts'
+PARENT_HOST = 'localhost:8000'
 
 # Application definition
 
 INSTALLED_APPS = [
+    'django_hosts',
     'Sapp',
+    'Aapp',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -42,6 +48,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'django_hosts.middleware.HostsRequestMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -49,6 +56,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django_hosts.middleware.HostsResponseMiddleware',
 ]
 
 ROOT_URLCONF = 'revolution.urls'
@@ -123,3 +131,6 @@ MEDIA_ROOT= os.path.join(BASE_DIR / "media")
 # Default primary key field type
 # https://docs.djangoproject.com/en/6.0/ref/settings/#default-auto-field
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Login URL
+LOGIN_URL = '/signin/'
