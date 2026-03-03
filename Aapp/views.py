@@ -37,14 +37,14 @@ def logout(request):
 @login_required
 def dashboard(request):
     user = request.user
-    company_all = Company.objects.all()
+    #company_all = Company.objects.filter(Company_id = request.selected_company_id)
     users_all = UserProfile.objects.all()
     license_all = License.objects.all()
     # associates_all = associateuser.objects.all().select_related('user')[:5]  # Limit to 5 for dashboard
     # subusers_all = SubUser.objects.all().select_related('user', 'associate')[:5]  # Limit to 5 for dashboard
     
     return render(request, "Aapp/dashboard.html", {
-        'CompanyDetails': company_all,
+        #'CompanyDetails': company_all,
         'UsersDetail': users_all,
         'LicenseDetails': license_all,
         #'associates_list': associates_all,
@@ -56,6 +56,7 @@ def dashboard(request):
 #branch creation with already existing branch name check and unique branch code generation within selected company
 @login_required
 def create_branch(request):
+    from Aapp.app.branch_department import branch
     companies = Company.objects.all()
     selected_company = None
     branches = []
@@ -63,33 +64,55 @@ def create_branch(request):
     if request.method == 'POST':
         company_id = request.POST.get('company')
         branch_name = request.POST.get('branch_name')
+        branch_address = request.POST.get('branch_address', '')
+        branch_email = request.POST.get('branch_email', '')
+        contact_person = request.POST.get('contact_person', '')
+        contact_mobile = request.POST.get('contact_mobile', '')
         
-        if not company_id or not branch_name:
-            messages.error(request, "Company and branch name are required.")
-        elif Company.objects.filter(id=company_id).exists():
-            company = Company.objects.get(id=company_id)
-            if company.branch_set.filter(branch_name=branch_name).exists():
+        if not company_id:
+            messages.error(request, "Please select a company.")
+        elif not branch_name:
+            messages.error(request, "Please enter a branch name.")
+        elif Company.objects.filter(company_id=company_id).exists():
+            company = Company.objects.get(company_id=company_id)
+            if branch.objects.filter(companyid=company, branch_name=branch_name).exists():
                 messages.error(request, f"A branch with the name '{branch_name}' already exists in this company.")
             else:
-                # Generate a unique branch code
-                branch_code = f"{company.company_code}{company.branch_set.count() + 1:03d}"
-                # Create the new branch
-                branch = company.branch_set.create(branch_name=branch_name, branch_code=branch_code)
-                messages.success(request, f"Branch '{branch_name}' created successfully with code '{branch_code}'.")
+                try:
+                    # Generate a unique branch code
+                    branch_count = branch.objects.filter(companyid=company).count()
+                    branch_code = f"{company.pan[:4]}{branch_count + 1:03d}"
+                    # Create the new branch
+                    new_branch = branch.objects.create(
+                        branch_name=branch_name,
+                        branch_code=branch_code,
+                        companyid=company,
+                        branch_address=branch_address,
+                        branch_email=branch_email,
+                        contact_person=contact_person,
+                        Cotact_mobile=contact_mobile,
+                        created_by=request.user
+                    )
+                    messages.success(request, f"Branch '{branch_name}' created successfully with code '{branch_code}'.")
+                except Exception as e:
+                    messages.error(request, f"Error creating branch: {str(e)}")
             selected_company = company
-            branches = company.branch_set.all()
+            branches = branch.objects.filter(companyid=company)
         else:
             messages.error(request, "Invalid company selection.")
     
     return render(request, 'Aapp/works/create_branch.html', {
         'companies': companies,
         'selected_company': selected_company,
-        'branches': branches
+        'branches': branches,
+        'companies_count': companies.count()
     })
 
 @login_required
 def branch_list(request):
-    return render(request, 'Aapp/works/branch_list.html')
+    from Aapp.app.branch_department import branch
+    branches = branch.objects.all()
+    return render(request, 'Aapp/works/list_branch.html', {'branches': branches})
 
 @login_required
 def branch_details(request):

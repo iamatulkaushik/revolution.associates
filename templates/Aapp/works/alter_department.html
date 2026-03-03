@@ -1,0 +1,38 @@
+{% extends 'default.html' %}
+{% block title %}Update Department{% endblock %}
+{% block content %}
+<h2>Update Department</h2>
+{% if messages %}
+{% for message in messages %}
+<div class="{% if message.tags == 'error' %}error{% else %}success{% endif %}">{{ message }}</div>
+{% endfor %}
+{% endif %}
+
+<form method="post">
+    {% csrf_token %}
+    <table class="data-table">
+        <tr>
+            <td><label for="department_name">Department Name:</label></td>
+            <td><input type="text" id="department_name" name="department_name" value="{{ department.department_name }}" required></td>
+        </tr>
+        <tr>
+            <td><label for="branch">Branch:</label></td>
+            <td>
+                <select id="branch" name="branch" required>
+                    {% for branch in branches %}
+                    <option value="{{ branch.branchid }}" {% if branch.branchid == department.branch.branchid %}selected{% endif %}>
+                        {{ branch.branch_name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <button type="submit" class="button">Update Department</button>
+                <a href="{% url 'department_list' %}" class="button">Cancel</a>
+            </td>
+        </tr>
+    </table>
+</form>
+{% endblock %}

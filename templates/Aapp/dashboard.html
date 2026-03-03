@@ -90,6 +90,44 @@
 
     .btn-small { padding: 4px 8px; font-size: 0.75rem; border-radius: 4px; cursor: pointer; border: none; }
     .btn-approve { background: #dcfce7; color: #166534; }
+
+    /* Company Selector Popup */
+    .company-popup-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        z-index: 9999;
+        justify-content: center;
+        align-items: center;
+    }
+    .company-popup-overlay.active { display: flex; }
+    .company-popup {
+        background: white;
+        padding: 2rem;
+        border-radius: 12px;
+        width: 90%;
+        max-width: 500px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    }
+    .company-popup h3 { margin: 0 0 1.5rem 0; color: var(--Color5); }
+    .company-list { list-style: none; padding: 0; margin: 0; max-height: 400px; overflow-y: auto; }
+    .company-item {
+        padding: 1rem;
+        margin-bottom: 0.5rem;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .company-item:hover { border-color: var(--Color4); background: #f8fafc; }
+    .company-item.selected { border-color: var(--Color4); background: var(--Color3); }
+    .company-item-name { font-weight: 600; font-size: 1rem; color: var(--Color5); }
+    .company-item-info { font-size: 0.8rem; color: #64748b; margin-top: 0.3rem; }
+    .popup-close { float: right; cursor: pointer; font-size: 1.5rem; color: #94a3b8; }
 </style>
 {% endblock %}
 {% block content %}
@@ -110,14 +148,23 @@
             <div class="company-focus-banner">
                 <div class="company-meta">
                     <span style="color: var(--primary); font-size: 0.8rem; font-weight: 700;">ACTIVE COMPANY</span>
-                    <h2>TechVanguard Solutions Pvt Ltd</h2>
-                    <div class="company-contact-tags">
-                        <span>📞 +91-9000012345</span>
-                        <span>✉️ hr@techvanguard.in</span>
-                        <span>📍 Gurgaon, HR</span>
+                    <h2 id="selected-company-name">Select a Company</h2>
+                    <div class="company-contact-tags" id="company-contact-info">
+                        <span>No company selected</span>
                     </div>
                 </div>
-                <button class="button"> <span style="font-family: 'Webdings';font-size: x-large;" >q</span></button>
+                <button class="button" onclick="openCompanySelector()"> <span style="font-family: 'Webdings';font-size: x-large;" >q</span></button>
+            </div>
+
+            <!-- Company Selector Popup -->
+            <div class="company-popup-overlay" id="companyPopup">
+                <div class="company-popup">
+                    <span class="popup-close" onclick="closeCompanySelector()">&times;</span>
+                    <h3>Select Company</h3>
+                    <ul class="company-list" id="companyList">
+                        <li style="text-align: center; padding: 2rem; color: #94a3b8;">Loading companies...</li>
+                    </ul>
+                </div>
             </div>
 
             <div class="l-container">
@@ -136,7 +183,10 @@
                 <div class="card">
                     <div class="icon" id="icon">У</div>
                     <div class="data">12 | 04</div>
-                    <div class="title">Departments | Branches</div>
+                    <div class="title">
+                        <a href="{%url 'department_list'%}" style="color: inherit; text-decoration: none;">Departments</a> |
+                        <a href="{%url 'branch_list'%}" style="color: inherit; text-decoration: none;">Branches</a>
+                        </div>
                     <div class="comments">Total No of Departments in company</div>
                 </div>
                 <div class="card">
@@ -154,5 +204,124 @@
             </div>
         </main>
     </div>
+    <div class="footer-grid">
+        <div>
+            <span class="title noselect">Revolution Associates</span></br>
+            <span class="tagline">Revolutonary Solutions for Everything</span>
+        </div>
+        <div>
+            <span>new updates</span></br>
+            <span class="tagline"><a href="tel:+91-8307145638">Mobile : +91-8307145638</a></span></br>
+            <span class="tagline"><a href="email:revolution.associates@gmail.com">Email : revolution.associates@gmail.com</a></span>
+        </div>
+        <div>
+            <span>legal</span></br>
+            <span class="tagline">© 2024-2026 Revolution Associates </span></br>
+            <span class="tagline">All Rights Reserved</span> |
+            <span class="tagline"><a href="/legal/terms">Terms of Service</a></span> | 
+            <span class="tagline"><a href="/legal/privacy">Privacy Policy</a></span>
+        </div>
+        <div>
+            <span>quick links</span>
+            <ul>
+                <li><a href="/dashboard">Dashboard</a></li>
+                <li><a href="/companies">Companies</a></li>
+                <li><a href="/employees">Employees</a></li>
+                <li><a href="/payroll">Payroll</a></li>
+            </ul>
+        </div>
+    </div>
 </div>
+<script>
+let userCompanies = [];
+let selectedCompanyId = null;
+
+function openCompanySelector() {
+    document.getElementById('companyPopup').classList.add('active');
+    loadUserCompanies();
+}
+
+function closeCompanySelector() {
+    document.getElementById('companyPopup').classList.remove('active');
+}
+
+function loadUserCompanies() {
+    fetch('{% url "get_user_companies" %}')
+        .then(response => response.json())
+        .then(data => {
+            userCompanies = data.companies;
+            selectedCompanyId = data.selected_id;
+            renderCompanyList();
+        })
+        .catch(error => {
+            console.error('Error loading companies:', error);
+            document.getElementById('companyList').innerHTML = '<li style="text-align: center; padding: 2rem; color: #ef4444;">Error loading companies</li>';
+        });
+}
+
+function renderCompanyList() {
+    const listEl = document.getElementById('companyList');
+    if (userCompanies.length === 0) {
+        listEl.innerHTML = '<li style="text-align: center; padding: 2rem; color: #94a3b8;">No companies assigned</li>';
+        return;
+    }
+    listEl.innerHTML = userCompanies.map(company => `
+        <li class="company-item ${company.company_id === selectedCompanyId ? 'selected' : ''}" 
+            onclick="selectCompany(${company.company_id})">
+            <div class="company-item-name">${company.company_name}</div>
+            <div class="company-item-info">ID: ${company.company_id}</div>
+        </li>
+    `).join('');
+}
+
+function selectCompany(companyId) {
+    const formData = new FormData();
+    formData.append('company_id', companyId);
+    formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+    
+    fetch('{% url "select_company" %}', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            selectedCompanyId = parseInt(data.company_id);
+            closeCompanySelector();
+            loadSelectedCompany();
+        }
+    })
+    .catch(error => console.error('Error selecting company:', error));
+}
+
+function loadSelectedCompany() {
+    fetch('{% url "get_selected_company" %}')
+        .then(response => response.json())
+        .then(data => {
+            if (data.company_id) {
+                document.getElementById('selected-company-name').textContent = data.company_name;
+                document.getElementById('company-contact-info').innerHTML = `
+                    <span>📞 ${data.mobile}</span>
+                    <span>✉️ ${data.email}</span>
+                `;
+            } else {
+                document.getElementById('selected-company-name').textContent = 'Select a Company';
+                document.getElementById('company-contact-info').innerHTML = '<span>No company selected</span>';
+            }
+        })
+        .catch(error => console.error('Error loading selected company:', error));
+}
+
+// Load selected company on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadSelectedCompany();
+});
+
+// Close popup when clicking outside
+document.getElementById('companyPopup').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeCompanySelector();
+    }
+});
+</script>
 {% endblock %}

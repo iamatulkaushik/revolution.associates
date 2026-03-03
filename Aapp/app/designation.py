@@ -1,11 +1,11 @@
 from django.db import models
-from django.forms import forms
+from django import forms
 from django.contrib.auth.models import User
 from Sapp.app.company import Company
 from Sapp.app.user import associateuser
 # Designation model to store job titles and descriptions
 
-class designation(models.model):
+class designation(models.Model):
     designationid = models.AutoField(primary_key=True)
     designationname = models.CharField(max_length=255, unique=True)
     #allowance fields
@@ -86,17 +86,17 @@ class createDesignationForm(forms.Form):
     cycleallowance = forms.DecimalField(max_digits=10, decimal_places=2, required=False)
     other1 = forms.DecimalField(max_digits=10, decimal_places=2, required=False)
     other2 = forms.DecimalField(max_digits=10, decimal_places=2, required=False)
-    ed_epf_per = forms.DecimalField(max_digits=5, decimal_places=2, required=False, default=12.00)
-    ed_esi_per = forms.DecimalField(max_digits=5, decimal_places=2, required=False, default=0.75)
-    ed_labourwelfare_per = forms.DecimalField(max_digits=5, decimal_places=2, required=False, default=0.50)
+    ed_epf_per = forms.DecimalField(max_digits=5, decimal_places=2, required=False, initial=12.00)
+    ed_esi_per = forms.DecimalField(max_digits=5, decimal_places=2, required=False, initial=0.75)
+    ed_labourwelfare_per = forms.DecimalField(max_digits=5, decimal_places=2, required=False, initial=0.50)
     ed_epf_amount = forms.DecimalField(max_digits=10, decimal_places=2, required=False)
     ed_esi_amount = forms.DecimalField(max_digits=10, decimal_places=2, required=False)
     ed_labourwelfare_amount = forms.DecimalField(max_digits=10, decimal_places=2, required=False)
     ed_professionaltax = forms.DecimalField(max_digits=5, decimal_places=2, required=False)
     ed_income_tax = forms.DecimalField(max_digits=5, decimal_places=2, required=False)
-    er_epf_per = forms.DecimalField(max_digits=5, decimal_places=2, required=False, default=13.00)
-    er_esi_per = forms.DecimalField(max_digits=5, decimal_places=2, required=False, default=3.25)
-    er_labourwelfare_per = forms.DecimalField(max_digits=5, decimal_places=2, required=False, default=0.50)
+    er_epf_per = forms.DecimalField(max_digits=5, decimal_places=2, required=False, initial=13.00)
+    er_esi_per = forms.DecimalField(max_digits=5, decimal_places=2, required=False, initial=3.25)
+    er_labourwelfare_per = forms.DecimalField(max_digits=5, decimal_places=2, required=False, initial=0.50)
     er_epf_amount = forms.DecimalField(max_digits=10, decimal_places=2, required=False)
     er_esi_amount = forms.DecimalField(max_digits=10, decimal_places=2, required=False)
     er_labourwelfare_amount = forms.DecimalField(max_digits=10, decimal_places=2, required=False)

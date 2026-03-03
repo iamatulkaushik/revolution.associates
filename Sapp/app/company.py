@@ -214,3 +214,52 @@ class create_company_form_superadmin(forms.ModelForm):
             if commit:
                 statutry_instance.save()
             return statutry_instance
+
+# Company Selector Views for Associate and Operator Users
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+
+@login_required
+def select_company(request):
+    """Select default company for associate/operator user"""
+    if request.method == 'POST':
+        company_id = request.POST.get('company_id')
+        if company_id:
+            request.session['selected_company_id'] = int(company_id)
+            return JsonResponse({'status': 'success', 'company_id': company_id})
+    return redirect('Aapp:dashboard')
+
+@login_required
+def get_user_companies(request):
+    """Get companies available to current user"""
+    from Sapp.app.user import get_user_type
+    
+    user_type, profile = get_user_type(request.user)
+    companies = []
+    
+    if user_type == 'associate':
+        companies = list(profile.get_companies().values('company_id', 'company_name'))
+    elif user_type == 'subuser':
+        companies = list(profile.get_companies().values('company_id', 'company_name'))
+    
+    selected_id = request.session.get('selected_company_id')
+    return JsonResponse({'companies': companies, 'selected_id': selected_id})
+
+@login_required
+def get_selected_company(request):
+    """Get currently selected company details"""
+    company_id = request.session.get('selected_company_id')
+    if company_id:
+        try:
+            company = Company.objects.get(company_id=company_id)
+            return JsonResponse({
+                'company_id': company.company_id,
+                'company_name': company.company_name,
+                'mobile': company.mobile,
+                'email': company.email1,
+                'address': company.full_address
+            })
+        except Company.DoesNotExist:
+            pass
+    return JsonResponse({'company_id': None})

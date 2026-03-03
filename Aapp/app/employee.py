@@ -7,7 +7,6 @@ from django.db.models import Q
 from Sapp.app.company import Company
 from Sapp.app.state_district import State, District
 from Sapp.app.user import UserProfile
-from Sapp.app.bank import Bank
 from Aapp.app.designation import designation
 from Aapp.app.branch_department import branch, department
 import csv
