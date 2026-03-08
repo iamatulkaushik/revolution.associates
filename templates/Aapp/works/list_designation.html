@@ -1,0 +1,66 @@
+{% extends 'Aapp/base.html' %}
+{% block title %}List of Designations{% endblock %}
+{% block content %}
+<div class="main-content">
+<h2>List of Designations</h2>
+
+{% if designations %}
+<p>Total Designations: <strong>{{ designations|length }}</strong></p>
+<table class="data-table">
+    <thead>
+        <tr>
+            <th>Designation Name</th>
+            <th>Type</th>
+            <th>Daily Wage</th>
+            <th>Allowances</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for desig in designations %}
+        <tr>
+            <td>{{ desig.designationname }}</td>
+            <td>{% if desig.is_dailywage %}Daily Wage{% else %}Monthly{% endif %}</td>
+            <td>{{ desig.dailywage|default:"N/A" }}</td>
+            <td><span title="Basic Pay">{{ desig.basicpay|default:"N/A" }}</span> | <span title="HRA">{{ desig.hra|default:"N/A" }}</span> | <span title="DA">{{ desig.da|default:"N/A" }}</span></br>
+                <span title="Medical Allowance">{{ desig.medicalallowance|default:"N/A" }}</span> | <span title="Conveyance">{{ desig.conveyance|default:"N/A" }}</span> | <span title="Lunch Allowance">{{ desig.lunchallowance|default:"N/A" }}</span></br>
+                <span title="CCA">{{ desig.cca|default:"N/A" }}</span> | <span title="Special Allowance">{{ desig.specialallowance|default:"N/A" }}</span> | <span title="Travel Allowance">{{ desig.travelallowance|default:"N/A" }}</span></br>
+                <span title="Washing Allowance">{{ desig.washingallowance|default:"N/A" }}</span> | <span title="Cycle Allowance">{{ desig.cycleallowance|default:"N/A" }}</span> | <span title="Other 1">{{ desig.other1|default:"N/A" }}</span></br>
+                <span title="Other Allowance">{{ desig.other2|default:"N/A" }}</span>
+                <br>
+            </td>
+            <td>{% if desig.is_active %}Active{% else %}Inactive{% endif %}</td>
+            <td>
+                <a href="{% url 'alter_designation' desig.designationid %}" class="button">Edit</a>
+                {% if desig.is_active %}
+                <a href="{% url 'disable_designation' desig.designationid %}" class="button">Disable</a>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>No designations available.</p>
+{% endif %}
+<br>
+<br>
+<br>
+<a href="{% url 'create_designation' %}" class="button">New Designation</a>
+</div>
+
+<script>
+function checkSelectedCompany() {
+    fetch('{% url "get_selected_company" %}')
+        .then(response => response.json())
+        .then(data => {
+            if (!data.company_id) {
+                alert('Please select a company first.');
+                window.location.href = '{% url "dashboard" %}';
+            }
+        });
+}
+document.addEventListener('DOMContentLoaded', checkSelectedCompany);
+</script>
+{% endblock %}

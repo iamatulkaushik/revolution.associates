@@ -1,0 +1,58 @@
+{% extends 'Aapp/base.html' %}
+{% block title %}Update Branch{% endblock %}
+{% block content %}
+<div class="main-content">
+<h2>Update Branch</h2>
+
+{% if messages %}
+{% for message in messages %}
+<div class="{% if message.tags == 'error' %}error{% else %}success{% endif %}">{{ message }}</div>
+{% endfor %}
+{% endif %}
+
+<form method="post">
+    {% csrf_token %}
+    <table>
+        <tr>
+            <td><label for="branch_name">Branch Name:</label></td>
+            <td><input type="text" id="branch_name" name="branch_name" value="{{ branch.branch_name }}" required></td>
+        </tr>
+        <tr>
+            <td><label for="branch_address">Branch Address:</label></td>
+            <td><textarea id="branch_address" name="branch_address" rows="2">{{ branch.branch_address }}</textarea></td>
+        </tr>
+        <tr>
+            <td><label for="branch_email">Branch Email:</label></td>
+            <td><input type="email" id="branch_email" name="branch_email" value="{{ branch.branch_email }}"></td>
+        </tr>
+        <tr>
+            <td><label for="contact_person">Contact Person:</label></td>
+            <td><input type="text" id="contact_person" name="contact_person" value="{{ branch.contact_person }}"></td>
+        </tr>
+        <tr>
+            <td><label for="contact_mobile">Contact Mobile:</label></td>
+            <td><input type="text" id="contact_mobile" name="contact_mobile" value="{{ branch.Cotact_mobile }}" maxlength="10"></td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <button type="submit" class="button">Update Branch</button>
+                <a href="{% url 'branch_list' %}" class="button">Cancel</a>
+            </td>
+        </tr>
+    </table>
+</form></div>
+
+<script>
+function checkSelectedCompany() {
+    fetch('{% url "get_selected_company" %}')
+        .then(response => response.json())
+        .then(data => {
+            if (!data.company_id) {
+                alert('Please select a company first.');
+                window.location.href = '{% url "dashboard" %}';
+            }
+        });
+}
+document.addEventListener('DOMContentLoaded', checkSelectedCompany);
+</script>
+{% endblock %}

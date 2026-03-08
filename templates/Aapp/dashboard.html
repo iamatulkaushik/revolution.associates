@@ -1,98 +1,27 @@
-{% extends 'default.html' %}
+{% extends 'Aapp/base.html' %}
 {% block title %}Dashboard{% endblock %}
 {% block additionalcss_js %}
 <style>
-    /* Dashboard Specific Enhancements */
-    .top-bar {
-        background: white;
-        padding: 1rem 2rem;
+    .company-banner {
+        background: #fff;
+        padding: 10px;
+        border-radius: 8px;
+        border-left: 4px solid #28a745;
+        margin-bottom: 20px;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        border-bottom: 1px solid #e2e8f0;
     }
-
-    .user-panel {
-        display: flex;
-        align-items: center;
-        gap: 15px;
+    .company-info h3 {
+        margin: 0 0 10px 0;
+        color: var(--Color2);
     }
-
-    .login-info {
-        text-align: right;
-        font-size: 0.8rem;
-        color: #64748b;
+    .company-info div span {
+        margin-right: 15px;
+        font-size: inherit;
+        color: var(--Color2);
     }
-
-    .logout-btn {
-        color: #ef4444;
-        font-weight: 600;
-        font-size: 0.85rem;
-        text-decoration: none;
-        border: 1px solid #fee2e2;
-        padding: 5px 12px;
-        border-radius: 6px;
-    }
-
-    /* Selected Company Header */
-    .company-focus-banner {
-        background: var(--white);
-        padding: 1.5rem;
-        border-radius: 12px;
-        margin-bottom: 2rem;
-        border-left: 5px solid var(--primary);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.04);
-    }
-
-    .company-meta h2 { margin: 0; color: var(--dark); }
-    .company-contact-tags {
-        display: flex;
-        gap: 15px;
-        margin-top: 8px;
-        font-size: 0.85rem;
-    }
-
-    /* Metric Grid */
-    .metrics-grid {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 1.5rem;
-        margin-bottom: 2rem;
-    }
-
-    .metric-card {
-        background: white;
-        padding: 1.25rem;
-        border-radius: 10px;
-        border: 1px solid #e2e8f0;
-    }
-
-    .metric-card .label { font-size: 0.75rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; }
-    .metric-card .count { font-size: 1.5rem; font-weight: 800; color: var(--dark); display: block; margin-top: 5px; }
-
-    /* Action Grid */
-    .dual-grid {
-        display: grid;
-        grid-template-columns: 1.5fr 1fr;
-        gap: 1.5rem;
-    }
-
-    .approval-list { list-style: none; }
-    .approval-item {
-        display: flex;
-        justify-content: space-between;
-        padding: 12px 0;
-        border-bottom: 1px solid #f1f5f9;
-    }
-
-    .btn-small { padding: 4px 8px; font-size: 0.75rem; border-radius: 4px; cursor: pointer; border: none; }
-    .btn-approve { background: #dcfce7; color: #166534; }
-
-    /* Company Selector Popup */
-    .company-popup-overlay {
+    .company-popup {
         display: none;
         position: fixed;
         top: 0;
@@ -100,178 +29,115 @@
         width: 100%;
         height: 100%;
         background: rgba(0,0,0,0.5);
-        z-index: 9999;
-        justify-content: center;
-        align-items: center;
+        z-index: 1000;
     }
-    .company-popup-overlay.active { display: flex; }
-    .company-popup {
+    .company-popup.active { display: flex; justify-content: center; align-items: center; }
+    .popup-content {
         background: white;
-        padding: 2rem;
-        border-radius: 12px;
-        width: 90%;
-        max-width: 500px;
-        box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-    }
-    .company-popup h3 { margin: 0 0 1.5rem 0; color: var(--Color5); }
-    .company-list { list-style: none; padding: 0; margin: 0; max-height: 400px; overflow-y: auto; }
-    .company-item {
-        padding: 1rem;
-        margin-bottom: 0.5rem;
-        border: 2px solid #e2e8f0;
+        padding: 20px;
         border-radius: 8px;
-        cursor: pointer;
-        transition: all 0.2s;
+        width: 400px;
+        max-height: 500px;
+        overflow-y: auto;
     }
-    .company-item:hover { border-color: var(--Color4); background: #f8fafc; }
-    .company-item.selected { border-color: var(--Color4); background: var(--Color3); }
-    .company-item-name { font-weight: 600; font-size: 1rem; color: var(--Color5); }
-    .company-item-info { font-size: 0.8rem; color: #64748b; margin-top: 0.3rem; }
-    .popup-close { float: right; cursor: pointer; font-size: 1.5rem; color: #94a3b8; }
+    .company-item {
+        padding: 10px;
+        border: 1px solid #ddd;
+        margin: 5px 0;
+        cursor: pointer;
+        border-radius: 4px;
+    }
+    .company-item:hover { background: #f5f5f5; }
 </style>
 {% endblock %}
 {% block content %}
-<!-- {% include 'Aapp/navbar.html' %} -->
-<div class="dashboard-container">
-    <div style="flex: 1; display: flex; flex-direction: column;">
-        <div class="top-bar">
-            <div class="breadcrumb">Dashboard / Associate Panel</div>
-            <div class="user-panel">
-                <div class="login-info">
-                    <strong>{{ user.username }} | {% if user.associate_profile %}Associate{% elif user.profile %}{{ user.profile.get_role_display }}{% else %}User{% endif %} <br/> {{ user.email }}  </strong><br>
-                    <span>{{ user.last_login }}</span>
+<div class="main-content">
+    <div class="selectedcompany">
+        <div class="company-banner">
+            <a href="#" title="Click to change selected company" onclick="showCompanySelector()"><div class="company-info">
+                <h3 id="company-name">No Company Selected</h3>
+                <div>
+                    <span id="company-mobile">Mobile:</span>
+                    <span id="company-email">Email: --</span>
+                    <span id="company-pan">PAN: --</span>
                 </div>
-                <a href="{% url 'logout' %}" class="button">Logout</a>
+            </div></a>
+            <!-- <button class="button" onclick="showCompanySelector()">Select Company</button> -->
+            <div class="user-info">
+                <span class="username"> Good Morning, {{ user.username }}</span> | 
+                <span class="userrole">{% if user.associate_profile %}Associate{% elif user.profile %}{{ user.profile.get_role_display }}{% else %}User{% endif %}</span>
+                <hr>
+                <span class="useremail">{{ user.email }}</span> </br> <span>{{ user.last_login }}</span>
+                <a href="{% url 'logout' %}" class="logout" style="float: right;">Logout</a>
             </div>
-        </div>
-        <main class="main-content">
-            <div class="company-focus-banner">
-                <div class="company-meta">
-                    <span style="color: var(--primary); font-size: 0.8rem; font-weight: 700;">ACTIVE COMPANY</span>
-                    <h2 id="selected-company-name">Select a Company</h2>
-                    <div class="company-contact-tags" id="company-contact-info">
-                        <span>No company selected</span>
-                    </div>
-                </div>
-                <button class="button" onclick="openCompanySelector()"> <span style="font-family: 'Webdings';font-size: x-large;" >q</span></button>
-            </div>
-
-            <!-- Company Selector Popup -->
-            <div class="company-popup-overlay" id="companyPopup">
-                <div class="company-popup">
-                    <span class="popup-close" onclick="closeCompanySelector()">&times;</span>
-                    <h3>Select Company</h3>
-                    <ul class="company-list" id="companyList">
-                        <li style="text-align: center; padding: 2rem; color: #94a3b8;">Loading companies...</li>
-                    </ul>
-                </div>
-            </div>
-
-            <div class="l-container">
-                <div class="card">
-                    <div class="icon" id="icon">ŧ</div>
-                    <div class="data">₹ 1.2M</div>
-                    <div class="title">Monthly Payroll</div>
-                    <div class="comments">Total Payroll for Current Month</div>
-                </div>
-                <div class="card">
-                    <div class="icon" id="icon">ı</div>
-                    <div class="data">1,240</div>
-                    <div class="title">Employees</div>
-                    <div class="comments">Total No of Employees in company</div>
-                </div>
-                <div class="card">
-                    <div class="icon" id="icon">У</div>
-                    <div class="data">12 | 04</div>
-                    <div class="title">
-                        <a href="{%url 'department_list'%}" style="color: inherit; text-decoration: none;">Departments</a> |
-                        <a href="{%url 'branch_list'%}" style="color: inherit; text-decoration: none;">Branches</a>
-                        </div>
-                    <div class="comments">Total No of Departments in company</div>
-                </div>
-                <div class="card">
-                    <div class="icon" id="icon">Ī</div>
-                    <div class="data">08</div>
-                    <div class="title">Active Sub-Users</div>
-                    <div class="comments">Total No of Sub-Users</div>
-                </div>
-                <div class="card">
-                    <div class="icon" id="icon">П</div>
-                    <div class="data">05</div>
-                    <div class="title">Total Companies</div>
-                    <div class="comments">my total companies</div>
-                </div>
-            </div>
-        </main>
     </div>
-    <div class="footer-grid">
-        <div>
-            <span class="title noselect">Revolution Associates</span></br>
-            <span class="tagline">Revolutonary Solutions for Everything</span>
+    </div>
+    <div class="l-container">
+        <div class="card">
+            <div class="icon" id="icon">У</div>
+            <div class="data" id="dept-branch-count">0 | 0</div>
+            <div class="title">
+                <a href="{% url 'department_list' %}" style="color: inherit; text-decoration: none;">Departments</a> |
+                <a href="{% url 'branch_list' %}" style="color: inherit; text-decoration: none;">Branches</a>
+            </div>
+            <div class="comments">Total No of Departments & Branches</div>
         </div>
-        <div>
-            <span>new updates</span></br>
-            <span class="tagline"><a href="tel:+91-8307145638">Mobile : +91-8307145638</a></span></br>
-            <span class="tagline"><a href="email:revolution.associates@gmail.com">Email : revolution.associates@gmail.com</a></span>
+        <div class="card">
+            <div class="icon" id="icon">ŧ</div>
+            <div class="data">₹ 1.2M</div>
+            <div class="title">Monthly Payroll</div>
+            <div class="comments">Total Payroll for Current Month</div>
         </div>
-        <div>
-            <span>legal</span></br>
-            <span class="tagline">© 2024-2026 Revolution Associates </span></br>
-            <span class="tagline">All Rights Reserved</span> |
-            <span class="tagline"><a href="/legal/terms">Terms of Service</a></span> | 
-            <span class="tagline"><a href="/legal/privacy">Privacy Policy</a></span>
+        <div class="card">
+            <div class="icon" id="icon">ı</div>
+            <div class="data">1,240</div>
+            <div class="title">Employees</div>
+            <div class="comments">Total No of Employees in company</div>
         </div>
-        <div>
-            <span>quick links</span>
-            <ul>
-                <li><a href="/dashboard">Dashboard</a></li>
-                <li><a href="/companies">Companies</a></li>
-                <li><a href="/employees">Employees</a></li>
-                <li><a href="/payroll">Payroll</a></li>
-            </ul>
+        <!-- <div class="card">
+            <div class="icon" id="icon">Ī</div>
+            <div class="data">08</div>
+            <div class="title">Active Sub-Users</div>
+            <div class="comments">Total No of Sub-Users</div>
+        </div> -->
+        <div class="card">
+            <div class="icon" id="icon">П</div>
+            <div class="data">05</div>
+            <div class="title">Total Companies</div>
+            <div class="comments">My total companies</div>
         </div>
     </div>
 </div>
-<script>
-let userCompanies = [];
-let selectedCompanyId = null;
 
-function openCompanySelector() {
+<div class="company-popup" id="companyPopup">
+    <div class="popup-content">
+        <h3>Select Company <span style="float: right; cursor: pointer;" onclick="hideCompanySelector()">&times;</span></h3>
+        <div id="companyList">Loading...</div>
+    </div>
+</div>
+
+<script>
+function showCompanySelector() {
     document.getElementById('companyPopup').classList.add('active');
-    loadUserCompanies();
+    loadCompanies();
 }
 
-function closeCompanySelector() {
+function hideCompanySelector() {
     document.getElementById('companyPopup').classList.remove('active');
 }
 
-function loadUserCompanies() {
+function loadCompanies() {
     fetch('{% url "get_user_companies" %}')
         .then(response => response.json())
         .then(data => {
-            userCompanies = data.companies;
-            selectedCompanyId = data.selected_id;
-            renderCompanyList();
-        })
-        .catch(error => {
-            console.error('Error loading companies:', error);
-            document.getElementById('companyList').innerHTML = '<li style="text-align: center; padding: 2rem; color: #ef4444;">Error loading companies</li>';
+            const list = document.getElementById('companyList');
+            list.innerHTML = data.companies.map(company => 
+                `<div class="company-item" onclick="selectCompany(${company.company_id})">
+                    <strong>${company.company_name}</strong><br>
+                    <small>ID: ${company.company_id}</small>
+                </div>`
+            ).join('');
         });
-}
-
-function renderCompanyList() {
-    const listEl = document.getElementById('companyList');
-    if (userCompanies.length === 0) {
-        listEl.innerHTML = '<li style="text-align: center; padding: 2rem; color: #94a3b8;">No companies assigned</li>';
-        return;
-    }
-    listEl.innerHTML = userCompanies.map(company => `
-        <li class="company-item ${company.company_id === selectedCompanyId ? 'selected' : ''}" 
-            onclick="selectCompany(${company.company_id})">
-            <div class="company-item-name">${company.company_name}</div>
-            <div class="company-item-info">ID: ${company.company_id}</div>
-        </li>
-    `).join('');
 }
 
 function selectCompany(companyId) {
@@ -286,12 +152,10 @@ function selectCompany(companyId) {
     .then(response => response.json())
     .then(data => {
         if (data.status === 'success') {
-            selectedCompanyId = parseInt(data.company_id);
-            closeCompanySelector();
+            hideCompanySelector();
             loadSelectedCompany();
         }
-    })
-    .catch(error => console.error('Error selecting company:', error));
+    });
 }
 
 function loadSelectedCompany() {
@@ -299,29 +163,25 @@ function loadSelectedCompany() {
         .then(response => response.json())
         .then(data => {
             if (data.company_id) {
-                document.getElementById('selected-company-name').textContent = data.company_name;
-                document.getElementById('company-contact-info').innerHTML = `
-                    <span>📞 ${data.mobile}</span>
-                    <span>✉️ ${data.email}</span>
-                `;
-            } else {
-                document.getElementById('selected-company-name').textContent = 'Select a Company';
-                document.getElementById('company-contact-info').innerHTML = '<span>No company selected</span>';
+                document.getElementById('company-name').textContent = data.company_name;
+                document.getElementById('company-mobile').textContent = `Mobile:${data.mobile}`;
+                document.getElementById('company-email').textContent = `Email:${data.email}`;
+                document.getElementById('company-pan').textContent = `PAN:${data.pan || '--'}`;
+                loadCounts();
             }
-        })
-        .catch(error => console.error('Error loading selected company:', error));
+        });
 }
 
-// Load selected company on page load
-document.addEventListener('DOMContentLoaded', function() {
-    loadSelectedCompany();
-});
+function loadCounts() {
+    fetch('{% url "get_selected_company" %}')
+        .then(response => response.json())
+        .then(data => {
+            if (data.company_id) {
+                document.getElementById('dept-branch-count').textContent = `{{ departments_count }} | {{ branches_count }}`;
+            }
+        });
+}
 
-// Close popup when clicking outside
-document.getElementById('companyPopup').addEventListener('click', function(e) {
-    if (e.target === this) {
-        closeCompanySelector();
-    }
-});
+document.addEventListener('DOMContentLoaded', loadSelectedCompany);
 </script>
 {% endblock %}

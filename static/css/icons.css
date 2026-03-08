@@ -1,0 +1,54 @@
+@font-face {
+  font-family: Infinitude;
+  src: url("../fonts/Infinitude.ttf");
+}
+
+.dashboard:before{
+    content:'ŧ';
+    font-family: 'Infinitude';
+    font-size: 25px;
+    padding:0 10px;
+    vertical-align: middle;
+}
+.masters:before{
+    content: 'ð';
+    font-family: 'Infinitude';
+    font-size: 25px;
+    padding:0 10px;
+    vertical-align: middle;
+}
+.companies:before, .departments:before, .branches:before, .designations:before{
+    content: 'ǉ';
+    font-family: 'Infinitude';
+    font-size: 25px;
+    padding:0 10px;
+    vertical-align: middle;
+}
+.employees:before{
+    content: 'ࠅ';
+    font-family: 'Infinitude';
+    font-size: 25px;
+    padding:0 10px;
+    vertical-align: middle;
+}
+.attandance:before{
+    content: 'Ɠ';
+    font-family: 'Infinitude';
+    font-size: 25px;
+    padding:0 10px;
+    vertical-align: middle;
+}
+.profile:before{
+    content: 'ţ';
+    font-family: 'Infinitude';
+    font-size: 25px;
+    padding:0 10px;
+    vertical-align: middle;
+}
+.logout:before{
+    content: 'Р';
+    font-family: 'Infinitude';
+    font-size: 25px;
+    padding:0 10px;
+    vertical-align: middle;
+}

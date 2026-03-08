@@ -1,0 +1,97 @@
+{% extends 'Aapp/base.html' %}
+{% block title %}Update Company{% endblock %}
+{% block content %}
+<div class="main-content">
+<h2>Update Company</h2>
+
+{% if messages %}
+{% for message in messages %}
+<div class="{% if message.tags == 'error' %}error{% else %}success{% endif %}">{{ message }}</div>
+{% endfor %}
+{% endif %}
+
+<form method="post">
+    {% csrf_token %}
+    <table>
+        <tr>
+            <td><label>Company Name:</label></td>
+            <td><input type="text" title="Company Name" value="{{ company.company_name }}" readonly></td>
+            <td><label for="tagline1">Tagline:</label></td>
+            <td colspan="2"><input type="text" title="Tagline if any" id="tagline1" name="tagline1" value="{{ company.tagline1 }}"></td>
+        </tr>
+        <tr>
+            <td><label>PAN:</label></td>
+            <td><input type="text" title="Company PAN Number" value="{{ company.pan }}" readonly></td>
+            <td><label>Email:</label></td>
+            <td><input type="email" title="primary Email id" value="{{ company.email1 }}" readonly></td>
+        </tr>
+        <tr>
+            <td><label for="start_date">Start Date:</label></td>
+            <td><input type="date" id="start_date" name="start_date" value="{{ company.start_date|date:'Y-m-d' }}" required readonly></td>
+        </tr>
+        <tr>
+            <td><label for="address1">Address</label></td>
+            <td><input type="text" id="address1" name="address1" value="{{ company.address1 }}"></td>
+            <td><input type="text" id="address2" name="address2" value="{{ company.address2 }}"></td>
+            <td><input type="text" id="address3" name="address3" value="{{ company.address3 }}"></td>
+            <td><input type="text" id="pin" name="pin" value="{{ company.pin }}" maxlength="6"></td>
+        </tr>
+        <tr>
+            <td><label for="phone">Phone:</label></td>
+            <td><input type="text" id="phone" name="phone" value="{{ company.phone }}" maxlength="10"></td>
+            <td><input type="text" id="phone2" name="phone2" value="{{ company.phone2 }}" maxlength="10"></td>
+        </tr>
+        <tr>
+            <td><label for="mobile">Mobile:</label></td>
+            <td><input type="text" id="mobile" name="mobile" value="{{ company.mobile }}" maxlength="10" required></td>
+            <td><input type="text" id="mobile2" name="mobile2" value="{{ company.mobile2 }}" maxlength="10"></td>
+        </tr>
+        <tr>
+            <td><label for="email2">Email 2:</label></td>
+            <td><input type="email" id="email2" title="second email address" name="email2" value="{{ company.email2 }}"></td>
+            <td><label for="website">Website:</label></td>
+            <td><input type="url" id="website" title="Company Website(if any)" name="website" value="{{ company.website }}"></td>
+        </tr>
+        <tr>
+            <td><label for="tan">TAN:</label></td>
+            <td><input type="text" id="tan" name="tan" value="{{ company.tan }}" maxlength="10"></td>
+            <td><label for="cin">CIN:</label></td>
+            <td><input type="text" id="cin" name="cin" value="{{ company.cin }}" maxlength="21"></td>
+        </tr>
+        
+        <tr>
+            <td><label for="bank_id">Bank:</label></td>
+            <td>
+                <select id="bank_id" name="bank_id">
+                    <option value="">Select Bank</option>
+                    {% for bank in banks %}
+                    <option value="{{ bank.bank_id }}" {% if company.bank_id.bank_id == bank.bank_id %}selected{% endif %}>{{ bank.bank_name }}</option>
+                    {% endfor %}
+                </select>
+            </td>
+        </tr>
+        
+        {% if company.bank_id %}
+        <tr>
+            <td><label for="bank_name">Bank Name:</label></td>
+            <td><input type="text" id="bank_name" name="bank_name" value="{{ company.bank_id.bank_name }}" readonly></td>
+        </tr>
+        {% endif %}
+        
+        <tr>
+            <td><label for="account">Bank Account:</label></td>
+            <td><input type="text" id="account" name="account" value="{{ company.account }}" maxlength="20"></td>
+            <td><label for="ifsc">IFSC:</label></td>
+            <td><input type="text" id="ifsc" name="ifsc" value="{{ company.ifsc }}" maxlength="11"></td>
+            <td><label for="branch_address">Branch Address:</label></td>
+            <td><input type="text" id="branch_address" name="branch_address" value="{{ company.branch_address }}"></td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <button type="submit" class="button">Update Company</button>
+                <a href="{% url 'list_company_associate' %}" class="button">Cancel</a>
+            </td>
+        </tr>
+    </table>
+</form></div>
+{% endblock %}

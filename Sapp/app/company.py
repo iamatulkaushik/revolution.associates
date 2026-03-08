@@ -263,3 +263,95 @@ def get_selected_company(request):
         except Company.DoesNotExist:
             pass
     return JsonResponse({'company_id': None})
+
+@login_required
+def create_company_associate(request):
+    from django.contrib import messages
+    from datetime import date
+    
+    if request.method == 'POST':
+        company_name = request.POST.get('company_name')
+        start_date = request.POST.get('start_date')
+        mobile = request.POST.get('mobile')
+        email1 = request.POST.get('email1')
+        pan = request.POST.get('pan')
+        
+        if not all([company_name, start_date, mobile, email1, pan]):
+            messages.error(request, "All required fields must be filled.")
+        elif date.fromisoformat(start_date) > date.today():
+            messages.error(request, "Start date cannot be in the future.")
+        elif Company.objects.filter(company_name=company_name).exists():
+            messages.error(request, f"Company '{company_name}' already exists.")
+        elif Company.objects.filter(pan=pan).exists():
+            messages.error(request, f"PAN '{pan}' already exists.")
+        else:
+            default_state = State.objects.first()
+            default_district = District.objects.filter(state=default_state).first() if default_state else None
+            
+            Company.objects.create(
+                company_name=company_name,
+                start_date=start_date,
+                mobile=mobile,
+                email1=email1,
+                pan=pan,
+                state_id=default_state,
+                district_id=default_district
+            )
+            messages.success(request, f"Company '{company_name}' created successfully.")
+            return redirect('list_company_associate')
+    
+    return render(request, 'Aapp/company/create.html', {})
+
+@login_required
+def list_company_associate(request):
+    companies = Company.objects.filter(shut_date__isnull=True)
+    return render(request, 'Aapp/company/list.html', {'companies': companies})
+
+@login_required
+def alter_company_associate(request, company_id):
+    from django.contrib import messages
+    from django.shortcuts import get_object_or_404
+    
+    company = get_object_or_404(Company, company_id=company_id)
+    
+    if request.method == 'POST':
+        company.start_date = request.POST.get('start_date')
+        company.tagline1 = request.POST.get('tagline1', '')
+        company.address1 = request.POST.get('address1', '')
+        company.address2 = request.POST.get('address2', '')
+        company.address3 = request.POST.get('address3', '')
+        company.pin = request.POST.get('pin', '')
+        company.phone = request.POST.get('phone', '')
+        company.phone2 = request.POST.get('phone2', '')
+        company.mobile = request.POST.get('mobile')
+        company.mobile2 = request.POST.get('mobile2', '')
+        company.email2 = request.POST.get('email2', '')
+        company.website = request.POST.get('website', '')
+        company.tan = request.POST.get('tan', '')
+        company.cin = request.POST.get('cin', '')
+        company.account = request.POST.get('account', '')
+        company.ifsc = request.POST.get('ifsc', '')
+        company.branch_address = request.POST.get('branch_address', '')
+        company.save()
+        messages.success(request, f"Company '{company.company_name}' updated successfully.")
+        return redirect('list_company_associate')
+    
+    banks = bank_name.objects.all()
+    return render(request, 'Aapp/company/alter.html', {'company': company, 'banks': banks})
+
+@login_required
+def mark_inactive_company(request, company_id):
+    from django.contrib import messages
+    from django.shortcuts import get_object_or_404
+    from datetime import date
+    
+    company = get_object_or_404(Company, company_id=company_id)
+    
+    if request.method == 'POST':
+        company.shut_date = date.today()
+        company.save()
+        messages.success(request, f"Company '{company.company_name}' marked as inactive.")
+        return redirect('list_company_associate')
+    
+    return render(request, 'Aapp/company/mark_inactive.html', {'company': company})
+

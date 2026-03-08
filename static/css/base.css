@@ -1,3 +1,4 @@
+@import url(icons.css);
 @font-face {
   font-family: Infinitude;
   src: url("../fonts/Infinitude.ttf");
@@ -21,7 +22,7 @@ html {
   -moz-background-size: cover;      -o-background-size: cover;      background-size: cover;
 }
 body {
-  font-size: 15px;
+  font-size: 12px;
   font-family: var(--defaultFont);
   position: relative;
   margin: 0;
@@ -59,8 +60,8 @@ p {
   user-select: none;
 }
 
-input[type="text"],input[type="password"],input[type="email"],select, input[type="date"],input[type="url"], input[type="tel"], textarea
-{font-size:18px; color:black; border:1px;border-bottom:2px solid var(--Color3);padding:4px 0;  font-family: ubuntu;  width:100%;}
+input[type="text"],input[type="password"],input[type="email"],select, input[type="date"],input[type="url"], input[type="tel"], textarea, input[type="number"]
+{font-size:12px; color:black; border:1px;border-bottom:2px solid var(--Color3);padding:4px 0;  font-family: ubuntu;  width:100%;}
 input[type="text"]:focus,input[type="password"]:focus,input[type="email"]:focus, input[type="date"]:focus,input[type="url"]:focus, input[type="tel"]:focus{outline:none; border-bottom:2px solid var(--HighlightColor);}
 select:focus{outline:none; border-bottom:2px solid var(--HighlightColor);}
 
@@ -75,12 +76,105 @@ select:focus{outline:none; border-bottom:2px solid var(--HighlightColor);}
   font-size: 24px;
   color: var(--Color4);
 }
-
+.sidebar>.logo{
+  font-family: var(--splfont);
+  font-size: 20px;
+  text-align: center;
+  padding: 16px 5px;
+  color: var(--Color2);
+}
 .logo_icon {
   font-family: var(--splfont);
   font-size: 48px;
   color: #d7d7d7;
 }
+.main-content {
+  margin: 0;  padding: 0;
+  display: inline-block;
+  position: relative;
+  vertical-align: top;
+  min-width: 88vw;
+}
+/*****sidebar***/
+.sidebar{
+  display: inline-block;
+  position:static;
+  margin:0;
+  width: 10vw;
+  height:100vh;
+  background: var(--Color5);
+}
+nav{
+  display:inline-block;
+  position:relative;
+  width:90%;
+}
+nav ul{
+  list-style:none;
+}
+nav ul li{
+  width:inherit;
+  vertical-align: top;
+}
+nav ul li:last-child{
+  vertical-align: bottom;
+  border-bottom:none;
+  margin-bottom: auto;
+}
+nav ul li ul{
+  display:none;
+}
+nav ul li:hover ul{
+  display:block;
+  margin-left: 5px;
+}
+nav ul li ul li a{
+  list-style:none;
+  padding:1px 8px ;
+}
+nav ul li a{
+  font-size: 12px;
+  color:#f1faee;
+  display:inline-block;
+  position:relative;
+  vertical-align: text-top;
+  padding:6px 8px;
+  min-width:98%;
+  text-decoration:none;
+}
+nav ul li a:hover{
+  color:#1d3557;
+  background-color:#f1faee;
+  width: inherit;
+}
+.user-info, .company-info{
+  display: inline-block;
+  position: relative; padding: 10px 12px;
+  width: 280px; float: right;
+  vertical-align: text-top;   border-radius: 15px;
+  border: solid 2px var(--Color1);
+  background-color: var(--Color1);
+}
+
+
+/****Top-bar****/
+.top-bar{
+  background-color: var(--Color4);
+  width: 80vw;  border:solid 2px var(--Color1); border-radius: 5px;
+  padding:5px; vertical-align:top;
+  position: relative;
+  display: inline-block;
+  align-items: center;
+  justify-content: space-between;
+}
+.working_company{
+  display:inline-flex;
+  position: relative;
+  width: 80vw;
+  background-color: #0094ff;
+}
+
+
 
 .footer-grid{
   display: grid;
@@ -89,7 +183,6 @@ select:focus{outline:none; border-bottom:2px solid var(--HighlightColor);}
   padding: 20px;
   background-color: var(--Color5);
   color: var(--Color2);
-  margin-top: calc(50vh - 50px);
 }
 /***********/* Footer Styles */*********/*
 .footer-grid > div > .title {font-family: 'Ubuntu'; font-weight: 900; font-size: x-large;}
@@ -106,6 +199,7 @@ table {
   border-radius: 10px;
   overflow: hidden;
   width: 100%;
+  min-width:50vw;
   margin: 0 auto;
   position: relative;
 }
@@ -122,10 +216,12 @@ table thead tr {
   background: var(--Color5);
 }
 table tbody tr {
-  height: 50px;
+  padding:6px 2px;
+  height: 45px;
 }
 table tbody tr:last-child {
   border: 0;
+  background-color: var(--Color2);
 }
 table td, table th {
   text-align: left;
@@ -139,14 +235,13 @@ table td.c, table th.c {
 table td.r, table th.r {
   text-align: center;
 }
-
 tbody tr:nth-child(even) {
   background-color: var(--Color3);
 }
 
 tbody tr {
   font-family: 'Ubuntu', Tahoma, Verdana, sans-serif;;
-  font-size: 15px;
+  font-size: 12px;
   color: #808080;
   line-height: 1.2;
   font-weight: unset;
@@ -219,14 +314,15 @@ tbody tr:hover {
   }
 }
 
+
 .l-container {
   justify-content: center;
   align-items: center;
+  position: relative;
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(4, 0.5fr);
   grid-gap: 2px;
-  width: 100%;
-  max-width: 1366px;
+  width: auto;
   padding: 10px;
 }
 
@@ -235,15 +331,25 @@ tbody tr:hover {
   height:10vh;
   color:white;
   padding:10px;
-  background-color:#f0f0f0;
   border-radius:10px;
   border:1px solid #fff;
-  background: linear-gradient(45deg,rgba(168, 218, 220, 1) 0%, rgba(29, 53, 87, 0.5) 100%);
+  /* background: linear-gradient(45deg,rgba(168, 218, 220, 1) 0%, rgba(29, 53, 87, 0.5) 100%); */
   box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-
+}
+.card:nth-child(1){
+  background-color: var(--Color5);
+}
+.card:nth-child(2){
+  background-color: var(--Color4);
+}
+.card:nth-child(3){
+  background-color: var(--Color3);
+}
+.card:nth-child(4){
+  background-color: var(--Color1);
 }
 .card:hover{
-  background: linear-gradient(45deg,rgba(29, 53, 87, 0.51) 0%, rgba(168, 218, 220, 0.5) 100%);
+  /* background: linear-gradient(45deg,rgba(29, 53, 87, 0.51) 0%, rgba(168, 218, 220, 0.5) 100%); */
     transition: background-color 0.2s ease-in;
 }
 .icon{

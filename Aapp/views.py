@@ -4,6 +4,8 @@ from django import forms
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from Aapp.app.branch_department import branch, department
 from Sapp.app.company import Company
 from Sapp.app.user import UserProfile, associateuser, SubUser
 from Sapp.app.license import License
@@ -36,21 +38,17 @@ def logout(request):
 
 @login_required
 def dashboard(request):
-    user = request.user
-    #company_all = Company.objects.filter(Company_id = request.selected_company_id)
-    users_all = UserProfile.objects.all()
-    license_all = License.objects.all()
-    # associates_all = associateuser.objects.all().select_related('user')[:5]  # Limit to 5 for dashboard
-    # subusers_all = SubUser.objects.all().select_related('user', 'associate')[:5]  # Limit to 5 for dashboard
+    selected_company_id = request.session.get('selected_company_id')
+    branches_count = 0
+    departments_count = 0
+    
+    if selected_company_id:
+        branches_count = branch.objects.filter(companyid=selected_company_id).count()
+        departments_count = department.objects.filter(companyid=selected_company_id).count()
     
     return render(request, "Aapp/dashboard.html", {
-        #'CompanyDetails': company_all,
-        'UsersDetail': users_all,
-        'LicenseDetails': license_all,
-        #'associates_list': associates_all,
-        #'subusers_list': subusers_all,
-        #'associates_count': associateuser.objects.count(),
-        #'subusers_count': SubUser.objects.count(),
+        'branches_count': branches_count,
+        'departments_count': departments_count,
     })
 
 #branch creation with already existing branch name check and unique branch code generation within selected company
@@ -117,3 +115,40 @@ def branch_list(request):
 @login_required
 def branch_details(request):
     return render(request, 'Aapp/works/branch_details.html')
+
+@login_required
+def get_user_companies(request):
+    companies = Company.objects.filter(shut_date__isnull=True).values('company_id', 'company_name')
+    selected_id = request.session.get('selected_company_id')
+    return JsonResponse({
+        'companies': list(companies),
+        'selected_id': selected_id
+    })
+
+@login_required
+def select_company(request):
+    if request.method == 'POST':
+        company_id = request.POST.get('company_id')
+        request.session['selected_company_id'] = int(company_id)
+        return JsonResponse({
+            'status': 'success',
+            'company_id': company_id
+        })
+    return JsonResponse({'status': 'error'})
+
+@login_required
+def get_selected_company(request):
+    company_id = request.session.get('selected_company_id')
+    if company_id:
+        try:
+            company = Company.objects.get(company_id=company_id)
+            return JsonResponse({
+                'company_id': company.company_id,
+                'company_name': company.company_name,
+                'mobile': company.mobile,
+                'email': company.email1,
+                'pan': company.pan
+            })
+        except Company.DoesNotExist:
+            pass
+    return JsonResponse({'company_id': None})

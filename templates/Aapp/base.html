@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %} {% endblock %} : Associate</title>
+    {% load static %}
+    <link href="{% static 'favicon.ico' %}" rel="icon" type="image/ico"/>
+    <link href="{% static 'css/base.css' %}" rel="stylesheet" type="text/css" />
+    <link
+      rel="preload"
+      href="{% static 'fonts/Infinitude.ttf' %}"
+      as="font"
+      type="font/ttf"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      href="{% static 'fonts/Ubuntu-R.ttf' %}"
+      as="font"
+      type="font/ttf"
+      crossorigin
+    />
+    <meta name="rights" content="Revolution Associates" />
+    <meta name="copyright" content="© 2021-2026 Revolution Associates" />
+    <meta name="theme-color" content="#247CCB" />
+    {% block additionalcss_js %} {% endblock %}
+  </head>
+  <body>
+    <aside class="sidebar">
+    <div class="logo noselect">Ń</div>
+    <nav>
+        <ul>
+            <li><a href="{% url 'dashboard' %}" class="dashboard">Dashboard</a></li>
+            <li><a href="{% url 'list_company_associate' %}" class="companies">Companies</a></li>
+            <li><a href="#" class="masters">Masters</a>
+                <ul>
+                    <li><a href="{% url 'department_list' %}" class="departments">Departments</a></li>
+                    <li><a href="{% url 'branch_list' %}" class="branches">Branches</a></li>
+                    <li><a href="{% url 'list_designation' %}" class="designations">Designations</a></li>
+                </ul>
+            </li>
+            <li><a href="#" class="employees">Employees</a></li>
+            <li><a href="#" class="attandance">Attandance</a></li>
+            <li><a href="#" class="profile">Profile</a></li>
+            <!-- <li><a class="logout" href="{% url 'logout' %}">logout</a></li> -->
+        </ul>
+      </nav>
+  </aside>
+    {% block content %} {% endblock %}
+  <div class="footer-grid">
+        <div>
+            <span class="title noselect">Revolution Associates</span></br>
+            <span class="tagline">Revolutonary Solutions for Everything</span>
+        </div>
+        <div>
+            <span>new updates</span></br>
+            <span class="tagline"><a href="tel:+91-8307145638">Mobile : +91-8307145638</a></span></br>
+            <span class="tagline"><a href="email:revolution.associates@gmail.com">Email : revolution.associates@gmail.com</a></span>
+        </div>
+        <div>
+            <span>legal</span></br>
+            <span class="tagline">© 2024-2026 Revolution Associates </span></br>
+            <span class="tagline">All Rights Reserved</span> |
+            <span class="tagline"><a href="/legal/terms">Terms of Service</a></span> | 
+            <span class="tagline"><a href="/legal/privacy">Privacy Policy</a></span>
+        </div>
+        <div>
+            <span>quick links</span>
+            <ul>
+                <li><a href="/dashboard">Dashboard</a> | <a href="/companies">Companies</a></li>
+                <li><a href="/employees">Employees</a> | <a href="/payroll">Payroll</a></li>
+            </ul>
+        </div>
+    </div></body>
+</html>

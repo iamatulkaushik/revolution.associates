@@ -1,6 +1,7 @@
-{% extends 'default.html' %}
+{% extends 'aapp/base.html' %}
 {% block title %}Department List{% endblock %}
 {% block content %}
+<div class="main-content">
 <h2>Department List</h2>
 
 {% if departments %}
@@ -33,4 +34,5 @@
 {% endif %}
 </br>
 <a href="{% url 'create_department' %}" class="button">Create New Department</a>
+</div>
 {% endblock %}

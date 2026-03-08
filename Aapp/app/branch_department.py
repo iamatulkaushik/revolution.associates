@@ -65,31 +65,56 @@ class department_form(forms.Form):
 # Views for handling the creation and updating of branch and department records, including form validation and saving the data to the database.
 
 def list_branch(request):
-    if not request.selected_company:
-        messages.warning(request, 'Please select a company first.')
-        return redirect('Aapp:dashboard')
+    selected_company_id = request.session.get('selected_company_id')
+    if not selected_company_id:
+        return render(request, 'Aapp/works/list_branch.html', {'branches': []})
    
-    branches = branch.objects.filter(companyid = request.selected_company)
+    selected_company = Company.objects.get(company_id=selected_company_id)
+    branches = branch.objects.filter(companyid=selected_company)
     return render(request, 'Aapp/works/list_branch.html', {'branches': branches})
 
 def create_branch(request):
-    if not request.selected_company:
-        messages.warning(request, 'Please select a company first.')
-        return redirect('Aapp:dashboard')
-    form = branch_form()
+    selected_company_id = request.session.get('selected_company_id')
+    if not selected_company_id:
+        return render(request, 'Aapp/works/create_branch.html', {})
+    
+    selected_company = Company.objects.get(company_id=selected_company_id)
+    
     if request.method == 'POST':
-        form = branch_form(request.POST)
-        if form.is_valid():
-            branch_instance = form.save(commit=False)
-            branch_instance.created_by = request.user
-            branch_instance.companyid = request.selected_company  # Set the company
-            branch_instance.save()
-            messages.success(request, f"Branch '{branch_instance.branch_name}' created successfully.")
+        branch_name = request.POST.get('branch_name')
+        branch_address = request.POST.get('branch_address', '')
+        branch_email = request.POST.get('branch_email', '')
+        contact_person = request.POST.get('contact_person', '')
+        contact_mobile = request.POST.get('contact_mobile', '')
+        
+        if not branch_name:
+            messages.error(request, "Branch name is required.")
+        elif branch.objects.filter(companyid=selected_company, branch_name=branch_name).exists():
+            messages.error(request, f"Branch '{branch_name}' already exists in this company.")
+        else:
+            branch_count = branch.objects.filter(companyid=selected_company).count()
+            branch_code = f"{selected_company.pan[:4]}{branch_count + 1:03d}"
+            branch.objects.create(
+                branch_name=branch_name,
+                branch_code=branch_code,
+                branch_address=branch_address,
+                branch_email=branch_email,
+                contact_person=contact_person,
+                Cotact_mobile=contact_mobile,
+                companyid=selected_company,
+                created_by=request.user
+            )
+            messages.success(request, f"Branch '{branch_name}' created successfully.")
             return redirect('branch_list')
-    return render(request, 'Aapp/works/create_branch.html', {'form': form})
+    
+    return render(request, 'Aapp/works/create_branch.html', {})
 
 def alter_branch(request, branch_id):
-    branch_instance = get_object_or_404(branch, branchid=branch_id)
+    selected_company_id = request.session.get('selected_company_id')
+    if not selected_company_id:
+        return render(request, 'Aapp/works/alter_branch.html', {'branch': None})
+    
+    branch_instance = get_object_or_404(branch, branchid=branch_id, companyid__company_id=selected_company_id)
     
     if request.method == 'POST':
         branch_instance.branch_name = request.POST.get('branch_name')
@@ -104,8 +129,12 @@ def alter_branch(request, branch_id):
     
     return render(request, 'Aapp/works/alter_branch.html', {'branch': branch_instance})
 
-def delete_branch(request, branch_id):    
-    branch_instance = get_object_or_404(branch, branchid=branch_id)
+def delete_branch(request, branch_id):
+    selected_company_id = request.session.get('selected_company_id')
+    if not selected_company_id:
+        return render(request, 'Aapp/works/delete_branch.html', {'branch': None})
+    
+    branch_instance = get_object_or_404(branch, branchid=branch_id, companyid__company_id=selected_company_id)
     
     if request.method == 'POST':
         branch_name = branch_instance.branch_name
@@ -117,19 +146,22 @@ def delete_branch(request, branch_id):
 
 # Department Views
 def create_department(request):
-    branches = branch.objects.all()
-    companies = Company.objects.all()
+    selected_company_id = request.session.get('selected_company_id')
+    if not selected_company_id:
+        messages.warning(request, 'Please select a company first.')
+        return redirect('dashboard')
+    
+    selected_company = Company.objects.get(company_id=selected_company_id)
+    branches = branch.objects.filter(companyid=selected_company)
     
     if request.method == 'POST':
         department_name = request.POST.get('department_name')
         branch_id = request.POST.get('branch')
-        company_id = request.POST.get('company')
         
-        if not all([department_name, branch_id, company_id]):
+        if not all([department_name, branch_id]):
             messages.error(request, "All fields are required.")
         else:
             branch_instance = branch.objects.get(branchid=branch_id)
-            company_instance = Company.objects.get(company_id=company_id)
             
             if department.objects.filter(department_name=department_name, branch=branch_instance).exists():
                 messages.error(request, f"Department '{department_name}' already exists in this branch.")
@@ -137,28 +169,33 @@ def create_department(request):
                 department.objects.create(
                     department_name=department_name,
                     branch=branch_instance,
-                    companyid=company_instance,
+                    companyid=selected_company,
                     created_by=request.user
                 )
                 messages.success(request, f"Department '{department_name}' created successfully.")
                 return redirect('department_list')
     
-    return render(request, 'Aapp/works/create_department.html', {'branches': branches, 'companies': companies})
+    return render(request, 'Aapp/works/create_department.html', {'branches': branches, 'selected_company': selected_company})
 
 def list_department(request):
-    if not request.selected_company:
+    selected_company_id = request.session.get('selected_company_id')
+    if not selected_company_id:
         messages.warning(request, 'Please select a company first.')
-        return redirect('Aapp:dashboard')
+        return redirect('dashboard')
     
-    dprtfilter = department.objects.filter(companyid = request.selected_company)
-    #departments = department.objects.filter(Comapny_id = request.selected_company_id)
+    selected_company = Company.objects.get(company_id=selected_company_id)
+    dprtfilter = department.objects.filter(companyid=selected_company)
     return render(request, 'Aapp/works/list_department.html', {'departments': dprtfilter})
 
 def alter_department(request, department_id):
-
+    selected_company_id = request.session.get('selected_company_id')
+    if not selected_company_id:
+        messages.warning(request, 'Please select a company first.')
+        return redirect('dashboard')
     
+    selected_company = Company.objects.get(company_id=selected_company_id)
     dept_instance = get_object_or_404(department, departmentid=department_id)
-    branches = branch.objects.all()
+    branches = branch.objects.filter(companyid=selected_company)
     
     if request.method == 'POST':
         dept_instance.department_name = request.POST.get('department_name')
@@ -175,7 +212,12 @@ def delete_department(request, department_id):
     from django.shortcuts import get_object_or_404
     from django.contrib import messages
     
-    dept_instance = get_object_or_404(department, departmentid=department_id)
+    selected_company_id = request.session.get('selected_company_id')
+    if not selected_company_id:
+        messages.warning(request, 'Please select a company first.')
+        return redirect('dashboard')
+    
+    dept_instance = get_object_or_404(department, departmentid=department_id, companyid__company_id=selected_company_id)
     
     if request.method == 'POST':
         dept_name = dept_instance.department_name

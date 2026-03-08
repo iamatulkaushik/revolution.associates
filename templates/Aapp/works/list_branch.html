@@ -1,44 +1,12 @@
-{% extends "default.html" %}
+{% extends 'Aapp/base.html' %}
 {% block title %}List of Branches{% endblock %}
-{% block additionalcss_js %}
-<style>
-    .branch-table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 20px;
-        background: #fff;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    .branch-table th {
-        background: #28a745;
-        color: white;
-        padding: 12px;
-        text-align: left;
-        font-weight: 600;
-    }
-    .branch-table td {
-        padding: 12px;
-        border-bottom: 1px solid #ddd;
-    }
-    .branch-table tr:hover {
-        background: #f5f5f5;
-    }
-    .branch-code {
-        background: #e8f5e9;
-        padding: 4px 8px;
-        border-radius: 4px;
-        font-weight: 600;
-        color: #2e7d32;
-    }
-</style>
-{% endblock %}
 {% block content %}
-{% include 'Aapp/navbar.html' %}
-<h2 class="text-2xl font-bold mb-4">List of Branches</h2>
+<div class="main-content">
+<h2>List of Branches</h2>
 
 {% if branches %}
-<p style="margin-bottom: 15px;">Total Branches: <strong>{{ branches|length }}</strong></p>
-<table class="branch-table">
+<p>Total Branches: <strong>{{ branches|length }}</strong></p>
+<table class="data-table">
     <thead>
         <tr>
             <th>Branch Name</th>
@@ -47,24 +15,46 @@
             <th>Email</th>
             <th>Contact Person</th>
             <th>Mobile</th>
+            <th>Actions</th>
         </tr>
     </thead>
     <tbody>
         {% for branch in branches %}
         <tr>
             <td>{{ branch.branch_name }}</td>
-            <td><span class="branch-code">{{ branch.branch_code|default:"N/A" }}</span></td>
+            <td>{{ branch.branch_code|default:"N/A" }}</td>
             <td>{{ branch.branch_address|default:"N/A" }}</td>
             <td>{{ branch.branch_email|default:"N/A" }}</td>
             <td>{{ branch.contact_person|default:"N/A" }}</td>
             <td>{{ branch.Cotact_mobile|default:"N/A" }}</td>
+            <td>
+                <a href="{% url 'alter_branch' branch.branchid %}" class="button">Edit</a>
+                <a href="{% url 'delete_branch' branch.branchid %}" class="button">Delete</a>
+            </td>
         </tr>
         {% endfor %}
     </tbody>
 </table>
 {% else %}
-<p style="color: #666; font-style: italic; margin: 20px 0;">No branches available in database.</p>
+<p>No branches available.</p>
 {% endif %}
+<br>
+<br>
+<br>
+<a href="{% url 'create_branch' %}" class="button">Create New Branch</a>
+</div>
 
-<a href="{% url 'create_branch' %}" class="button" style="margin-top: 20px; display: inline-block;">Create New Branch</a>
+<script>
+function checkSelectedCompany() {
+    fetch('{% url "get_selected_company" %}')
+        .then(response => response.json())
+        .then(data => {
+            if (!data.company_id) {
+                alert('Please select a company first.');
+                window.location.href = '{% url "dashboard" %}';
+            }
+        });
+}
+document.addEventListener('DOMContentLoaded', checkSelectedCompany);
+</script>
 {% endblock %}

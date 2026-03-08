@@ -1,8 +1,10 @@
 from django.db import models
 from django import forms
 from django.contrib.auth.models import User
+from django.db import migrations
 from Sapp.app.company import Company
 from Sapp.app.user import associateuser
+from django.shortcuts import get_object_or_404, redirect, render
 # Designation model to store job titles and descriptions
 
 class designation(models.Model):
@@ -57,17 +59,6 @@ class designation(models.Model):
         ordering = ['designationname']
         verbose_name = 'Designation'
         verbose_name_plural = 'Designations'
-    
-    def save(self, *args, **kwargs):
-        if not self.pk:
-            self.created_by = self.created_by.username
-        else:
-            self.updated_by = self.updated_by.username
-        super(designation, self).save(*args, **kwargs)
-    
-    def delete(self, *args, **kwargs):
-        self.is_deleted = True
-        self.save()
 
 class createDesignationForm(forms.Form):
     designationname = forms.CharField(max_length=255)
@@ -158,25 +149,6 @@ class createDesignationForm(forms.Form):
             designation_instance.save()
         return designation_instance
     
-    def update(self, instance, commit=True):
-        for field, value in self.cleaned_data.items():
-            setattr(instance, field, value)
-        if commit:
-            instance.save()
-        return instance
-    
-    def delete(self, instance, commit=True):
-        instance.is_deleted = True
-        if commit:
-            instance.save()
-        return instance
-    
-    def restore(self, instance, commit=True):
-        instance.is_deleted = False
-        if commit:
-            instance.save()
-        return instance
-    
     def __str__(self):
         return self.designationname
     
@@ -220,4 +192,384 @@ class createDesignationForm(forms.Form):
             'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'is_deleted': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             }
+
+def list_designation(request):
+    selected_company_id = request.session.get('selected_company_id')
+    if not selected_company_id:
+        return render(request, 'Aapp/works/list_designation.html', {'designations': []})
+    
+    selected_company = Company.objects.get(company_id=selected_company_id)
+    designations = designation.objects.filter(company=selected_company, is_deleted=False)
+    return render(request, 'Aapp/works/list_designation.html', {'designations': designations})
+
+def create_designation(request):
+    selected_company_id = request.session.get('selected_company_id')
+    if not selected_company_id:
+        return render(request, 'Aapp/works/create_designation.html', {})
+    
+    selected_company = Company.objects.get(company_id=selected_company_id)
+    
+    if request.method == 'POST':
+        designationname = request.POST.get('designationname')
         
+        if not designationname:
+            from django.contrib import messages
+            messages.error(request, "Designation name is required.")
+        elif designation.objects.filter(company=selected_company, designationname=designationname).exists():
+            from django.contrib import messages
+            messages.error(request, f"Designation '{designationname}' already exists in this company.")
+        else:
+            designation.objects.create(
+                designationname=designationname,
+                is_dailywage=request.POST.get('is_dailywage') == 'on',
+                dailywage=request.POST.get('dailywage', 0) or 0,
+                basicpay=request.POST.get('basicpay', 0) or 0,
+                hra=request.POST.get('hra', 0) or 0,
+                da=request.POST.get('da', 0) or 0,
+                medicalallowance=request.POST.get('medicalallowance', 0) or 0,
+                conveyance=request.POST.get('conveyance', 0) or 0,
+                lunchallowance=request.POST.get('lunchallowance', 0) or 0,
+                cca=request.POST.get('cca', 0) or 0,
+                specialallowance=request.POST.get('specialallowance', 0) or 0,
+                travelallowance=request.POST.get('travelallowance', 0) or 0,
+                washingallowance=request.POST.get('washingallowance', 0) or 0,
+                cycleallowance=request.POST.get('cycleallowance', 0) or 0,
+                other1=request.POST.get('other1', 0) or 0,
+                other2=request.POST.get('other2', 0) or 0,
+                ed_epf_per=request.POST.get('ed_epf_per', 12.00),
+                ed_esi_per=request.POST.get('ed_esi_per', 0.75),
+                ed_labourwelfare_per=request.POST.get('ed_labourwelfare_per', 0.50),
+                ed_epf_amount=request.POST.get('ed_epf_amount', 0) or 0,
+                ed_esi_amount=request.POST.get('ed_esi_amount', 0) or 0,
+                ed_labourwelfare_amount=request.POST.get('ed_labourwelfare_amount', 0) or 0,
+                ed_professionaltax=request.POST.get('ed_professionaltax', 0) or 0,
+                ed_income_tax=request.POST.get('ed_income_tax', 0) or 0,
+                er_epf_per=request.POST.get('er_epf_per', 13.00),
+                er_esi_per=request.POST.get('er_esi_per', 3.25),
+                er_labourwelfare_per=request.POST.get('er_labourwelfare_per', 0.50),
+                er_epf_amount=request.POST.get('er_epf_amount', 0) or 0,
+                er_esi_amount=request.POST.get('er_esi_amount', 0) or 0,
+                er_labourwelfare_amount=request.POST.get('er_labourwelfare_amount', 0) or 0,
+                company=selected_company,
+                created_by=request.user.username,
+                updated_by=request.user.username
+            )
+            from django.contrib import messages
+            messages.success(request, f"Designation '{designationname}' created successfully.")
+            return redirect('list_designation')
+    
+    return render(request, 'Aapp/works/create_designation.html', {})
+
+def alter_designation(request, designation_id):
+    selected_company_id = request.session.get('selected_company_id')
+    if not selected_company_id:
+        return render(request, 'Aapp/works/alter_designation.html', {'designation': None})
+    
+    designation_instance = get_object_or_404(designation, designationid=designation_id, company__company_id=selected_company_id)
+    
+    if request.method == 'POST':
+        designation_instance.designationname = request.POST.get('designationname')
+        designation_instance.is_dailywage = request.POST.get('is_dailywage') == 'on'
+        designation_instance.dailywage = request.POST.get('dailywage', 0) or 0
+        designation_instance.basicpay = request.POST.get('basicpay', 0) or 0
+        designation_instance.updated_by = request.user.username
+        designation_instance.save()
+        from django.contrib import messages
+        messages.success(request, f"Designation '{designation_instance.designationname}' updated successfully.")
+        return redirect('list_designation')
+    
+    return render(request, 'Aapp/works/alter_designation.html', {'designation': designation_instance})
+
+def disable_designation(request, designation_id):
+    selected_company_id = request.session.get('selected_company_id')
+    if not selected_company_id:
+        return render(request, 'Aapp/works/disable_designation.html', {'designation': None})
+    
+    designation_instance = get_object_or_404(designation, designationid=designation_id, company__company_id=selected_company_id)
+    
+    if request.method == 'POST':
+        designation_name = designation_instance.designationname
+        designation_instance.is_active = False
+        designation_instance.save()
+        from django.contrib import messages
+        messages.success(request, f"Designation '{designation_name}' disabled successfully.")
+        return redirect('list_designation')
+    
+    return render(request, 'Aapp/works/disable_designation.html', {'designation': designation_instance})
+
+
+#post migration code to create initial designation for testing purposes.
+#insert minimum wages posts into designation as daily wages.
+#some of Minimum Wages posts are inserted directly into database like Unskilled(433.64), Semi-Skilled(a)(455.32), Semi-Skilled(b)(478.08),
+# Skilled(a)(501.99), Skilled(b)(527.09), Highely-Skilled(553.44)
+
+def create_initial_designation(apps, schema_editor):
+    Designation = apps.get_model('Aapp', 'designation')
+    Designation.objects.create(
+        designationname='Manager',
+        is_dailywage=False,
+        dailywage=0,
+        basicpay=20000,
+        hra=8000,
+        da=10000,
+        medicalallowance=2000,
+        conveyance=1000,
+        lunchallowance=1000,
+        cca=0,
+        specialallowance=0,
+        travelallowance=0,
+        washingallowance=0,
+        cycleallowance=0,
+        other1=0,
+        other2=0,
+        ed_epf_per=12.00,
+        ed_esi_per=0.75,
+        ed_labourwelfare_per=0.50,
+        ed_epf_amount=0,
+        ed_esi_amount=0,
+        ed_labourwelfare_amount=0,
+        ed_professionaltax=0,
+        ed_income_tax=0,
+        er_epf_per=13.00,
+        er_esi_per=3.25,
+        er_labourwelfare_per=0.50,
+        er_epf_amount=0,
+        er_esi_amount=0,
+        er_labourwelfare_amount=0,
+        company=None,
+        created_by='admin',
+        updated_by='admin',
+        is_active=True,
+        is_deleted=False
+    )
+    Designation.objects.create(
+        designationname='peon',
+        is_dailywage=True,
+        dailywage=433.64,
+        basicpay=0,
+        hra=0,
+        da=0,
+        medicalallowance=0,
+        conveyance=0,
+        lunchallowance=0,
+        cca=0,
+        specialallowance=0,
+        travelallowance=0,
+        washingallowance=0,
+        cycleallowance=0,
+        other1=0,
+        other2=0,
+        ed_epf_per=0,
+        ed_esi_per=0,
+        ed_labourwelfare_per=0,
+        ed_epf_amount=0,
+        ed_esi_amount=0,
+        ed_labourwelfare_amount=0,
+        ed_professionaltax=0,
+        ed_income_tax=0,
+        er_epf_per=0,
+        er_esi_per=0,
+        er_labourwelfare_per=0,
+        er_epf_amount=0,
+        er_esi_amount=0,
+        er_labourwelfare_amount=0,
+        company=None,
+        created_by='admin',
+        updated_by='admin',
+        is_active=True,
+        is_deleted=False
+    )
+    Designation.objects.create(
+        designationname='Unskilled',
+        is_dailywage=True,
+        dailywage=433.64,
+        basicpay=0,
+        hra=0,
+        da=0,
+        medicalallowance=0,
+        conveyance=0,
+        lunchallowance=0,
+        cca=0,
+        specialallowance=0,
+        travelallowance=0,
+        washingallowance=0,
+        cycleallowance=0,
+        other1=0,
+        other2=0,
+        ed_epf_per=0,
+        ed_esi_per=0,
+        ed_labourwelfare_per=0,
+        ed_epf_amount=0,
+        ed_esi_amount=0,
+        ed_labourwelfare_amount=0,
+        ed_professionaltax=0,
+        ed_income_tax=0,
+        er_epf_per=0,
+        er_esi_per=0,
+        er_labourwelfare_per=0,
+        er_epf_amount=0,
+        er_esi_amount=0,
+        er_labourwelfare_amount=0,
+        company=None,
+        created_by='admin',
+        updated_by='admin',
+        is_active=True,
+        is_deleted=False
+    )
+    Designation.objects.create(
+        designationname='Semi-Skilled(a)',
+        is_dailywage=True,
+        dailywage=455.32,
+        basicpay=0,
+        hra=0,
+        da=0,
+        medicalallowance=0,
+        conveyance=0,
+        lunchallowance=0,
+        cca=0,
+        specialallowance=0,
+        travelallowance=0,
+        washingallowance=0,
+        cycleallowance=0,
+        other1=0,
+        other2=0,
+        ed_epf_per=0,
+        ed_esi_per=0,
+        ed_labourwelfare_per=0,
+        ed_epf_amount=0,
+        ed_esi_amount=0,
+        ed_labourwelfare_amount=0,
+        ed_professionaltax=0,
+        ed_income_tax=0,
+        er_epf_per=0,
+        er_esi_per=0,
+        er_labourwelfare_per=0,
+        er_epf_amount=0,
+        er_esi_amount=0,
+        er_labourwelfare_amount=0,
+        company=None,
+        created_by='admin',
+        updated_by='admin',
+        is_active=True,
+        is_deleted=False
+    )
+    Designation.objects.create(
+        designationname='Semi-Skilled(b)',
+        is_dailywage=True,
+        dailywage=478.08,
+        basicpay=0,
+        hra=0,
+        da=0,
+        medicalallowance=0,
+        conveyance=0,
+        lunchallowance=0,
+        cca=0,
+        specialallowance=0,
+        travelallowance=0,
+        washingallowance=0,
+        cycleallowance=0,
+        other1=0,
+        other2=0,
+        ed_epf_per=0,
+        ed_esi_per=0,
+        ed_labourwelfare_per=0,
+        ed_epf_amount=0,
+        ed_esi_amount=0,
+        ed_labourwelfare_amount=0,
+        ed_professionaltax=0,
+        ed_income_tax=0,
+        er_epf_per=0,
+        er_esi_per=0,
+        er_labourwelfare_per=0,
+        er_epf_amount=0,
+        er_esi_amount=0,
+        er_labourwelfare_amount=0,
+        company=None,
+        created_by='admin',
+        updated_by='admin',
+        is_active=True,
+        is_deleted=False
+    )
+    Designation.objects.create(
+        designationname='Skilled(a)',
+        is_dailywage=True,
+        dailywage=501.99,
+        basicpay=0,
+        hra=0,
+        da=0,
+        medicalallowance=0,
+        conveyance=0,
+        lunchallowance=0,
+        cca=0,
+        specialallowance=0,
+        travelallowance=0,
+        washingallowance=0,
+        cycleallowance=0,
+        other1=0,
+        other2=0,
+        ed_epf_per=0,
+        ed_esi_per=0,
+        ed_labourwelfare_per=0,
+        ed_epf_amount=0,
+        ed_esi_amount=0,
+        ed_labourwelfare_amount=0,
+        ed_professionaltax=0,
+        ed_income_tax=0,
+        er_epf_per=0,
+        er_esi_per=0,
+        er_labourwelfare_per=0,
+        er_epf_amount=0,
+        er_esi_amount=0,
+        er_labourwelfare_amount=0,
+        company=None,
+        created_by='admin',
+        updated_by='admin',
+        is_active=True,
+        is_deleted=False
+    )
+    Designation.objects.create(
+        designationname='Skilled(b)',
+        is_dailywage=True,
+        dailywage=527.15,
+        basicpay=0,
+        hra=0,
+        da=0,
+        medicalallowance=0,
+        conveyance=0,
+        lunchallowance=0,
+        cca=0,
+        specialallowance=0,
+        travelallowance=0,
+        washingallowance=0,
+        cycleallowance=0,
+        other1=0,
+        other2=0,
+        ed_epf_per=0,
+        ed_esi_per=0,
+        ed_labourwelfare_per=0,
+        ed_epf_amount=0,
+        ed_esi_amount=0,
+        ed_labourwelfare_amount=0,
+        ed_professionaltax=0,
+        ed_income_tax=0,
+        er_epf_per=0,
+        er_esi_per=0,
+        er_labourwelfare_per=0,
+        er_epf_amount=0,
+        er_esi_amount=0,
+        er_labourwelfare_amount=0,
+        company=None,
+        created_by='admin',
+        updated_by='admin',
+        is_active=True,
+        is_deleted=False
+    )    
+class CreateInitialDesignation(migrations.Migration):
+
+    dependencies = [
+        ('Aapp', '0001_initial'),
+    ]
+
+    operations = [
+        migrations.RunPython(create_initial_designation),
+    ]

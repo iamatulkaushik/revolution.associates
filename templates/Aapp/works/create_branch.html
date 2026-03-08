@@ -1,112 +1,62 @@
-{% extends 'default.html' %}
-{% block title %}Create Branch {% endblock %}
-{% block additionalcss_js %}
-<style>
-    .branches-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-        gap: 15px;
-        margin-top: 20px;
-    }
-    .branch-card {
-        background: #f8f9fa;
-        padding: 15px;
-        border-radius: 6px;
-        border-left: 4px solid #28a745;
-    }
-    .branch-card h5 {
-        margin: 0 0 8px;
-        color: #333;
-    }
-    .branch-card p {
-        margin: 3px 0;
-        color: #666;
-        font-size: 13px;
-    }
-</style>
-{% endblock %}
+{% extends 'Aapp/base.html' %}
+{% block title %}Create Branch{% endblock %}
 {% block content %}
-<h2 class="text-2xl font-bold mb-4">Create Branch</h2>
-
-{% if companies_count == 0 %}
-<div style="padding: 15px; background: #fff3cd; color: #856404; border-radius: 4px; margin-bottom: 20px;">
-    <strong>Warning:</strong> No companies found. Please create a company first before creating branches.
-</div>
-{% endif %}
+<div class="main-content">
+<h2>Create Branch</h2>
 
 {% if messages %}
-<div style="margin-bottom: 20px;">
-    {% for message in messages %}
-    <div style="padding: 10px; margin: 5px 0; border-radius: 4px; {% if message.tags == 'error' %}background: #fee; color: #c00;{% else %}background: #efe; color: #060;{% endif %}">
-        {{ message }}
-    </div>
-    {% endfor %}
-</div>
+{% for message in messages %}
+<div class="{% if message.tags == 'error' %}error{% else %}success{% endif %}">{{ message }}</div>
+{% endfor %}
 {% endif %}
+
+<p><strong>Company:</strong> <span id="company-name">Loading...</span></p>
 
 <form method="post">
     {% csrf_token %}
     <table>
         <tr>
-            <th colspan="2">Create Branch</th>
+            <td><label for="branch_name">Branch Name:</label></td>
+            <td><input type="text" id="branch_name" name="branch_name" required></td>
         </tr>
         <tr>
-            <td><label for="id_company">Company:</label></td>
-            <td>
-                <select id="id_company" name="company" required>
-                    <option value="">-- Select Company --</option>
-                    {% for company in companies %}
-                    <option value="{{ company.company_id }}">
-                        {{ company.company_name }}
-                    </option>
-                    {% endfor %}
-                </select>
-            </td>
+            <td><label for="branch_address">Branch Address:</label></td>
+            <td><textarea id="branch_address" name="branch_address" rows="2"></textarea></td>
         </tr>
         <tr>
-            <td><label for="id_branch_name">Branch Name:</label></td>
-            <td><input type="text" id="id_branch_name" name="branch_name" required></td>
+            <td><label for="branch_email">Branch Email:</label></td>
+            <td><input type="email" id="branch_email" name="branch_email"></td>
         </tr>
         <tr>
-            <td><label for="id_branch_address">Branch Address:</label></td>
-            <td><textarea id="id_branch_address" name="branch_address" rows="2"></textarea></td>
+            <td><label for="contact_person">Contact Person:</label></td>
+            <td><input type="text" id="contact_person" name="contact_person"></td>
         </tr>
         <tr>
-            <td><label for="id_branch_email">Branch Email:</label></td>
-            <td><input type="email" id="id_branch_email" name="branch_email"></td>
-        </tr>
-        <tr>
-            <td><label for="id_contact_person">Contact Person:</label></td>
-            <td><input type="text" id="id_contact_person" name="contact_person"></td>
-        </tr>
-        <tr>
-            <td><label for="id_contact_mobile">Contact Mobile:</label></td>
-            <td><input type="text" id="id_contact_mobile" name="contact_mobile" maxlength="10"></td>
+            <td><label for="contact_mobile">Contact Mobile:</label></td>
+            <td><input type="text" id="contact_mobile" name="contact_mobile" maxlength="10"></td>
         </tr>
         <tr>
             <td colspan="2">
-                <button type="submit" name="submit_btn" class="button">Create Branch</button>
+                <button type="submit" class="button">Create Branch</button>
                 <a href="{% url 'branch_list' %}" class="button">Cancel</a>
             </td>
         </tr>
     </table>
-</form>
+</form></div>
 
-{% if branches %}
-<h3 style="margin-top: 30px;">Existing Branches in {{ selected_company.company_name }} ({{ branches.count }})</h3>
-<div class="branches-grid">
-    {% for branch in branches %}
-    <div class="branch-card">
-        <h5>{{ branch.branch_name }}</h5>
-        <p><strong>Code:</strong> {{ branch.branch_code }}</p>
-        <p><strong>Address:</strong> {{ branch.branch_address|default:"N/A" }}</p>
-        <p><strong>Email:</strong> {{ branch.branch_email|default:"N/A" }}</p>
-        <p><strong>Contact:</strong> {{ branch.contact_person|default:"N/A" }}</p>
-        <p><strong>Mobile:</strong> {{ branch.Cotact_mobile|default:"N/A" }}</p>
-        <p><strong>Created:</strong> {{ branch.created_at|date:"d M Y" }}</p>
-    </div>
-    {% endfor %}
-</div>
-{% endif %}
-
+<script>
+function checkSelectedCompany() {
+    fetch('{% url "get_selected_company" %}')
+        .then(response => response.json())
+        .then(data => {
+            if (!data.company_id) {
+                alert('Please select a company first.');
+                window.location.href = '{% url "dashboard" %}';
+            } else {
+                document.getElementById('company-name').textContent = data.company_name;
+            }
+        });
+}
+document.addEventListener('DOMContentLoaded', checkSelectedCompany);
+</script>
 {% endblock %}
