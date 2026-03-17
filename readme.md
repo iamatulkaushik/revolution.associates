@@ -1,7 +1,3 @@
-#create reamde file for git hub of this project with details
-AAPP_PROFILE_IMPLEMENTATION.md
-Associate User Profile Page - Aapp Implementation Summary
-
 ## Overview
 
 ## Files Modified/Created
