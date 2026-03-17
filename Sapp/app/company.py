@@ -329,6 +329,11 @@ def alter_company_associate(request, company_id):
         company.website = request.POST.get('website', '')
         company.tan = request.POST.get('tan', '')
         company.cin = request.POST.get('cin', '')
+        bank_id = request.POST.get('bank_id')
+        if bank_id:
+            company.bank_id = bank_name.objects.get(id=bank_id)
+        else:
+            company.bank_id = None
         company.account = request.POST.get('account', '')
         company.ifsc = request.POST.get('ifsc', '')
         company.branch_address = request.POST.get('branch_address', '')
@@ -355,3 +360,69 @@ def mark_inactive_company(request, company_id):
     
     return render(request, 'Aapp/company/mark_inactive.html', {'company': company})
 
+
+@login_required
+def create_company_statutory(request):
+    from django.contrib import messages
+    
+    selected_company_id = request.session.get('selected_company_id')
+    if not selected_company_id:
+        return render(request, 'Aapp/company/create_statutory.html', {})
+    
+    selected_company = Company.objects.get(company_id=selected_company_id)
+    
+    if request.method == 'POST':
+        company_statury.objects.create(
+            company=selected_company,
+            epfo=request.POST.get('epfo', ''),
+            epfo_date=request.POST.get('epfo_date') or None,
+            esic=request.POST.get('esic', ''),
+            esic_date=request.POST.get('esic_date') or None,
+            gst=request.POST.get('gst', ''),
+            gst_date=request.POST.get('gst_date') or None,
+            shop_act=request.POST.get('shop_act', ''),
+            shop_act_date=request.POST.get('shop_act_date') or None,
+            labour=request.POST.get('labour', ''),
+            labour_from=request.POST.get('labour_from') or None,
+            labour_to=request.POST.get('labour_to') or None,
+            psara=request.POST.get('psara', ''),
+            psara_from=request.POST.get('psara_from') or None,
+            psara_to=request.POST.get('psara_to') or None
+        )
+        messages.success(request, f"Statutory details for '{selected_company.company_name}' created successfully.")
+        return redirect('list_company_associate')
+    
+    return render(request, 'Aapp/company/create_statutory.html', {})
+
+@login_required
+def alter_company_statutory(request, company_id):
+    from django.contrib import messages
+    from django.shortcuts import get_object_or_404
+    
+    selected_company_id = request.session.get('selected_company_id')
+    if not selected_company_id:
+        return render(request, 'Aapp/company/alter_statutory.html', {'statutory': None})
+    
+    company = get_object_or_404(Company, company_id=company_id)
+    statutory, created = company_statury.objects.get_or_create(company=company)
+    
+    if request.method == 'POST':
+        statutory.epfo = request.POST.get('epfo', '')
+        statutory.epfo_date = request.POST.get('epfo_date') or None
+        statutory.esic = request.POST.get('esic', '')
+        statutory.esic_date = request.POST.get('esic_date') or None
+        statutory.gst = request.POST.get('gst', '')
+        statutory.gst_date = request.POST.get('gst_date') or None
+        statutory.shop_act = request.POST.get('shop_act', '')
+        statutory.shop_act_date = request.POST.get('shop_act_date') or None
+        statutory.labour = request.POST.get('labour', '')
+        statutory.labour_from = request.POST.get('labour_from') or None
+        statutory.labour_to = request.POST.get('labour_to') or None
+        statutory.psara = request.POST.get('psara', '')
+        statutory.psara_from = request.POST.get('psara_from') or None
+        statutory.psara_to = request.POST.get('psara_to') or None
+        statutory.save()
+        messages.success(request, f"Statutory details updated successfully.")
+        return redirect('list_company_associate')
+    
+    return render(request, 'Aapp/company/alter_statutory.html', {'statutory': statutory})

@@ -1,0 +1,61 @@
+{% extends 'Aapp/base.html' %}
+{% block title %}Edit Sub User{% endblock %}
+{% load static %}
+{% block content %}
+<div class="main-content">
+    <div class="container">
+        {% if messages %}
+            {% for message in messages %}
+            <div class="message-alert {% if message.tags == 'success' %}message-success{% else %}message-error{% endif %}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="quickupdate" style="max-width:600px;">
+            <h2>Edit Sub User — {{ subuser.user.username }}</h2><hr>
+            <form method="post">
+                {% csrf_token %}
+                <table style="background:transparent; box-shadow:none; min-width:unset;">
+                    <tbody>
+                        <tr>
+                            <td><label>Username</label></td>
+                            <td><input type="text" value="{{ subuser.user.username }}" disabled style="color:#aaa;"></td>
+                        </tr>
+                        <tr>
+                            <td><label>First Name <span style="color:var(--Color1)">*</span></label></td>
+                            <td><input type="text" name="first_name" value="{{ subuser.user.first_name }}" required></td>
+                        </tr>
+                        <tr>
+                            <td><label>Last Name</label></td>
+                            <td><input type="text" name="last_name" value="{{ subuser.user.last_name }}"></td>
+                        </tr>
+                        <tr>
+                            <td><label>Email <span style="color:var(--Color1)">*</span></label></td>
+                            <td><input type="email" name="email" value="{{ subuser.user.email }}" required></td>
+                        </tr>
+                        <tr>
+                            <td><label>Mobile</label></td>
+                            <td><input type="tel" name="mobile" value="{{ subuser.mobile }}"></td>
+                        </tr>
+                        <tr>
+                            <td><label>Role</label></td>
+                            <td>
+                                <select name="role">
+                                    <option value="employee" {% if subuser.role == 'employee' %}selected{% endif %}>Employee</option>
+                                    <option value="operator" {% if subuser.role == 'operator' %}selected{% endif %}>Operator</option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><label>Address</label></td>
+                            <td><textarea name="address" rows="2">{{ subuser.address }}</textarea></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <br>
+                <button type="submit" class="button">Update</button>
+                <a href="{% url 'list_subusers' %}" class="button" style="margin-left:10px;">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

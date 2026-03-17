@@ -385,6 +385,21 @@ tbody tr:hover {
   }
 }
 
+.quickupdate{
+  vertical-align: text-top;
+  margin: 10px;  min-width: 41vw;
+  padding:5px;  border-radius: 10px;
+  display: inline-block;    position: relative;
+  background-color: var(--Color1); color: var(--Color2);
+}
+.quickupdate h2{
+  padding: 5px 2px;
+}
+
+.quickupdate > table{
+  min-width: 100%;
+}
+
 /* 
 .card {
     background-color: #fff;
@@ -429,6 +444,26 @@ tbody tr:hover {
 
 .container {
     padding: 20px;
+}
+
+.message-alert {
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    border-left: 4px solid;
+    font-weight: 500;
+}
+
+.message-success {
+    background-color: #d4edda;
+    color: #155724;
+    border-left-color: #28a745;
+}
+
+.message-error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border-left-color: #dc3545;
 }
 
 .row {

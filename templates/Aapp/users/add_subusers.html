@@ -1,0 +1,83 @@
+{% extends 'Aapp/base.html' %}
+{% block title %}Add Sub User{% endblock %}
+{% load static %}
+{% block content %}
+<div class="main-content">
+    <div class="container">
+        {% if messages %}
+            {% for message in messages %}
+            <div class="message-alert {% if message.tags == 'success' %}message-success{% else %}message-error{% endif %}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="quickupdate" style="max-width:600px;">
+            <h2>Add Sub User</h2><hr>
+
+            <p style="margin-bottom:12px;">
+                License allows <strong>{{ limit }}</strong> sub user{{ limit|pluralize }}.
+                Currently using <strong>{{ current }}</strong>.
+            </p>
+
+            {% if current >= limit %}
+            <div class="message-alert message-error">
+                Sub user limit of <strong>{{ limit }}</strong> reached. Upgrade your license to add more.
+            </div>
+            <a href="{% url 'Aapp:list_subusers' %}" class="button">Back to Sub Users</a>
+
+            {% else %}
+            <form method="post">
+                {% csrf_token %}
+                <table style="background:transparent; box-shadow:none; min-width:unset;">
+                    <tbody>
+                        <tr>
+                            <td><label>Username <span style="color:var(--Color1)">*</span></label></td>
+                            <td><input type="text" name="username" required placeholder="unique username"></td>
+                        </tr>
+                        <tr>
+                            <td><label>First Name <span style="color:var(--Color1)">*</span></label></td>
+                            <td><input type="text" name="first_name" required></td>
+                        </tr>
+                        <tr>
+                            <td><label>Last Name</label></td>
+                            <td><input type="text" name="last_name"></td>
+                        </tr>
+                        <tr>
+                            <td><label>Email <span style="color:var(--Color1)">*</span></label></td>
+                            <td><input type="email" name="email" required></td>
+                        </tr>
+                        <tr>
+                            <td><label>Mobile</label></td>
+                            <td><input type="tel" name="mobile" placeholder="+91-XXXXXXXXXX"></td>
+                        </tr>
+                        <tr>
+                            <td><label>Role <span style="color:var(--Color1)">*</span></label></td>
+                            <td>
+                                <select name="role">
+                                    <option value="employee">Employee</option>
+                                    <option value="operator">Operator</option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><label>Address</label></td>
+                            <td><textarea name="address" rows="2" placeholder="Address"></textarea></td>
+                        </tr>
+                        <tr>
+                            <td><label>Password <span style="color:var(--Color1)">*</span></label></td>
+                            <td><input type="password" name="password" required></td>
+                        </tr>
+                        <tr>
+                            <td><label>Confirm Password <span style="color:var(--Color1)">*</span></label></td>
+                            <td><input type="password" name="confirm_password" required></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <br>
+                <button type="submit" class="button">Create Sub User</button>
+                <a href="{% url 'Aapp:list_subusers' %}" class="button" style="margin-left:10px;">Cancel</a>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

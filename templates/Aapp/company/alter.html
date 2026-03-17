@@ -65,22 +65,14 @@
                 <select id="bank_id" name="bank_id">
                     <option value="">Select Bank</option>
                     {% for bank in banks %}
-                    <option value="{{ bank.bank_id }}" {% if company.bank_id.bank_id == bank.bank_id %}selected{% endif %}>{{ bank.bank_name }}</option>
+                    <option value="{{ bank.id }}">{{ bank.name }}</option>
                     {% endfor %}
                 </select>
             </td>
-        </tr>
-        
-        {% if company.bank_id %}
-        <tr>
-            <td><label for="bank_name">Bank Name:</label></td>
-            <td><input type="text" id="bank_name" name="bank_name" value="{{ company.bank_id.bank_name }}" readonly></td>
-        </tr>
-        {% endif %}
-        
-        <tr>
             <td><label for="account">Bank Account:</label></td>
             <td><input type="text" id="account" name="account" value="{{ company.account }}" maxlength="20"></td>
+        </tr>
+        <tr>
             <td><label for="ifsc">IFSC:</label></td>
             <td><input type="text" id="ifsc" name="ifsc" value="{{ company.ifsc }}" maxlength="11"></td>
             <td><label for="branch_address">Branch Address:</label></td>
@@ -94,4 +86,14 @@
         </tr>
     </table>
 </form></div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var bankSelect = document.getElementById('bank_id');
+    var selectedBankId = '{{ company.bank_id.id|default:"" }}';
+    if (selectedBankId) {
+        bankSelect.value = selectedBankId;
+    }
+});
+</script>
 {% endblock %}

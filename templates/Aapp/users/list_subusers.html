@@ -1,0 +1,63 @@
+{% extends 'Aapp/base.html' %}
+{% block title %}Sub Users{% endblock %}
+{% load static %}
+{% block content %}
+<div class="main-content">
+    <div class="container">
+        {% if messages %}
+            {% for message in messages %}
+            <div class="message-alert {% if message.tags == 'success' %}message-success{% else %}message-error{% endif %}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+            <h2>Sub Users ({{ subusers.count }} / {{ limit }})</h2>
+            {% if subusers.count < limit %}
+                <a href="{% url 'Aapp:add_subuser' %}" class="button">+ Add Sub User</a>
+            {% else %}
+                <span class="button" style="opacity:0.5; cursor:not-allowed;" title="License limit reached ({{ limit }})">+ Add Sub User</span>
+            {% endif %}
+        </div>
+
+        {% if subusers %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Username</th>
+                    <th>Role</th>
+                    <th>Email</th>
+                    <th>Mobile</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for su in subusers %}
+                <tr>
+                    <td>{{ su.user.get_full_name|default:su.user.username }}</td>
+                    <td>{{ su.user.username }}</td>
+                    <td>{{ su.get_role_display }}</td>
+                    <td>{{ su.user.email }}</td>
+                    <td>{{ su.mobile|default:"—" }}</td>
+                    <td>{{ su.get_status_display }}</td>
+                    <td>
+                        <a href="{% url 'alter_subuser' su.pk %}" class="button" style="font-size:11px; padding:4px 10px;">Edit</a>
+                        <a href="{% url 'reset_subuser_password' su.pk %}" class="button" style="font-size:11px; padding:4px 10px;">Password</a>
+                        <a href="{% url 'subuser_companies' su.pk %}" class="button" style="font-size:11px; padding:4px 10px;">Companies</a>
+                        <a href="{% url 'disable_subuser' su.pk %}" class="button" style="font-size:11px; padding:4px 10px;">Status</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p style="text-align:center; color:#999; font-style:italic; padding:30px;">No sub users created yet.</p>
+        {% endif %}
+
+        <div style="margin-top:20px;">
+            <a href="{% url 'associate_profile' %}" class="button">Back to Profile</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

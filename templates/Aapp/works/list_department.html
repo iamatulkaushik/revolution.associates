@@ -22,8 +22,8 @@
             <td>{{ dept.branch.branch_name }}</td>
             <td>{{ dept.companyid.company_name }}</td>
             <td>
-                <a href="{% url 'alter_department' dept.departmentid %}" class="button">Edit</a>
-                <a href="{% url 'delete_department' dept.departmentid %}" class="button">Delete</a>
+                <a href="{% url 'alter_department' dept.departmentid %}" class="button edit"></a>
+                <a href="{% url 'delete_department' dept.departmentid %}" class="button delete"></a>
             </td>
         </tr>
         {% endfor %}

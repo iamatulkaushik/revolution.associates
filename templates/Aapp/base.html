@@ -32,9 +32,9 @@
     <nav>
         <ul>
             <li><a href="{% url 'dashboard' %}" class="dashboard">Dashboard</a></li>
-            <li><a href="{% url 'list_company_associate' %}" class="companies">Companies</a></li>
             <li><a href="#" class="masters">Masters</a>
                 <ul>
+                    <li><a href="{% url 'list_company_associate' %}" class="companies">Companies</a></li>
                     <li><a href="{% url 'department_list' %}" class="departments">Departments</a></li>
                     <li><a href="{% url 'branch_list' %}" class="branches">Branches</a></li>
                     <li><a href="{% url 'list_designation' %}" class="designations">Designations</a></li>
@@ -42,7 +42,12 @@
             </li>
             <li><a href="#" class="employees">Employees</a></li>
             <li><a href="#" class="attandance">Attandance</a></li>
-            <li><a href="#" class="profile">Profile</a></li>
+            <li><a href="#" class="profile">Profile</a>
+                <ul>
+                    <li><a href="{% url 'associate_profile' %}" class="profile">My Profile</a></li>
+                    <li><a href="{% url 'list_subusers' %}" class="profile">Sub-Users</a></li>
+                </ul>
+            </li>
             <!-- <li><a class="logout" href="{% url 'logout' %}">logout</a></li> -->
         </ul>
       </nav>

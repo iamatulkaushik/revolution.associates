@@ -51,6 +51,50 @@ def dashboard(request):
         'departments_count': departments_count,
     })
 
+@login_required
+def associate_profile(request):
+    """Associate user profile page with details, licenses, and subusers"""
+    try:
+        associate = associateuser.objects.get(user=request.user)
+    except associateuser.DoesNotExist:
+        messages.error(request, 'Associate profile not found.')
+        return redirect('Aapp:dashboard')
+    
+    # Get licenses for this associate
+    licenses = License.objects.filter(associate=associate).select_related('company')
+    
+    # Get subusers count
+    subusers = SubUser.objects.filter(associate=associate).select_related('user')
+    subusers_count = subusers.count()
+    active_subusers = subusers.filter(is_active=True).count()
+    
+    # Get assigned companies
+    companies = associate.get_companies()
+    
+    # Handle profile update
+    if request.method == 'POST':
+        try:
+            associate.user.first_name = request.POST.get('first_name', '')
+            associate.user.last_name = request.POST.get('last_name', '')
+            associate.user.email = request.POST.get('email', '')
+            associate.mobile = request.POST.get('mobile', '')
+            associate.address = request.POST.get('address', '')
+            associate.user.save()
+            associate.save()
+            messages.success(request, 'Profile updated successfully!')
+            return redirect('Aapp:associate_profile')
+        except Exception as e:
+            messages.error(request, f'Error updating profile: {str(e)}')
+    
+    return render(request, 'Aapp/users/associate_profile.html', {
+        'associate': associate,
+        'licenses': licenses,
+        'subusers': subusers,
+        'subusers_count': subusers_count,
+        'active_subusers': active_subusers,
+        'companies': companies,
+    })
+
 #branch creation with already existing branch name check and unique branch code generation within selected company
 @login_required
 def create_branch(request):

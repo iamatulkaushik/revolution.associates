@@ -181,6 +181,19 @@ class associateuser(models.Model):
             return "Suspended"
         else:
             return "Active"
+    
+    def get_active_licenses(self):
+        """Get all active licenses for this associate"""
+        from Sapp.app.license import License
+        return License.objects.filter(associate=self, is_active=True, status='active')
+    
+    def get_subusers_count(self):
+        """Get total subusers count"""
+        return self.sub_users.count()
+    
+    def get_active_subusers_count(self):
+        """Get active subusers count"""
+        return self.sub_users.filter(is_active=True).count()
 
 class SubUser(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='subuser_profile')
@@ -478,4 +491,24 @@ def change_subuser_password(subuser, new_password):
         action=f"Sub user password changed"
     )
     
+    return True
+
+#utilty function to delete sub user account completly
+def delete_subuser_account(subuser):
+    """Delete sub user account completely"""
+    user = subuser.user
+    username = user.username
+
+    # Log the deletion
+    UserActivityLog.objects.create(
+        user=user,
+        action=f"Sub user account deleted"
+    )
+
+    # Delete the subuser profile
+    subuser.delete()
+
+    # Delete the Django user
+    user.delete()
+
     return True

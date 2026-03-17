@@ -28,8 +28,8 @@
             <td>{{ branch.contact_person|default:"N/A" }}</td>
             <td>{{ branch.Cotact_mobile|default:"N/A" }}</td>
             <td>
-                <a href="{% url 'alter_branch' branch.branchid %}" class="button">Edit</a>
-                <a href="{% url 'delete_branch' branch.branchid %}" class="button">Delete</a>
+                <a href="{% url 'alter_branch' branch.branchid %}" class="button edit"></a>
+                <a href="{% url 'delete_branch' branch.branchid %}" class="button delete"></a>
             </td>
         </tr>
         {% endfor %}

@@ -68,6 +68,7 @@
                 <span class="userrole">{% if user.associate_profile %}Associate{% elif user.profile %}{{ user.profile.get_role_display }}{% else %}User{% endif %}</span>
                 <hr>
                 <span class="useremail">{{ user.email }}</span> </br> <span>{{ user.last_login }}</span>
+                <a href="{% url 'associate_profile' %}" class="button" style="float: left; margin-right: 10px;">My Profile</a>
                 <a href="{% url 'logout' %}" class="logout" style="float: right;">Logout</a>
             </div>
     </div>

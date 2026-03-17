@@ -1,0 +1,162 @@
+{% extends 'Aapp/base.html' %}
+{% block title %}My Profile{% endblock %}
+{% load static %}
+{% block content %}
+<div class="main-content">
+    <div class="container">
+        {% if messages %}
+            {% for message in messages %}
+            <div class="message-alert {% if message.tags == 'success' %}message-success{% else %}message-error{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        {% endif %}
+        <div class="profile-card">
+            <div class="profile-image">{{ associate.user.first_name|make_list|first|upper }}</div>
+            <div class="profile-content">
+                <h2>{{ associate.user.get_full_name|default:associate.user.username }}</h2> <span class="status">{{ associate.get_status_display }}</span>
+                <p>ID: {{ associate.associate_id }} | Username: {{ associate.user.username }}</p>
+                <p>Email: {{ associate.user.email }} | Mobile: {{ associate.mobile }}</p>
+                <p>Created: {{ associate.created_at|date:"M d, Y" }} | Last Updated: {{ associate.updated_at|date:"M d, Y H:i" }}</p>
+                <p>{% if associate.is_suspended %}
+                    Suspension Ends: {{ associate.suspension_end_time|date:"M d, Y H:i" }}
+                            {% endif %}</p>
+            </div>
+        </div>
+        <div class="l-container">
+            <div class="card">
+                <div class="icon" id="icon">Ī</div>
+                <div class="data">{{ subusers_count }}</div>
+                <div class="title">Total Sub Users</div>
+                <div class="comments">Active: {{ active_subusers }}</div>
+            </div>
+
+            <div class="card">
+                <div class="icon" id="icon">Ŀ</div>
+                <div class="data">{{ licenses.count }}</div>
+                <div class="title">Active Licenses</div>
+                <div class="comments">Total Licenses</div>
+            </div>
+
+            <div class="card">
+                <div class="icon" id="icon">Ĉ</div>
+                <div class="data">{{ companies.count }}</div>
+                <div class="title">Companies</div>
+                <div class="comments">Assigned Companies</div>
+            </div>
+        </div>
+        <div class="quickupdate">
+            <h2>Quick Profile Update</h2><hr>
+            <form method="post">
+                {% csrf_token %}
+                <label id="first_name" style="display:inline-block; width: 100px;">First Name</label>
+                <input type="text" name="first_name" style="width: 150px;" value="{{ associate.user.first_name }}" required>
+                <label id="last_name" style="display:inline-block; width: 100px;">Last Name</label>
+                <input type="text" name="last_name" style="width: 150px;" value="{{ associate.user.last_name }}" required></br>
+                <label id="email" style="display:inline-block; width: 100px;">Email Address</label>
+                <input type="email" name="email" style="width: 150px;" value="{{ associate.user.email }}" required>
+                <label id="mobile"style="display:inline-block; width: 100px;">Mobile Number</label>
+                <input type="tel" name="mobile" style="width: 150px;" value="{{ associate.mobile }}" placeholder="+91-XXXXXXXXXX"></br>
+                <label>Address</label>
+                <textarea name="address" rows="3" placeholder="Enter your address">{{ associate.address }}</textarea>
+                <br><br>
+                <button type="submit" class="button">Update Profile</button>
+            </form>
+        </div>
+        <div class="quickupdate">
+            <h2>License Details ({{ licenses.count }})</h2><hr>
+            {% if licenses %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Company</th>
+                            <th>Type</th>
+                            <th>License Key</th>
+                            <th>Status</th>
+                            <th>Issue Date</th>
+                            <th>Expiry Date</th>
+                            <th>Max Users</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for license in licenses %}
+                        <tr>
+                            <td>{{ license.company.company_name }}</td>
+                            <td>{{ license.get_license_type_display }}</td>
+                            <td><code>{{ license.license_key }}</code></td>
+                            <td>{{ license.get_status_display }}</td>
+                            <td>{{ license.issue_date|date:"M d, Y" }}</td>
+                            <td>{{ license.expiry_date|date:"M d, Y" }}</td>
+                            <td>{{ license.max_users }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p style="text-align: center; color: #999; font-style: italic; padding: 20px;">No licenses issued yet.</p>
+            {% endif %}
+        </div></br>
+        <div class="quickupdate">
+            <h2> Sub Users ({{ subusers_count }})</h2><hr>
+            {% if subusers %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Username</th>
+                            <th>Role</th>
+                            <th>Email</th>
+                            <th>Mobile</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for subuser in subusers %}
+                        <tr>
+                            <td>{{ subuser.user.get_full_name|default:subuser.user.username }}</td>
+                            <td>{{ subuser.user.username }}</td>
+                            <td>{{ subuser.get_role_display }}</td>
+                            <td>{{ subuser.user.email }}</td>
+                            <td>{{ subuser.mobile|default:"N/A" }}</td>
+                            <td>{% if subuser.is_active %}Active{% else %}Inactive{% endif %}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p style="text-align: center; color: #999; font-style: italic; padding: 20px;">No sub users created yet.</p>
+            {% endif %}
+        </div>
+        <div class="quickupdate">
+            <h2>Registered Companies ({{ companies.count }})</h2><hr>
+            {% if companies %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Company Name</th>
+                            <th>PAN</th>
+                            <th>Mobile</th>
+                            <th>Email</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for company in companies %}
+                        <tr>
+                            <td>{{ company.company_name }}</td>
+                            <td>{{ company.pan }}</td>
+                            <td>{{ company.mobile }}</td>
+                            <td>{{ company.email1 }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p style="text-align: center; color: #999; font-style: italic; padding: 20px;">No companies assigned.</p>
+            {% endif %}
+        </div>
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="{% url 'dashboard' %}" class="button">Back to Dashboard</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

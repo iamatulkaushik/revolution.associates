@@ -9,7 +9,7 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
 from Sapp.app.company import Company, create_company_form_superadmin
-from Sapp.app.user import UserProfile, associateuser, SubUser, create_associate_user, create_sub_user
+from Sapp.app.user import UserProfile, associateuser, SubUser, create_associate_user, create_sub_user, delete_subuser_account as _delete_subuser_account
 from Sapp.app.license import License
 from Sapp.app.state_district import District
 
@@ -261,6 +261,37 @@ def list_associates(request):
     return render(request, 'Sapp/users/list_associates.html', {'associates': associates})
 
 @login_required
+def associate_profile(request, associate_id):
+    associate = get_object_or_404(associateuser, id=associate_id)
+    licenses = License.objects.filter(associate=associate).select_related('company')
+    subusers_count = SubUser.objects.filter(associate=associate).count()
+    active_subusers = SubUser.objects.filter(associate=associate, is_active=True).count()
+    companies = associate.get_companies()
+    
+    # Update profile if POST
+    if request.method == 'POST':
+        try:
+            associate.user.first_name = request.POST.get('first_name', '')
+            associate.user.last_name = request.POST.get('last_name', '')
+            associate.user.email = request.POST.get('email', '')
+            associate.mobile = request.POST.get('mobile', '')
+            associate.address = request.POST.get('address', '')
+            associate.user.save()
+            associate.save()
+            messages.success(request, 'Profile updated successfully!')
+            return redirect('associate_profile', associate_id=associate_id)
+        except Exception as e:
+            messages.error(request, f'Error updating profile: {str(e)}')
+    
+    return render(request, 'Sapp/users/associate_profile.html', {
+        'associate': associate,
+        'licenses': licenses,
+        'subusers_count': subusers_count,
+        'active_subusers': active_subusers,
+        'companies': companies,
+    })
+
+@login_required
 def reset_associate_password(request, associate_id):
     associate = get_object_or_404(associateuser, id=associate_id)
     
@@ -391,6 +422,19 @@ def disable_suspend_subuser(request, subuser_id):
             messages.error(request, f'Error: {str(e)}')
     
     return render(request, 'Sapp/users/disable_suspend_subuser.html', {'subuser': subuser})
+
+@login_required
+def delete_subuser_account(request, subuser_id):
+    subuser = get_object_or_404(SubUser, id=subuser_id)
+    if request.method == 'POST':
+        username = subuser.user.username
+        try:
+            _delete_subuser_account(subuser)
+            messages.success(request, f"Sub user '{username}' deleted successfully.")
+        except Exception as e:
+            messages.error(request, f'Error deleting sub user: {str(e)}')
+        return redirect('list_subusers')
+    return render(request, 'Sapp/users/delete_subuser.html', {'subuser': subuser})
 
 @login_required
 def list_subusers(request):

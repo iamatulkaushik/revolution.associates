@@ -1,0 +1,43 @@
+{% extends 'Aapp/base.html' %}
+{% block title %}Manage Status{% endblock %}
+{% load static %}
+{% block content %}
+<div class="main-content">
+    <div class="container">
+        {% if messages %}
+            {% for message in messages %}
+            <div class="message-alert {% if message.tags == 'success' %}message-success{% else %}message-error{% endif %}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="quickupdate" style="max-width:520px;">
+            <h2>Manage Status — {{ subuser.user.username }}</h2><hr>
+
+            <table style="background:transparent; box-shadow:none; min-width:unset; margin-bottom:15px;">
+                <tbody>
+                    <tr><td>Full Name</td><td>{{ subuser.user.get_full_name|default:"—" }}</td></tr>
+                    <tr><td>Role</td><td>{{ subuser.get_role_display }}</td></tr>
+                    <tr><td>Current Status</td><td><strong>{{ subuser.get_status_display }}</strong></td></tr>
+                    {% if subuser.is_suspended and subuser.suspension_end_time %}
+                    <tr><td>Suspension Ends</td><td>{{ subuser.suspension_end_time|date:"M d, Y H:i" }}</td></tr>
+                    {% endif %}
+                </tbody>
+            </table>
+
+            <form method="post">
+                {% csrf_token %}
+                <label>Reason</label>
+                <textarea name="reason" rows="2" placeholder="Optional reason"></textarea>
+                <br><br>
+                {% if subuser.is_active %}
+                    <button type="submit" name="action" value="suspend" class="button">Suspend 24h</button>
+                    <button type="submit" name="action" value="disable" class="button" style="margin-left:10px; border-color:var(--Color1); color:var(--Color1);">Disable Permanently</button>
+                {% else %}
+                    <button type="submit" name="action" value="enable" class="button" style="border-color:#28a745; color:#28a745;">Enable User</button>
+                {% endif %}
+                <a href="{% url 'list_subusers' %}" class="button" style="margin-left:10px;">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

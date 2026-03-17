@@ -1,6 +1,5 @@
 from django.urls import path
 from . import views
-
 urlpatterns = [
     path('signin/', views.login, name="login"),
     path('logout/', views.logout, name="logout"),
@@ -26,6 +25,7 @@ urlpatterns = [
     path('users/subuser/disable/<int:subuser_id>/', views.disable_suspend_subuser, name="disable_suspend_subuser"),
     path('users/subuser/list/', views.list_subusers, name="list_subusers"),
     path('users/subuser/reset-password/<int:subuser_id>/', views.reset_subuser_password, name="reset_subuser_password"),
+    path('users/subuser/delete/<int:subuser_id>/', views.delete_subuser_account, name="delete_subuser"),
     
     # AJAX URLs
     path('get-associate-companies/<int:associate_id>/', views.get_associate_companies, name="get_associate_companies"),
