@@ -1,15 +1,12 @@
 from django import forms
 from django.db import models
 from django.shortcuts import redirect, render, get_object_or_404
-from django.views import View
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import Q
+from django.contrib.auth.decorators import login_required
 from Sapp.app.company import Company
 from Sapp.app.state_district import State, District
-from Sapp.app.user import UserProfile
+from Sapp.app.bank import bank_name
 from Aapp.app.designation import designation
 from Aapp.app.branch_department import branch, department
-import csv
 
 class employee(models.Model):
     # Personal data
@@ -50,6 +47,14 @@ class employee(models.Model):
     bank_name = models.CharField(max_length=255, db_column="Account_Name")
     bank_account = models.CharField(max_length=20, db_column="Account_number", unique=True)
     bank_ifsc = models.CharField(max_length=11, db_column="Bank_IFSC")
+    passport_number = models.CharField(max_length=20, db_column="Passport_Number", blank=True)
+    passport_expiry = models.DateField(db_column="Passport_Expiry", null=True, blank=True)
+    passport_name = models.CharField(max_length=200, db_column="Passport_Name", blank=True)
+    driving_license_number = models.CharField(max_length=20, db_column="Driving_License_Number", blank=True)
+    driving_license_expiry = models.DateField(db_column="Driving_License_Expiry", null=True, blank=True)
+    driving_license_name = models.CharField(max_length=200, db_column="Driving_License_Name", blank=True)
+    voterid = models.CharField(max_length=20, db_column="VoterID", blank=True)
+    voterid_name = models.CharField(max_length=200, db_column="VoterID_Name", blank=True)
     
     # Employment data
     dateofjoining = models.DateField()
@@ -116,96 +121,253 @@ class BulkEmployeeUploadForm(forms.Form):
 
 
 
-# Views
-class EmployeeCompleteView(LoginRequiredMixin, View):
-    def get(self, request):
-        if request.user.user_type not in ['associate', 'subuser']:
-            return redirect('employee_dashboard')
-        form = EmployeeCompleteForm()
-        return render(request, 'employee/employee_complete_form.html', {'form': form})
+# ── helpers ──────────────────────────────────────────────────────────────────
+def _company_ctx(request):
+    """Return selected company or None."""
+    cid = request.session.get('selected_company_id')
+    if not cid:
+        return None
+    from Sapp.app.company import Company
+    return Company.objects.filter(company_id=cid).first()
 
-    def post(self, request):
-        if request.user.user_type not in ['associate', 'subuser']:
-            return redirect('employee_dashboard')
-        form = EmployeeCompleteForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('employee_list')
-        return render(request, 'employee/employee_complete_form.html', {'form': form})
 
-class EmployeeQuickView(LoginRequiredMixin, View):
-    def get(self, request):
-        if request.user.user_type not in ['associate', 'subuser']:
-            return redirect('employee_dashboard')
-        form = EmployeeQuickForm()
-        return render(request, 'employee/employee_quick_form.html', {'form': form})
+def _form_ctx(company):
+    """Return dropdowns scoped to selected company."""
+    return {
+        'designations': designation.objects.filter(company=company, is_active=True, is_deleted=False),
+        'branches':     branch.objects.filter(companyid=company),
+        'departments':  department.objects.filter(companyid=company),
+        'states':       State.objects.all(),
+        'banks':        bank_name.objects.all().order_by('name'),
+    }
 
-    def post(self, request):
-        if request.user.user_type not in ['associate', 'subuser']:
-            return redirect('employee_dashboard')
-        form = EmployeeQuickForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('employee_list')
-        return render(request, 'employee/employee_quick_form.html', {'form': form})
 
-class BulkEmployeeUploadView(LoginRequiredMixin, View):
-    def get(self, request):
-        if request.user.user_type != 'associate':
-            return redirect('employee_dashboard')
-        form = BulkEmployeeUploadForm()
-        return render(request, 'employee/bulk_upload.html', {'form': form})
+# ── list ─────────────────────────────────────────────────────────────────────
+def list_employee(request):
+    from django.contrib import messages
+    company = _company_ctx(request)
+    if not company:
+        messages.warning(request, 'Please select a company first.')
+        return redirect('dashboard')
+    employees = employee.objects.filter(CompanyID=company).select_related(
+        'designationID', 'branchID', 'departmentID')
+    return render(request, 'Aapp/employees/list_employee.html',
+                  {'employees': employees, 'company': company})
 
-    def post(self, request):
-        if request.user.user_type != 'associate':
-            return redirect('employee_dashboard')
-        form = BulkEmployeeUploadForm(request.POST, request.FILES)
-        if form.is_valid():
-            csv_file = request.FILES['csv_file']
-            decoded_file = csv_file.read().decode('utf-8').splitlines()
-            reader = csv.DictReader(decoded_file)
-            for row in reader:
-                employee.objects.create(**row)
-            return redirect('employee_list')
-        return render(request, 'employee/bulk_upload.html', {'form': form})
 
-class EmployeeSelfUpdateView(LoginRequiredMixin, View):
-    def get(self, request):
-        if request.user.user_type != 'employee':
-            return redirect('employee_dashboard')
-        emp = get_object_or_404(employee, email=request.user.email)
-        form = EmployeeSelfUpdateForm(instance=emp)
-        return render(request, 'employee/self_update.html', {'form': form})
+# ── create ────────────────────────────────────────────────────────────────────
+def create_employee(request):
+    from django.contrib import messages
+    company = _company_ctx(request)
+    if not company:
+        messages.warning(request, 'Please select a company first.')
+        return redirect('dashboard')
 
-    def post(self, request):
-        if request.user.user_type != 'employee':
-            return redirect('employee_dashboard')
-        emp = get_object_or_404(employee, email=request.user.email)
-        form = EmployeeSelfUpdateForm(request.POST, instance=emp)
-        if form.is_valid():
-            form.save()
-            return redirect('employee_dashboard')
-        return render(request, 'employee/self_update.html', {'form': form})
+    ctx = _form_ctx(company)
+    ctx['company'] = company
 
-class EmployeeListView(LoginRequiredMixin, View):
-    def get(self, request):
-        if request.user.user_type == 'associate':
-            employees = employee.objects.all()
-        elif request.user.user_type == 'subuser':
-            employees = employee.objects.filter(branchID=request.user.branch)
+    if request.method == 'POST':
+        p = request.POST
+        required = ['employeecode', 'name', 'gender', 'dateofbirth', 'mobile',
+                    'email', 'aadhar_number', 'aadhar_name', 'bank_name',
+                    'bank_account', 'bank_ifsc', 'dateofjoining',
+                    'designationID', 'departmentID', 'branchID',
+                    'temporaryaddress', 'temp_state', 'temp_district', 'temp_pincode']
+        if not all(p.get(f) for f in required):
+            messages.error(request, 'All required fields must be filled.')
+        elif employee.objects.filter(employeecode=p['employeecode'], CompanyID=company).exists():
+            messages.error(request, f"Employee code '{p['employeecode']}' already exists.")
+        elif employee.objects.filter(mobile=p['mobile']).exists():
+            messages.error(request, 'Mobile number already registered.')
+        elif employee.objects.filter(aadhar_number=p['aadhar_number']).exists():
+            messages.error(request, 'Aadhaar number already registered.')
+        elif p.get('pan_number') and employee.objects.filter(pan_number=p['pan_number']).exists():
+            messages.error(request, 'PAN number already registered.')
+        elif employee.objects.filter(bank_account=p['bank_account']).exists():
+            messages.error(request, 'Bank account already registered.')
         else:
-            employees = employee.objects.filter(email=request.user.email)
-        return render(request, 'employee/employee_list.html', {'employees': employees})
+            try:
+                same = p.get('same_as_permanent') == 'on'
+                employee.objects.create(
+                    employeecode   = p['employeecode'],
+                    name           = p['name'],
+                    fathername     = p.get('fathername', ''),
+                    mothername     = p.get('mothername', ''),
+                    gender         = p['gender'],
+                    dateofbirth    = p['dateofbirth'],
+                    bloodgroup     = p.get('bloodgroup', ''),
+                    religion       = p.get('religion', ''),
+                    maritalstatus  = p.get('maritalstatus', ''),
+                    temporaryaddress = p['temporaryaddress'],
+                    temp_state_id  = p['temp_state'],
+                    temp_district_id = p['temp_district'],
+                    temp_pincode   = p['temp_pincode'],
+                    same_as_permanent = same,
+                    permanentaddress = p['temporaryaddress'] if same else p.get('permanentaddress', ''),
+                    perm_state_id  = p['temp_state'] if same else (p.get('perm_state') or None),
+                    perm_district_id = p['temp_district'] if same else (p.get('perm_district') or None),
+                    perm_pincode   = p['temp_pincode'] if same else p.get('perm_pincode', ''),
+                    country        = p.get('country', 'India'),
+                    mobile         = p['mobile'],
+                    phone          = p.get('phone', ''),
+                    email          = p['email'],
+                    aadhar_number  = p['aadhar_number'],
+                    aadhar_name    = p['aadhar_name'],
+                    pan_name       = p.get('pan_name', ''),
+                    pan_number     = p.get('pan_number') or None,
+                    bank_name      = p['bank_name'],
+                    bank_account   = p['bank_account'],
+                    bank_ifsc      = p['bank_ifsc'],
+                    driving_license_name   = p.get('driving_license_name', ''),
+                    driving_license_number = p.get('driving_license_number', ''),
+                    driving_license_expiry = p.get('driving_license_expiry') or None,
+                    passport_name   = p.get('passport_name', ''),
+                    passport_number = p.get('passport_number', ''),
+                    passport_expiry = p.get('passport_expiry') or None,
+                    dateofjoining  = p['dateofjoining'],
+                    uan_number     = p.get('uan_number', ''),
+                    uan_doj        = p.get('uan_doj') or None,
+                    epf_memberID   = p.get('epf_memberID', ''),
+                    epf_higher     = p.get('epf_higher') == 'on',
+                    esic_number    = p.get('esic_number', ''),
+                    esic_doj       = p.get('esic_doj') or None,
+                    labour_id      = p.get('labour_id', ''),
+                    designationID_id = p['designationID'],
+                    departmentID_id  = p['departmentID'],
+                    branchID_id      = p['branchID'],
+                    CompanyID        = company,
+                )
+                messages.success(request, f"Employee '{p['name']}' created successfully.")
+                return redirect('Aapp:list_employee')
+            except Exception as e:
+                messages.error(request, f'Error: {e}')
 
-class EmployeeReportView(LoginRequiredMixin, View):
-    def get(self, request):
-        if request.user.user_type == 'associate':
-            employees = employee.objects.all()
-            template = 'employee/report_full.html'
-        elif request.user.user_type == 'subuser':
-            employees = employee.objects.filter(branchID=request.user.branch)
-            template = 'employee/report_limited.html'
-        else:
-            employees = employee.objects.filter(email=request.user.email)
-            template = 'employee/report_self.html'
-        return render(request, template, {'employees': employees})
+    return render(request, 'Aapp/employees/create_employee.html', ctx)
+
+
+# ── alter ─────────────────────────────────────────────────────────────────────
+def alter_employee(request, employee_id):
+    from django.contrib import messages
+    company = _company_ctx(request)
+    if not company:
+        messages.warning(request, 'Please select a company first.')
+        return redirect('dashboard')
+
+    emp = get_object_or_404(employee, employeeid=employee_id, CompanyID=company)
+    ctx = _form_ctx(company)
+    ctx.update({'emp': emp, 'company': company})
+
+    if request.method == 'POST':
+        p = request.POST
+        try:
+            same = p.get('same_as_permanent') == 'on'
+            emp.name           = p.get('name', emp.name)
+            emp.fathername     = p.get('fathername', emp.fathername)
+            emp.mothername     = p.get('mothername', emp.mothername)
+            emp.gender         = p.get('gender', emp.gender)
+            emp.dateofbirth    = p.get('dateofbirth', emp.dateofbirth)
+            emp.bloodgroup     = p.get('bloodgroup', emp.bloodgroup)
+            emp.religion       = p.get('religion', emp.religion)
+            emp.maritalstatus  = p.get('maritalstatus', emp.maritalstatus)
+            emp.temporaryaddress = p.get('temporaryaddress', emp.temporaryaddress)
+            emp.temp_state_id  = p.get('temp_state', emp.temp_state_id)
+            emp.temp_district_id = p.get('temp_district', emp.temp_district_id)
+            emp.temp_pincode   = p.get('temp_pincode', emp.temp_pincode)
+            emp.same_as_permanent = same
+            emp.permanentaddress = p['temporaryaddress'] if same else p.get('permanentaddress', emp.permanentaddress)
+            emp.perm_state_id  = p['temp_state'] if same else (p.get('perm_state') or emp.perm_state_id)
+            emp.perm_district_id = p['temp_district'] if same else (p.get('perm_district') or emp.perm_district_id)
+            emp.perm_pincode   = p['temp_pincode'] if same else p.get('perm_pincode', emp.perm_pincode)
+            emp.mobile         = p.get('mobile', emp.mobile)
+            emp.phone          = p.get('phone', emp.phone)
+            emp.email          = p.get('email', emp.email)
+            emp.pan_name       = p.get('pan_name', emp.pan_name)
+            emp.pan_number     = p.get('pan_number') or emp.pan_number
+            emp.bank_name      = p.get('bank_name', emp.bank_name)
+            emp.bank_account   = p.get('bank_account', emp.bank_account)
+            emp.bank_ifsc      = p.get('bank_ifsc', emp.bank_ifsc)
+            emp.uan_number     = p.get('uan_number', emp.uan_number)
+            emp.uan_doj        = p.get('uan_doj') or emp.uan_doj
+            emp.epf_memberID   = p.get('epf_memberID', emp.epf_memberID)
+            emp.epf_higher     = p.get('epf_higher') == 'on'
+            emp.esic_number    = p.get('esic_number', emp.esic_number)
+            emp.esic_doj       = p.get('esic_doj') or emp.esic_doj
+            emp.labour_id      = p.get('labour_id', emp.labour_id)
+            emp.designationID_id = p.get('designationID', emp.designationID_id)
+            emp.departmentID_id  = p.get('departmentID', emp.departmentID_id)
+            emp.branchID_id      = p.get('branchID', emp.branchID_id)
+            emp.save()
+            messages.success(request, f"Employee '{emp.name}' updated successfully.")
+            return redirect('Aapp:list_employee')
+        except Exception as e:
+            messages.error(request, f'Error: {e}')
+
+    return render(request, 'Aapp/employees/alter_employee.html', ctx)
+
+
+# ── disable / enable ──────────────────────────────────────────────────────────
+def disable_employee(request, employee_id):
+    from django.contrib import messages
+    company = _company_ctx(request)
+    if not company:
+        messages.warning(request, 'Please select a company first.')
+        return redirect('dashboard')
+
+    emp = get_object_or_404(employee, employeeid=employee_id, CompanyID=company)
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        if action == 'disable':
+            emp.is_working = False
+            emp.save()
+            messages.success(request, f"Employee '{emp.name}' disabled.")
+        elif action == 'enable':
+            emp.is_working = True
+            emp.dateofleaving = None
+            emp.leaving_reason = ''
+            emp.save()
+            messages.success(request, f"Employee '{emp.name}' re-enabled.")
+        return redirect('Aapp:list_employee')
+
+    return render(request, 'Aapp/employees/disable_employee.html', {'emp': emp})
+
+
+# ── retire ────────────────────────────────────────────────────────────────────
+def retire_employee(request, employee_id):
+    from django.contrib import messages
+    company = _company_ctx(request)
+    if not company:
+        messages.warning(request, 'Please select a company first.')
+        return redirect('dashboard')
+
+    emp = get_object_or_404(employee, employeeid=employee_id, CompanyID=company)
+
+    if request.method == 'POST':
+        emp.dateofretirement = request.POST.get('dateofretirement') or None
+        emp.dateofleaving    = request.POST.get('dateofleaving') or None
+        emp.leaving_reason   = request.POST.get('leaving_reason', '')
+        emp.is_working       = False
+        emp.save()
+        messages.success(request, f"Employee '{emp.name}' retired/separated.")
+        return redirect('Aapp:list_employee')
+
+    return render(request, 'Aapp/employees/retire_employee.html', {'emp': emp})
+
+
+# ── delete ────────────────────────────────────────────────────────────────────
+def delete_employee(request, employee_id):
+    from django.contrib import messages
+    company = _company_ctx(request)
+    if not company:
+        messages.warning(request, 'Please select a company first.')
+        return redirect('dashboard')
+
+    emp = get_object_or_404(employee, employeeid=employee_id, CompanyID=company)
+
+    if request.method == 'POST':
+        name = emp.name
+        emp.delete()
+        messages.success(request, f"Employee '{name}' deleted permanently.")
+        return redirect('Aapp:list_employee')
+
+    return render(request, 'Aapp/employees/delete_employee.html', {'emp': emp})

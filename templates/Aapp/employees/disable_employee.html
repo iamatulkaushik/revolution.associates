@@ -1,0 +1,33 @@
+{% extends 'Aapp/base.html' %}
+{% block title %}Disable Employee{% endblock %}
+{% load static %}
+{% block content %}
+<div class="main-content">
+    <div class="container">
+        <div class="quickupdate" style="max-width:480px;">
+            <h2>{% if emp.is_working %}Disable{% else %}Re-enable{% endif %} Employee</h2><hr>
+            <table style="background:transparent;box-shadow:none;min-width:unset;margin-bottom:15px;">
+                <tbody>
+                    <tr><td>Code</td><td><strong>{{ emp.employeecode }}</strong></td></tr>
+                    <tr><td>Name</td><td><strong>{{ emp.name }}</strong></td></tr>
+                    <tr><td>Designation</td><td>{{ emp.designationID.designationname }}</td></tr>
+                    <tr><td>Status</td><td>{% if emp.is_working %}Active{% else %}Disabled{% endif %}</td></tr>
+                </tbody>
+            </table>
+            <form method="post">
+                {% csrf_token %}
+                {% if emp.is_working %}
+                    <p style="color:var(--Color1);font-size:12px;">This will mark the employee as inactive. They will not appear in active payroll.</p>
+                    <br>
+                    <button type="submit" name="action" value="disable" class="button" style="border-color:var(--Color1);color:var(--Color1);">Disable Employee</button>
+                {% else %}
+                    <p style="color:#28a745;font-size:12px;">This will re-activate the employee.</p>
+                    <br>
+                    <button type="submit" name="action" value="enable" class="button" style="border-color:#28a745;color:#28a745;">Re-enable Employee</button>
+                {% endif %}
+                <a href="{% url 'Aapp:list_employee' %}" class="button" style="margin-left:10px;">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

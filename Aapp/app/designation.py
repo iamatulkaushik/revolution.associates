@@ -9,7 +9,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 
 class designation(models.Model):
     designationid = models.AutoField(primary_key=True)
-    designationname = models.CharField(max_length=255, unique=True)
+    designationname = models.CharField(max_length=255)
     #allowance fields
     is_dailywage = models.BooleanField(default=False)
     dailywage = models.DecimalField(max_digits=10, decimal_places=2)
@@ -59,6 +59,7 @@ class designation(models.Model):
         ordering = ['designationname']
         verbose_name = 'Designation'
         verbose_name_plural = 'Designations'
+        unique_together = ('designationname', 'company')
 
 class createDesignationForm(forms.Form):
     designationname = forms.CharField(max_length=255)

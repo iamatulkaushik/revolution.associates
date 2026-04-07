@@ -1,0 +1,188 @@
+{% extends 'Aapp/base.html' %}
+{% block title %}Edit Employee{% endblock %}
+{% load static %}
+{% block content %}
+<div class="main-content">
+    <div class="container">
+        {% if messages %}{% for m in messages %}
+        <div class="message-alert {% if m.tags == 'success' %}message-success{% else %}message-error{% endif %}">{{ m }}</div>
+        {% endfor %}{% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+            <div class="container_boxed">
+                <h2>Personal Details</h2><hr>
+                <label>Employee Code</label>
+                <input type="text" value="{{ emp.employeecode }}" disabled style="color:#aaa;"><br/>
+                <label>Full Name <span style="color:var(--Color1)">*</span></label>
+                <input type="text" name="name" value="{{ emp.name }}" required><br/>
+                <label>Father's Name</label>
+                <input type="text" name="fathername" value="{{ emp.fathername }}"><br/>
+                <label>Mother's Name</label>
+                <input type="text" name="mothername" value="{{ emp.mothername }}"><br/>
+                <label>Gender <span style="color:var(--Color1)">*</span></label>
+                <select class="sml" name="gender" required>
+                    {% for v,l in emp.gender_choices|default:"" %}{% endfor %}
+                    <option value="Male" {% if emp.gender == 'Male' %}selected{% endif %}>Male</option>
+                    <option value="Female" {% if emp.gender == 'Female' %}selected{% endif %}>Female</option>
+                    <option value="Other" {% if emp.gender == 'Other' %}selected{% endif %}>Other</option>
+                </select>
+                <label>Marital Status</label>
+                <select class="sml" name="maritalstatus">
+                    <option value="">--</option>
+                    <option value="Single" {% if emp.maritalstatus == 'Single' %}selected{% endif %}>Single</option>
+                    <option value="Married" {% if emp.maritalstatus == 'Married' %}selected{% endif %}>Married</option>
+                    <option value="Divorced" {% if emp.maritalstatus == 'Divorced' %}selected{% endif %}>Divorced</option>
+                    <option value="Widowed" {% if emp.maritalstatus == 'Widowed' %}selected{% endif %}>Widowed</option>
+                </select><br>
+                <label>Date of Birth <span style="color:var(--Color1)">*</span></label>
+                <input type="date" name="dateofbirth" value="{{ emp.dateofbirth|date:'Y-m-d' }}" required><br/>
+                <label>Blood Group</label>
+                <input type="text" name="bloodgroup" value="{{ emp.bloodgroup }}"><br/>
+                <label>Religion</label>
+                <input type="text" name="religion" value="{{ emp.religion }}"><br/>
+            </div>
+            <div class="container_boxed">
+                <h2>Contact Details</h2><hr>
+                <label>Email <span style="color:var(--Color1)">*</span></label>
+                <input type="email" class="medium" name="email" value="{{ emp.email }}" required><br/>
+                <label>Mobile <span style="color:var(--Color1)">*</span></label>
+                <input type="tel" class="sml" name="mobile" value="{{ emp.mobile }}" maxlength="10" required>-
+                <input type="tel" name="phone" class="sml" value="{{ emp.phone }}" maxlength="10"><br/>
+                <label class="large">Temporary Address <span style="color:var(--Color1)">*</span></label><br/>
+                <textarea name="temporaryaddress" rows="2" required style="width:60%;">{{ emp.temporaryaddress }}</textarea><br>
+                <select name="temp_state" id="temp_state" required onchange="loadDistricts('temp_state','temp_district')">
+                    <option value="">-- State --</option>
+                    {% for s in states %}<option value="{{ s.Stateid }}" {% if emp.temp_state_id == s.Stateid %}selected{% endif %}>{{ s.name }}</option>{% endfor %}
+                </select>
+                <select name="temp_district" id="temp_district" required>
+                    <option value="">-- District --</option>
+                    {% if emp.temp_district %}<option value="{{ emp.temp_district.Districtid }}" selected>{{ emp.temp_district.name }}</option>{% endif %}
+                </select><br/>
+                <input type="text" name="temp_pincode" class="sml" value="{{ emp.temp_pincode }}" maxlength="6" placeholder="Pincode" required>
+                <input type="text" name="country" class="sml" value="India"><br>
+                <label class="large">Permanent Address <span style="color:var(--Color1)">*</span></label>
+                <textarea name="permanentaddress" rows="2" required style="width:60%;">{{ emp.permanentaddress }}</textarea><br>
+                <select name="perm_state" id="perm_state" required onchange="loadDistricts('perm_state','perm_district')">
+                    <option value="">-- State --</option>
+                    {% for s in states %}<option value="{{ s.Stateid }}" {% if emp.perm_state_id == s.Stateid %}selected{% endif %}>{{ s.name }}</option>{% endfor %}
+                </select>
+                <select name="perm_district" id="perm_district" required>
+                    <option value="">-- District --</option>
+                    {% if emp.perm_district %}<option value="{{ emp.perm_district.Districtid }}" selected>{{ emp.perm_district.name }}</option>{% endif %}
+                </select><br/>
+                <input type="text" name="perm_pincode" class="sml" value="{{ emp.perm_pincode }}" maxlength="6" placeholder="Pincode" required>
+                <input type="text" name="country" class="sml" value="India"><br>
+            </div>
+            <div class="container_boxed">
+                <h2>KYC Details</h2><hr>
+                <label>Aadhaar <span style="color:var(--Color1)">*</span></label><br/>
+                <input type="text" class="medium" name="aadhar_number" value="{{ emp.aadhar_number }}" maxlength="12" required>-
+                <input type="text" class="medium" name="aadhar_name" value="{{ emp.aadhar_name }}" required><br/>
+                <label>PAN</label><br/>
+                <input type="text" class="medium" name="pan_number" value="{{ emp.pan_number }}" maxlength="10">-
+                <input type="text" class="medium" name="pan_name" value="{{ emp.pan_name }}" required><br/>
+                <label>Bank Name</label><br/>
+                <select class="medium" name="bank_name">
+                    <option value="">-- Select Bank --</option>
+                    {% for b in banks %}<option value="{{ b.name }}" {% if emp.bank_name == b.name %}selected{% endif %}>{{ b.name }}</option>{% endfor %}
+                </select>-
+                <input type="text" name="bank_account" placeholder="Account Number" value="{{ emp.bank_account }}" class="sml" required>-
+                <input type="text" name="bank_ifsc" value="{{ emp.bank_ifsc }}" placeholder="IFSC Code" class="sml" maxlength="11" required><br/>
+                <label>Driving License</label><br/>
+                <input type="text" name="driving_license_name" placeholder="Driving License Name" value="{{ emp.driving_license_name }}" class="medium">-
+                <input type="text" name="driving_license_number" value="{{ emp.driving_license_number }}" class="sml" placeholder="DL Number" maxlength="20">-
+                <input type="date" name="driving_license_expiry" value="{{ emp.driving_license_expiry|date:'Y-m-d' }}" class="sml"><br/>
+                <label>Passport</label><br/>
+                <input type="text" name="passport_name" placeholder="Name in Passport" value="{{ emp.passport_name }}" class="medium">-
+                <input type="text" name="passport_number" value="{{ emp.passport_number }}" class="sml" placeholder="Passport Number" maxlength="20">-
+                <input type="date" name="passport_expiry" value="{{ emp.passport_expiry|date:'Y-m-d' }}" class="sml"><br>
+                <label>Voter ID</label><br/>
+                <input type="text" name="voter_id_name" placeholder="Voter Card Name" value="{{ emp.voter_id_name }}" class="medium">-
+                <input type="text" name="voter_id_number" value="{{ emp.voter_id_number }}" class="sml" placeholder="Voter ID Number" maxlength="20"><br>
+            </div><br/>
+            <div class="container_boxed">
+                <h2>Joining / Employment Details</h2><hr>
+                <label>Joining Date <span style="color:var(--Color1)">*</span></label><br/>
+                <input type="date" class="sml" name="joining_date" value="{{ emp.dateofjoining|date:'Y-m-d' }}" required><br/>
+                <label>Confirmation Date</label><br/>
+                <input type="date" class="sml" name="confirmation_date" value="{{ emp.confirmation_date|date:'Y-m-d' }}"><br/>
+                <label>Probation Period (Months)</label><br/>
+                <input type="number" class="sml" name="probation_period" value="{{ emp.probation_period }}" min="0"><br/>
+                <label>Notice Period (Days)</label><br/>
+                <input type="number" class="sml" name="notice_period" value="{{ emp.notice_period }}" min="0"><br/>
+                <label>Employment Type</label><br/>
+                <select name="employment_type">
+                    <option value="">--</option>
+                    <option value="Full-Time" {% if emp.employment_type == 'Full-Time' %}selected{% endif %}>Full-Time</option>
+                    <option value="Part-Time"   {% if emp.employment_type == 'Part-Time' %}selected{% endif %}>Part-Time</option>
+                    <option value="Contract"    {% if emp.employment_type == 'Contract' %}selected{% endif %}>Contract</option>
+                    <option value="Intern"      {% if emp.employment_type == 'Intern' %}selected{% endif %}>Intern</option>
+                </select><br/>
+                <label>Date of Retirement</label><br/>
+                <input type="date" name="retirement_date" value="{{ emp.retirement_date|date:'Y-m-d' }}"><br/>
+                <label>Date of Leaving</label><br/>
+                <input type="date" name="leaving_date" value="{{ emp.leaving_date|date:'Y-m-d' }}"><br/>
+                <label>Leaving Reason</label><br/>
+                <input type="text" name="leaving_reason" value="{{ emp.leaving_reason }}" class="medium"><br/>
+                designationID
+                <label>Dsignation</label>
+                <select name="designationID"></select>
+                <label>Branch</label>
+                <select name="branchID"></select>
+                <label>Department</label>
+                <select name="departmentID"></select><br/>
+                <label>UAN Number</label>
+                <input type="text" name="uan_number" value="{{ emp.uan_number }}">
+                <label>UAN DOJ</label>
+                <input type="date" name="uan_doj" value="{{ emp.uan_doj|date:'Y-m-d' }}"><br/>
+                <label>EPF Member ID</label>
+                <input type="text" name="epf_memberID" value="{{ emp.epf_memberID }}">
+                <label><input type="checkbox" name="epf_higher" {% if emp.epf_higher %}checked{% endif %}> Higher EPF</label><br/>
+                <label>ESIC Number</label>
+                <input type="text" name="esic_number" value="{{ emp.esic_number }}" maxlength="10">
+                <label>ESIC DOJ</label>
+                <input type="date" name="esic_doj" value="{{ emp.esic_doj|date:'Y-m-d' }}"><br/>
+                <label>Labour ID</label>
+                <input type="text" name="labour_id" value="{{ emp.labour_id }}"><br/>
+            </div>
+            <div class="container_boxed">
+                <h2>Salary Details</h2><hr>
+                <label>Basic Salary</label>
+                <input type="number" class="sml" name="basic_salary" value="{{ emp.basic_salary }}" min="0"><br/>
+                <label>HRA</label>
+                <input type="number" class="sml" name="hra" value="{{ emp.hra }}" min="0"><br/>
+                <label>Conveyance Allowance</label>
+                <input type="number" class="sml" name="conveyance_allowance" value="{{ emp.conveyance_allowance }}" min="0"><br/>
+                <label>
+            </div>
+            <div style="margin:15px 0;">
+                <button type="submit" class="button">Update Employee</button>
+                <a href="{% url 'list_employee' %}" class="button" style="margin-left:10px;">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+<script>
+function loadDistricts(stateSelectId, districtSelectId) {
+    const stateId = document.getElementById(stateSelectId).value;
+    const distSel = document.getElementById(districtSelectId);
+    distSel.innerHTML = '<option value="">-- District --</option>';
+    if (!stateId) return;
+    fetch(`{% url 'get_districts' 0 %}`.replace('/0/', `/${stateId}/`))
+        .then(r => r.json())
+        .then(data => data.forEach(d => {
+            const o = document.createElement('option');
+            o.value = d.id; o.textContent = d.name;
+            distSel.appendChild(o);
+        }));
+}
+function togglePerm() {
+    const hide = document.getElementById('same_as_permanent').checked;
+    ['perm_rows','perm_state_row','perm_pin_row'].forEach(id => {
+        document.getElementById(id).style.display = hide ? 'none' : '';
+    });
+}
+document.addEventListener('DOMContentLoaded', togglePerm);
+</script>
+{% endblock %}

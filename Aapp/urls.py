@@ -4,6 +4,13 @@ from Aapp.app.branch_department import create_branch, list_branch, alter_branch,
 from Aapp.app.designation import create_designation, list_designation, alter_designation, disable_designation
 from Sapp.app.company import create_company_associate, list_company_associate, alter_company_associate, mark_inactive_company, create_company_statutory, alter_company_statutory
 from Aapp.app.subuser import list_subusers, add_subuser, alter_subuser, reset_subuser_password, disable_subuser, subuser_companies
+from Aapp.app.employee import list_employee, create_employee, alter_employee, disable_employee, retire_employee, delete_employee
+from Sapp.app.state_district import District
+from django.http import JsonResponse
+
+def get_districts(request, state_id):
+    districts = District.objects.filter(state_id=state_id).order_by('name').values('Districtid', 'name')
+    return JsonResponse([{'id': d['Districtid'], 'name': d['name']} for d in districts], safe=False)
 
 app_name = 'Aapp'
 
@@ -40,4 +47,11 @@ urlpatterns = [
     path('subusers/reset-password/<int:subuser_id>/', reset_subuser_password, name='reset_subuser_password'),
     path('subusers/disable/<int:subuser_id>/', disable_subuser, name='disable_subuser'),
     path('subusers/companies/<int:subuser_id>/', subuser_companies, name='subuser_companies'),
+    path('employees/', list_employee, name='list_employee'),
+    path('employees/create/', create_employee, name='create_employee'),
+    path('employees/alter/<int:employee_id>/', alter_employee, name='alter_employee'),
+    path('employees/disable/<int:employee_id>/', disable_employee, name='disable_employee'),
+    path('employees/retire/<int:employee_id>/', retire_employee, name='retire_employee'),
+    path('employees/delete/<int:employee_id>/', delete_employee, name='delete_employee'),
+    path('get_districts/<int:state_id>/', get_districts, name='get_districts'),
 ]
