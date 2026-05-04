@@ -1,0 +1,17 @@
+{% extends 'Aapp/base.html' %}
+{% block title %}Delete Attendance{% endblock %}
+{% block content %}
+<div class="main-content">
+    <div class="container_boxed" style="margin:20px auto;max-width:500px;">
+        <h2>Delete Attendance Record</h2><hr>
+        <p>Are you sure you want to delete the attendance record for:</p>
+        <p><strong>{{ rec.employee_id.name }}</strong> ({{ rec.emp_code }}) —
+           {{ rec.get_salary_month_display }} {{ rec.salary_year }}</p>
+        <form method="post" style="margin-top:15px;">
+            {% csrf_token %}
+            <button type="submit" class="button" style="color:var(--Color1);border-color:var(--Color1);">Yes, Delete</button>
+            <a href="{% url 'list_attendance' %}" class="button" style="margin-left:10px;">Cancel</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

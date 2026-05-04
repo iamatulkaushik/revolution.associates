@@ -40,8 +40,23 @@
                     <li><a href="{% url 'list_designation' %}" class="designations">Designations</a></li>
                 </ul>
             </li>
-            <li><a href="{% url 'list_employee' %}" class="employees">Employees</a></li>
-            <li><a href="#" class="attandance">Attandance</a></li>
+            <li><a href="#" class="employees">Employees</a>
+                <ul>
+                    <li><a href="{% url 'list_employee' %}" class="employees">List</a></li>
+                    <li><a href="{% url 'create_employee' %}" class="employees">Create</a></li>
+                    <li><a href="{% url 'bulk_excel_upload_employees' %}" class="employees">Bulk Upload</a></li>
+                    <li><a href="{% url 'download_employee_template' %}" class="employees"> ⬇ Template</a></li>
+                </ul>
+            </li>
+            <li><a href="#" class="attandance">Attandance</a>
+                <ul>
+                    <li><a href="{% url 'list_attendance' %}" class="attandance">List Attandance</a></li>
+                    <li><a href="{% url 'add_attendance' %}" class="attandance">Add Attandance</a></li>
+                    <li><a href="{% url 'bulk_attendance' %}" class="attandance">Bulk Attendance</a></li>
+                    <li><a href="{% url 'bulk_excel_upload_attendance' %}" class="attandance">Bulk Upload</a></li>
+                    <li><a href="{% url 'download_attendance_template' %}" class="attandance"> ⬇ Template</a></li>
+                </ul>
+            </li>
             <li><a href="#" class="profile">Profile</a>
                 <ul>
                     <li><a href="{% url 'associate_profile' %}" class="profile">My Profile</a></li>

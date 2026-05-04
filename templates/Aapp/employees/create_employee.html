@@ -20,20 +20,20 @@
             <label>Mother's Name</label>
             <input type="text" class="medium" name="mothername"><br>
             <label>Gender <span style="color:var(--Color1)">*</span></label>
-            <select class="medium" name="gender" required>
+            <select class="sml" name="gender" required>
                 <option value="">--</option>
                 <option value="Male">Male</option>
                 <option value="Female">Female</option>
                 <option value="Other">Other</option>
             </select>
             <label>Date of Birth <span style="color:var(--Color1)">*</span></label>
-            <input type="date" class="medium" name="dateofbirth" required><br>
+            <input type="date" class="sml" name="dateofbirth" required><br>
             <label>Blood Group</label>
             <input type="text" class="sml" name="bloodgroup" placeholder="A+">
             <label>Religion</label>
-            <input type="text" class="medium" name="religion"><br/>
+            <input type="text" class="sml" name="religion"><br/>
             <label>Marital Status</label>
-            <select name="maritalstatus" class="medium">
+            <select name="maritalstatus" class="sml">
                 <option value="">--</option>
                 <option value="Single">Single</option>
                 <option value="Married">Married</option>
@@ -63,7 +63,6 @@
 
             <label class="large"><input type="checkbox" name="same_as_permanent" id="same_as_permanent" onchange="togglePerm()"> Same as Permanent Address</label>
             <div id="perm_rows">
-                <br/>
                 <label class="medium">Permanent Address</label><br/>
                 <textarea name="permanentaddress" rows="2" style="width:60%;"></textarea><br>
                 <select class="sml" name="perm_state" id="perm_state" onchange="loadDistricts('perm_state','perm_district')">
@@ -80,20 +79,20 @@
         <div class="container_boxed" style="margin-top:10px;">
             <h2>KYC Details</h2><hr>
             <label>Aadhaar No <span style="color:var(--Color1)">*</span></label>
-            <input class="medium" type="text" name="aadhar_number" maxlength="12" required>
+            <input class="sml" type="text" name="aadhar_number" maxlength="12" required>
             <label>Name<span style="color:var(--Color1)">*</span></label>
-            <input type="text" class="medium" name="aadhar_name" required><br>
+            <input type="text" class="sml" name="aadhar_name" required><br>
             <label>PAN Number</label>
-            <input type="text" class="medium" name="pan_number" maxlength="10">
+            <input type="text" class="sml" name="pan_number" maxlength="10">
             <label>PAN Name</label>
-            <input type="text" class="medium" name="pan_name"><br>
+            <input type="text" class="sml" name="pan_name"><br>
             <label>Bank Name <span style="color:var(--Color1)">*</span></label>
-            <select class="medium" name="bank_name" required>
+            <select class="sml" name="bank_name" required>
                 <option value="">-- Select Bank --</option>
                 {% for b in banks %}<option value="{{ b.name }}">{{ b.name }}</option>{% endfor %}
             </select>
             <label>Account <span style="color:var(--Color1)">*</span></label>
-            <input type="text" class="medium" name="bank_account" required>-
+            <input type="text" class="sml" name="bank_account" required>-
             <input type="text" placeholder="SBIN0000721" class="sml" name="bank_ifsc" maxlength="11" required><br>
             <label>DL Name</label>
             <input type="text" class="medium" name="driving_license_name">
@@ -103,12 +102,30 @@
             <input type="text" class="medium" name="passport_name">
             <input type="text" class="sml" name="passport_number" placeholder="Passport No" maxlength="20">
             <input type="date" class="sml" name="passport_expiry" title="Passport Expiry"><br>
+            <label for="voter_id_name">Voter ID Name</label>
+            <input type="text" class="medium" name="voter_id_name">
+            <input type="text" class="sml" name="voter_id_number" placeholder="Voter ID Number" maxlength="20"><br>
         </div>
 
         <div class="container_boxed" style="margin-top:10px;">
             <h2>Employment Details</h2><hr>
             <label>Joining Date <span style="color:var(--Color1)">*</span></label>
             <input type="date" class="sml" name="dateofjoining" required>
+            <label>Employment Type</label>
+            <select class="medium" name="employmenttype" id="employmenttype" onchange="toggleEmploymentFields()">
+                <option value="">-- Select --</option>
+                <option value="Permanent">Permanent</option>
+                <option value="Contract">Contract</option>
+                <option value="Intern">Intern</option>
+            </select><br>
+            <div id="contract_employment">
+                <label class="sml">Contract from</label>
+                <input type="date" name="contract_start_date" class="sml"> to <input type="date" class="sml" name="contract_end_date">
+            </div>
+            <div id="intern_employment">
+                <label class="sml" for="internship">Internship from</label>
+                <input type="date" name="internship_start_date" class="sml"> to <input type="date" name="internship_end_date" class="sml">
+            </div>
             <label>Designation <span style="color:var(--Color1)">*</span></label>
             <select class="medium" name="designationID" required>
                 <option value="">-- Select --</option>
@@ -163,6 +180,27 @@ function togglePerm() {
     const hide = document.getElementById('same_as_permanent').checked;
     document.getElementById('perm_rows').style.display = hide ? 'none' : '';
 }
-document.addEventListener('DOMContentLoaded', togglePerm);
+
+function toggleEmploymentFields() {
+    const empType = document.getElementById('employmenttype').value;
+    const contractDiv = document.getElementById('contract_employment');
+    const internDiv = document.getElementById('intern_employment');
+    
+    // Hide both by default
+    contractDiv.style.display = 'none';
+    internDiv.style.display = 'none';
+    
+    // Show relevant div based on selection
+    if (empType === 'Contract') {
+        contractDiv.style.display = 'block';
+    } else if (empType === 'Intern') {
+        internDiv.style.display = 'block';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    togglePerm();
+    toggleEmploymentFields();
+});
 </script>
 {% endblock %}

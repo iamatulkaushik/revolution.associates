@@ -2,11 +2,16 @@ from django import forms
 from django.db import models
 from django.shortcuts import redirect, render, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse
 from Sapp.app.company import Company
 from Sapp.app.state_district import State, District
 from Sapp.app.bank import bank_name
 from Aapp.app.designation import designation
 from Aapp.app.branch_department import branch, department
+import openpyxl
+from openpyxl.styles import Font, PatternFill, Alignment
+from io import BytesIO
+from datetime import datetime
 
 class employee(models.Model):
     # Personal data
@@ -58,6 +63,11 @@ class employee(models.Model):
     
     # Employment data
     dateofjoining = models.DateField()
+    employment_type = models.CharField(max_length=20, choices=[('Permanent', 'Permanent'), ('Contract', 'Contract'), ('Intern', 'Intern')], default='Permanent')
+    contract_start_date = models.DateField(null=True, blank=True)
+    contract_end_date = models.DateField(null=True, blank=True)
+    internship_start_date = models.DateField(null=True, blank=True)
+    internship_end_date = models.DateField(null=True, blank=True)
     uan_number = models.CharField(max_length=50, db_column="UAN", blank=True)
     uan_doj = models.DateField(db_column="EPF_Joining", null=True, blank=True)
     epf_memberID = models.CharField(max_length=100, db_column="EPF_MemberID", blank=True)
@@ -371,3 +381,321 @@ def delete_employee(request, employee_id):
         return redirect('Aapp:list_employee')
 
     return render(request, 'Aapp/employees/delete_employee.html', {'emp': emp})
+
+
+# ── excel template download ──────────────────────────────────────────────────
+
+@login_required
+def download_employee_template(request):
+    company = _company_ctx(request)
+    if not company:
+        from django.contrib import messages
+        messages.warning(request, 'Please select a company first.')
+        return redirect('dashboard')
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = 'Employees'
+
+    headers = [
+        'employeecode*', 'name*', 'gender*', 'dateofbirth*', 'mobile*', 'email*',
+        'aadhar_number*', 'aadhar_name*', 'bank_name*', 'bank_account*', 'bank_ifsc*',
+        'dateofjoining*', 'designation_name*', 'department_name*', 'branch_name*',
+        'temporaryaddress*', 'temp_state_name*', 'temp_district_name*', 'temp_pincode*',
+        'fathername', 'mothername', 'bloodgroup', 'religion', 'maritalstatus',
+        'phone', 'pan_name', 'pan_number', 'employment_type',
+    ]
+    
+    hdr_fill = PatternFill('solid', fgColor='1D3557')
+    hdr_font = Font(color='FFFFFF', bold=True)
+
+    for col, h in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=col, value=h)
+        cell.fill = hdr_fill
+        cell.font = hdr_font
+        cell.alignment = Alignment(horizontal='center')
+        ws.column_dimensions[cell.column_letter].width = 18
+
+    # Instructions sheet
+    ws2 = wb.create_sheet('Instructions')
+    notes = [
+        ('employeecode*',      'Required. Unique employee code.'),
+        ('name*',              'Required. Full name of employee.'),
+        ('gender*',            'Required. Male/Female/Other.'),
+        ('dateofbirth*',       'Required. Format: YYYY-MM-DD.'),
+        ('mobile*',            'Required. 10-digit mobile number.'),
+        ('email*',             'Required. Valid email address.'),
+        ('aadhar_number*',     'Required. 12-digit Aadhaar number.'),
+        ('aadhar_name*',       'Required. Name as per Aadhaar.'),
+        ('bank_name*',         'Required. Bank name.'),
+        ('bank_account*',      'Required. Bank account number.'),
+        ('bank_ifsc*',         'Required. Bank IFSC code.'),
+        ('dateofjoining*',     'Required. Format: YYYY-MM-DD.'),
+        ('designation_name*',  'Required. Must exist in system.'),
+        ('department_name*',   'Required. Must exist in system.'),
+        ('branch_name*',       'Required. Must exist in system.'),
+        ('temporaryaddress*',  'Required. Current address.'),
+        ('temp_state_name*',   'Required. State name.'),
+        ('temp_district_name*','Required. District name.'),
+        ('temp_pincode*',      'Required. 6-digit pincode.'),
+        ('employment_type',    'Optional. Permanent/Contract/Intern.'),
+    ]
+    
+    ws2.cell(row=1, column=1, value='Column').font = Font(bold=True)
+    ws2.cell(row=1, column=2, value='Description').font = Font(bold=True)
+    ws2.column_dimensions['A'].width = 25
+    ws2.column_dimensions['B'].width = 50
+    
+    for r, (col, desc) in enumerate(notes, 2):
+        ws2.cell(row=r, column=1, value=col)
+        ws2.cell(row=r, column=2, value=desc)
+
+    # Reference data sheet
+    ws3 = wb.create_sheet('Reference_Data')
+    ws3.cell(row=1, column=1, value='Designations').font = Font(bold=True)
+    ws3.cell(row=1, column=2, value='Departments').font = Font(bold=True)
+    ws3.cell(row=1, column=3, value='Branches').font = Font(bold=True)
+    ws3.cell(row=1, column=4, value='States').font = Font(bold=True)
+    ws3.cell(row=1, column=5, value='Banks').font = Font(bold=True)
+    
+    designations = designation.objects.filter(company=company, is_active=True, is_deleted=False)
+    departments = department.objects.filter(companyid=company)
+    branches = branch.objects.filter(companyid=company)
+    states = State.objects.all()
+    banks = bank_name.objects.all().order_by('name')
+    
+    for r, d in enumerate(designations, 2):
+        ws3.cell(row=r, column=1, value=d.designationname)
+    for r, d in enumerate(departments, 2):
+        ws3.cell(row=r, column=2, value=d.department_name)
+    for r, b in enumerate(branches, 2):
+        ws3.cell(row=r, column=3, value=b.branch_name)
+    for r, s in enumerate(states, 2):
+        ws3.cell(row=r, column=4, value=s.name)
+    for r, b in enumerate(banks, 2):
+        ws3.cell(row=r, column=5, value=b.name)
+
+    buf = BytesIO()
+    wb.save(buf)
+    buf.seek(0)
+    resp = HttpResponse(buf, content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    resp['Content-Disposition'] = f'attachment; filename="employee_template_{company.company_name}.xlsx"'
+    return resp
+
+
+# ── bulk excel upload ────────────────────────────────────────────────────────
+
+@login_required
+def bulk_excel_upload_Employees(request):
+    company = _company_ctx(request)
+    if not company:
+        from django.contrib import messages
+        messages.warning(request, 'Please select a company first.')
+        return redirect('dashboard')
+
+    if request.method == 'POST':
+        xl = request.FILES.get('excel_file')
+        if not xl:
+            from django.contrib import messages
+            messages.error(request, 'No file uploaded.')
+            return redirect('Aapp:bulk_excel_upload')
+
+        try:
+            wb = openpyxl.load_workbook(xl, data_only=True)
+            ws = wb.active
+        except Exception:
+            from django.contrib import messages
+            messages.error(request, 'Invalid Excel file.')
+            return redirect('Aapp:bulk_excel_upload')
+
+        # Build lookup maps
+        designation_map = {d.designationname: d for d in designation.objects.filter(company=company, is_active=True, is_deleted=False)}
+        department_map = {d.department_name: d for d in department.objects.filter(companyid=company)}
+        branch_map = {b.branch_name: b for b in branch.objects.filter(companyid=company)}
+        state_map = {s.name: s for s in State.objects.all()}
+        
+        created = skipped = errors = 0
+        error_rows = []
+
+        for row_num, row in enumerate(ws.iter_rows(min_row=2, values_only=True), start=2):
+            if not any(row):
+                continue
+
+            # Required fields
+            employeecode = str(row[0]).strip() if row[0] else ''
+            name = str(row[1]).strip() if row[1] else ''
+            gender = str(row[2]).strip() if row[2] else ''
+            dateofbirth = row[3]
+            mobile = str(row[4]).strip() if row[4] else ''
+            email = str(row[5]).strip() if row[5] else ''
+            aadhar_number = str(row[6]).strip() if row[6] else ''
+            aadhar_name = str(row[7]).strip() if row[7] else ''
+            bank_name_val = str(row[8]).strip() if row[8] else ''
+            bank_account = str(row[9]).strip() if row[9] else ''
+            bank_ifsc = str(row[10]).strip() if row[10] else ''
+            dateofjoining = row[11]
+            designation_name = str(row[12]).strip() if row[12] else ''
+            department_name = str(row[13]).strip() if row[13] else ''
+            branch_name = str(row[14]).strip() if row[14] else ''
+            temporaryaddress = str(row[15]).strip() if row[15] else ''
+            temp_state_name = str(row[16]).strip() if row[16] else ''
+            temp_district_name = str(row[17]).strip() if row[17] else ''
+            temp_pincode = str(row[18]).strip() if row[18] else ''
+            
+            # Optional fields
+            fathername = str(row[19]).strip() if row[19] else ''
+            mothername = str(row[20]).strip() if row[20] else ''
+            bloodgroup = str(row[21]).strip() if row[21] else ''
+            religion = str(row[22]).strip() if row[22] else ''
+            maritalstatus = str(row[23]).strip() if row[23] else ''
+            phone = str(row[24]).strip() if row[24] else ''
+            pan_name = str(row[25]).strip() if row[25] else ''
+            pan_number = str(row[26]).strip() if row[26] else ''
+            employment_type = str(row[27]).strip() if row[27] else 'Permanent'
+
+            # Validate required fields
+            required_fields = [
+                (employeecode, 'employeecode'), (name, 'name'), (gender, 'gender'),
+                (mobile, 'mobile'), (email, 'email'), (aadhar_number, 'aadhar_number'),
+                (aadhar_name, 'aadhar_name'), (bank_name_val, 'bank_name'),
+                (bank_account, 'bank_account'), (bank_ifsc, 'bank_ifsc'),
+                (designation_name, 'designation_name'), (department_name, 'department_name'),
+                (branch_name, 'branch_name'), (temporaryaddress, 'temporaryaddress'),
+                (temp_state_name, 'temp_state_name'), (temp_district_name, 'temp_district_name'),
+                (temp_pincode, 'temp_pincode')
+            ]
+            
+            missing = [field for val, field in required_fields if not val]
+            if missing or not dateofbirth or not dateofjoining:
+                error_rows.append(f"Row {row_num}: Missing required fields: {', '.join(missing + (['dateofbirth'] if not dateofbirth else []) + (['dateofjoining'] if not dateofjoining else []))}")
+                errors += 1
+                continue
+
+            # Validate gender
+            if gender not in ['Male', 'Female', 'Other']:
+                error_rows.append(f"Row {row_num}: Gender must be Male/Female/Other.")
+                errors += 1
+                continue
+
+            # Validate employment type
+            if employment_type not in ['Permanent', 'Contract', 'Intern']:
+                employment_type = 'Permanent'
+
+            # Parse dates
+            try:
+                if isinstance(dateofbirth, str):
+                    dateofbirth = datetime.strptime(dateofbirth, '%Y-%m-%d').date()
+                if isinstance(dateofjoining, str):
+                    dateofjoining = datetime.strptime(dateofjoining, '%Y-%m-%d').date()
+            except (ValueError, TypeError):
+                error_rows.append(f"Row {row_num}: Invalid date format. Use YYYY-MM-DD.")
+                errors += 1
+                continue
+
+            # Check duplicates
+            if employee.objects.filter(employeecode=employeecode, CompanyID=company).exists():
+                error_rows.append(f"Row {row_num}: Employee code '{employeecode}' already exists.")
+                errors += 1
+                continue
+            if employee.objects.filter(mobile=mobile).exists():
+                error_rows.append(f"Row {row_num}: Mobile '{mobile}' already registered.")
+                errors += 1
+                continue
+            if employee.objects.filter(aadhar_number=aadhar_number).exists():
+                error_rows.append(f"Row {row_num}: Aadhaar '{aadhar_number}' already registered.")
+                errors += 1
+                continue
+            if employee.objects.filter(bank_account=bank_account).exists():
+                error_rows.append(f"Row {row_num}: Bank account '{bank_account}' already registered.")
+                errors += 1
+                continue
+            if pan_number and employee.objects.filter(pan_number=pan_number).exists():
+                error_rows.append(f"Row {row_num}: PAN '{pan_number}' already registered.")
+                errors += 1
+                continue
+
+            # Lookup foreign keys
+            desig = designation_map.get(designation_name)
+            dept = department_map.get(department_name)
+            br = branch_map.get(branch_name)
+            state = state_map.get(temp_state_name)
+            
+            if not desig:
+                error_rows.append(f"Row {row_num}: Designation '{designation_name}' not found.")
+                errors += 1
+                continue
+            if not dept:
+                error_rows.append(f"Row {row_num}: Department '{department_name}' not found.")
+                errors += 1
+                continue
+            if not br:
+                error_rows.append(f"Row {row_num}: Branch '{branch_name}' not found.")
+                errors += 1
+                continue
+            if not state:
+                error_rows.append(f"Row {row_num}: State '{temp_state_name}' not found.")
+                errors += 1
+                continue
+
+            # Find district
+            district = District.objects.filter(state=state, name=temp_district_name).first()
+            if not district:
+                error_rows.append(f"Row {row_num}: District '{temp_district_name}' not found in state '{temp_state_name}'.")
+                errors += 1
+                continue
+
+            try:
+                employee.objects.create(
+                    employeecode=employeecode,
+                    name=name,
+                    fathername=fathername,
+                    mothername=mothername,
+                    gender=gender,
+                    dateofbirth=dateofbirth,
+                    bloodgroup=bloodgroup,
+                    religion=religion,
+                    maritalstatus=maritalstatus,
+                    temporaryaddress=temporaryaddress,
+                    temp_state=state,
+                    temp_district=district,
+                    temp_pincode=temp_pincode,
+                    permanentaddress=temporaryaddress,
+                    perm_state=state,
+                    perm_district=district,
+                    perm_pincode=temp_pincode,
+                    country='India',
+                    mobile=mobile,
+                    phone=phone,
+                    email=email,
+                    aadhar_number=aadhar_number,
+                    aadhar_name=aadhar_name,
+                    pan_name=pan_name,
+                    pan_number=pan_number or None,
+                    bank_name=bank_name_val,
+                    bank_account=bank_account,
+                    bank_ifsc=bank_ifsc,
+                    dateofjoining=dateofjoining,
+                    employment_type=employment_type,
+                    designationID=desig,
+                    departmentID=dept,
+                    branchID=br,
+                    CompanyID=company,
+                )
+                created += 1
+            except Exception as e:
+                error_rows.append(f"Row {row_num}: {e}")
+                errors += 1
+
+        from django.contrib import messages
+        if created:
+            messages.success(request, f"{created} employee(s) imported, {errors} error(s).")
+        else:
+            messages.warning(request, f"No employees imported. {errors} error(s).")
+
+        if error_rows:
+            for err in error_rows[:10]:  # show max 10 errors
+                messages.error(request, err)
+
+        return redirect('Aapp:list_employee')
+
+    return render(request, 'Aapp/employees/bulk_excel_upload.html', {'company': company})

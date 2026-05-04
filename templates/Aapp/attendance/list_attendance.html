@@ -1,0 +1,54 @@
+{% extends 'Aapp/base.html' %}
+{% block title %}Attendance{% endblock %}
+{% block content %}
+<div class="main-content">
+    {% if messages %}{% for m in messages %}
+    <div class="message-alert {% if m.tags == 'success' %}message-success{% else %}message-error{% endif %}">{{ m }}</div>
+    {% endfor %}{% endif %}
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px;">
+        <h2>Attendance — {{ company.company_name }} ({{ records.count }})</h2>
+        <span>
+            <a href="{% url 'add_attendance' %}" class="button">+ Add</a>
+            <a href="{% url 'bulk_attendance' %}" class="button" style="margin-left:6px;">Bulk Entry</a>
+            <a href="{% url 'bulk_excel_upload_attendance' %}" class="button" style="margin-left:6px;">⬆ Excel Upload</a>
+        </span>
+    </div>
+    {% if records %}
+    <table>
+        <thead>
+            <tr>
+                <th>#</th><th>Emp Code</th><th>Employee</th><th>Branch</th>
+                <th>Month</th><th>Year</th><th>Working Days</th><th>Holidays</th>
+                <th>CL</th><th>EL</th><th>SL</th><th>Comp</th><th>Work Pay</th><th>Bulk</th><th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for r in records %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ r.emp_code }}</td>
+                <td>{{ r.employee_id.name }}</td>
+                <td>{{ r.branchid.branch_name|default:"—" }}</td>
+                <td>{{ r.get_salary_month_display }}</td>
+                <td>{{ r.salary_year }}</td>
+                <td>{{ r.working_days }}</td>
+                <td>{{ r.holidays }}</td>
+                <td>{{ r.casual_leaves }}</td>
+                <td>{{ r.earned_leaves }}</td>
+                <td>{{ r.sick_leaves }}</td>
+                <td>{{ r.comp_leaves }}</td>
+                <td>{{ r.work_pay }}</td>
+                <td>{% if r.is_bulk %}Yes{% else %}No{% endif %}</td>
+                <td>
+                    <a href="{% url 'update_attendance' r.attendanceid %}" class="button" style="font-size:11px;padding:3px 8px;">Edit</a>
+                    <a href="{% url 'delete_attendance' r.attendanceid %}" class="button" style="font-size:11px;padding:3px 8px;color:var(--Color1);border-color:var(--Color1);">Delete</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="text-align:center;color:#999;font-style:italic;padding:30px;">No attendance records found.</p>
+    {% endif %}
+</div>
+{% endblock %}

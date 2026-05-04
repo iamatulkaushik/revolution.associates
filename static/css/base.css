@@ -495,7 +495,12 @@ tbody tr:hover {
     margin-bottom: 20px;
     border-radius: 8px;
     border-left: 4px solid;
-    font-weight: 500;
+}
+
+/* Employment type specific fields - hidden by default */
+#contract_employment, #intern_employment {
+    display: none;
+    margin: 10px 0;
 }
 
 .message-success {

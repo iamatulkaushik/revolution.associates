@@ -36,11 +36,11 @@
                     <option value="Widowed" {% if emp.maritalstatus == 'Widowed' %}selected{% endif %}>Widowed</option>
                 </select><br>
                 <label>Date of Birth <span style="color:var(--Color1)">*</span></label>
-                <input type="date" name="dateofbirth" value="{{ emp.dateofbirth|date:'Y-m-d' }}" required><br/>
+                <input class="sml" type="date" name="dateofbirth" value="{{ emp.dateofbirth|date:'Y-m-d' }}" required>
                 <label>Blood Group</label>
-                <input type="text" name="bloodgroup" value="{{ emp.bloodgroup }}"><br/>
+                <input class="sml" type="text" name="bloodgroup" value="{{ emp.bloodgroup }}"><br/>
                 <label>Religion</label>
-                <input type="text" name="religion" value="{{ emp.religion }}"><br/>
+                <input class="sml" type="text" name="religion" value="{{ emp.religion }}"><br/>
             </div>
             <div class="container_boxed">
                 <h2>Contact Details</h2><hr>
@@ -51,11 +51,11 @@
                 <input type="tel" name="phone" class="sml" value="{{ emp.phone }}" maxlength="10"><br/>
                 <label class="large">Temporary Address <span style="color:var(--Color1)">*</span></label><br/>
                 <textarea name="temporaryaddress" rows="2" required style="width:60%;">{{ emp.temporaryaddress }}</textarea><br>
-                <select name="temp_state" id="temp_state" required onchange="loadDistricts('temp_state','temp_district')">
+                <select class="sml" name="temp_state" id="temp_state" required onchange="loadDistricts('temp_state','temp_district')">
                     <option value="">-- State --</option>
                     {% for s in states %}<option value="{{ s.Stateid }}" {% if emp.temp_state_id == s.Stateid %}selected{% endif %}>{{ s.name }}</option>{% endfor %}
                 </select>
-                <select name="temp_district" id="temp_district" required>
+                <select class="sml" name="temp_district" id="temp_district" required>
                     <option value="">-- District --</option>
                     {% if emp.temp_district %}<option value="{{ emp.temp_district.Districtid }}" selected>{{ emp.temp_district.name }}</option>{% endif %}
                 </select><br/>
@@ -63,11 +63,11 @@
                 <input type="text" name="country" class="sml" value="India"><br>
                 <label class="large">Permanent Address <span style="color:var(--Color1)">*</span></label>
                 <textarea name="permanentaddress" rows="2" required style="width:60%;">{{ emp.permanentaddress }}</textarea><br>
-                <select name="perm_state" id="perm_state" required onchange="loadDistricts('perm_state','perm_district')">
+                <select name="perm_state" class="sml" id="perm_state" required onchange="loadDistricts('perm_state','perm_district')">
                     <option value="">-- State --</option>
                     {% for s in states %}<option value="{{ s.Stateid }}" {% if emp.perm_state_id == s.Stateid %}selected{% endif %}>{{ s.name }}</option>{% endfor %}
                 </select>
-                <select name="perm_district" id="perm_district" required>
+                <select name="perm_district" class="sml"id="perm_district" required>
                     <option value="">-- District --</option>
                     {% if emp.perm_district %}<option value="{{ emp.perm_district.Districtid }}" selected>{{ emp.perm_district.name }}</option>{% endif %}
                 </select><br/>
@@ -103,51 +103,47 @@
             </div><br/>
             <div class="container_boxed">
                 <h2>Joining / Employment Details</h2><hr>
-                <label>Joining Date <span style="color:var(--Color1)">*</span></label><br/>
-                <input type="date" class="sml" name="joining_date" value="{{ emp.dateofjoining|date:'Y-m-d' }}" required><br/>
-                <label>Confirmation Date</label><br/>
-                <input type="date" class="sml" name="confirmation_date" value="{{ emp.confirmation_date|date:'Y-m-d' }}"><br/>
-                <label>Probation Period (Months)</label><br/>
-                <input type="number" class="sml" name="probation_period" value="{{ emp.probation_period }}" min="0"><br/>
-                <label>Notice Period (Days)</label><br/>
-                <input type="number" class="sml" name="notice_period" value="{{ emp.notice_period }}" min="0"><br/>
-                <label>Employment Type</label><br/>
-                <select name="employment_type">
-                    <option value="">--</option>
-                    <option value="Full-Time" {% if emp.employment_type == 'Full-Time' %}selected{% endif %}>Full-Time</option>
-                    <option value="Part-Time"   {% if emp.employment_type == 'Part-Time' %}selected{% endif %}>Part-Time</option>
-                    <option value="Contract"    {% if emp.employment_type == 'Contract' %}selected{% endif %}>Contract</option>
-                    <option value="Intern"      {% if emp.employment_type == 'Intern' %}selected{% endif %}>Intern</option>
+                <label>Joining Date <span style="color:var(--Color1)">*</span></label>
+                <input type="date" class="sml" name="joining_date" value="{{ emp.dateofjoining|date:'Y-m-d' }}" required>
+                <label>Employee Type</label>
+                <select class="sml" name="employment_type" required>
+                    <option value="">-- Select --</option>
+                    <option value="Permanent" {% if emp.employment_type == 'Permanent' %}selected{% endif %}>Permanent</option>
+                    <option value="Contract" {% if emp.employment_type == 'Contract' %}selected{% endif %}>Contract</option>
+                    <option value="Intern" {% if emp.employment_type == 'Intern' %}selected{% endif %}>Intern</option>
                 </select><br/>
-                <label>Date of Retirement</label><br/>
-                <input type="date" name="retirement_date" value="{{ emp.retirement_date|date:'Y-m-d' }}"><br/>
-                <label>Date of Leaving</label><br/>
-                <input type="date" name="leaving_date" value="{{ emp.leaving_date|date:'Y-m-d' }}"><br/>
-                <label>Leaving Reason</label><br/>
-                <input type="text" name="leaving_reason" value="{{ emp.leaving_reason }}" class="medium"><br/>
-                designationID
-                <label>Dsignation</label>
-                <select name="designationID"></select>
                 <label>Branch</label>
-                <select name="branchID"></select>
+                <select class="sml" name="branchID" required>
+                    <option value="">-- Select --</option>
+                    {% for b in branches %}<option value="{{ b.BranchID }}" {% if emp.branch_id == b.BranchID %}selected{% endif %}>{{ b.branch_name }}</option>{% endfor %}
+                </select>
                 <label>Department</label>
-                <select name="departmentID"></select><br/>
+                <select class="sml" name="departmentID" required>
+                    <option value="">-- Select --</option>
+                    {% for d in departments %}<option value="{{ d.DepartmentID }}" {% if emp.department_id == d.DepartmentID %}selected{% endif %}>{{ d.department_name }}</option>{% endfor %}
+                </select><br/>
                 <label>UAN Number</label>
-                <input type="text" name="uan_number" value="{{ emp.uan_number }}">
+                <input class="sml" type="text" name="uan_number" value="{{ emp.uan_number }}">
                 <label>UAN DOJ</label>
-                <input type="date" name="uan_doj" value="{{ emp.uan_doj|date:'Y-m-d' }}"><br/>
+                <input class="sml" type="date" name="uan_doj" value="{{ emp.uan_doj|date:'Y-m-d' }}"><br/>
                 <label>EPF Member ID</label>
-                <input type="text" name="epf_memberID" value="{{ emp.epf_memberID }}">
+                <input class="sml" type="text" name="epf_memberID" value="{{ emp.epf_memberID }}">
                 <label><input type="checkbox" name="epf_higher" {% if emp.epf_higher %}checked{% endif %}> Higher EPF</label><br/>
                 <label>ESIC Number</label>
-                <input type="text" name="esic_number" value="{{ emp.esic_number }}" maxlength="10">
+                <input class="sml" type="text" name="esic_number" value="{{ emp.esic_number }}" maxlength="10">
                 <label>ESIC DOJ</label>
-                <input type="date" name="esic_doj" value="{{ emp.esic_doj|date:'Y-m-d' }}"><br/>
+                <input class="sml" type="date" name="esic_doj" value="{{ emp.esic_doj|date:'Y-m-d' }}"><br/>
                 <label>Labour ID</label>
-                <input type="text" name="labour_id" value="{{ emp.labour_id }}"><br/>
+                <input class="sml" type="text" name="labour_id" value="{{ emp.labour_id }}"><br/>
             </div>
             <div class="container_boxed">
                 <h2>Salary Details</h2><hr>
+                                <label>Designation</label>
+                <select class="sml" name="designationID" required>
+                    <option value="">-- Select --</option>
+                    {% for d in designations %}<option value="{{ d.DesignationID }}" {% if emp.designation_id == d.DesignationID %}selected{% endif %}>{{ d.designationname }}</option>{% endfor %}
+                </select><br/>
+
                 <label>Basic Salary</label>
                 <input type="number" class="sml" name="basic_salary" value="{{ emp.basic_salary }}" min="0"><br/>
                 <label>HRA</label>

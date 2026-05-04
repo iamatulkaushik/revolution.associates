@@ -1,14 +1,11 @@
-from django.forms import forms
+from django import forms
 from django.db import models
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.models import User
-from django.contrib.auth import authenticate
-from django.db import migrations
-from Sapp.app.company import Company
-from django.shortcuts import get_object_or_404
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from Sapp.app.company import Company
 
-# Classes for Branch and Department models in the application. These models represent the structure of the database tables for branches and departments, including fields for branch and department details, as well as metadata for tracking creation and updates.
 
 class branch(models.Model):
     branchid = models.AutoField(primary_key=True)
@@ -17,17 +14,22 @@ class branch(models.Model):
     branch_address = models.TextField(blank=True, default='')
     branch_email = models.EmailField(blank=True, default='')
     contact_person = models.CharField(max_length=200, blank=True, null=True)
-    Cotact_mobile = models.CharField(max_length=10, blank=True, null=True)
+    # Fixed: was 'Cotact_mobile' (typo). See migration 0006_rename_cotact_mobile.
+    contact_mobile = models.CharField(max_length=10, blank=True, null=True)
     companyid = models.ForeignKey(Company, on_delete=models.CASCADE)
 
-    created_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.CASCADE, related_name='branches_created')
-    updated_by = models.ForeignKey(User, blank=True, null=True, on_delete=models.CASCADE, related_name='branches_updated')
+    created_by = models.ForeignKey(
+        User, null=True, blank=True, on_delete=models.CASCADE, related_name='branches_created'
+    )
+    updated_by = models.ForeignKey(
+        User, blank=True, null=True, on_delete=models.CASCADE, related_name='branches_updated'
+    )
     created_at = models.DateField(auto_now_add=True)
     updated_at = models.DateField(auto_now=True)
 
     def __str__(self):
-        return f'{self.branch_name}'
-    
+        return self.branch_name
+
     class Meta:
         db_table = 'branch_table'
 
@@ -36,216 +38,137 @@ class department(models.Model):
     departmentid = models.AutoField(primary_key=True)
     department_name = models.CharField(max_length=255, db_column='Department_Name', blank=False, null=False)
     branch = models.ForeignKey(branch, on_delete=models.CASCADE)
-    companyid = models.ForeignKey(Company, on_delete=models.CASCADE) 
-    created_by = models.ForeignKey(User, null=False, blank=False, on_delete=models.CASCADE, related_name='departments_created')
-    updated_by = models.ForeignKey(User, blank=True, null=True, on_delete=models.CASCADE, related_name='departments_updated')
+    companyid = models.ForeignKey(Company, on_delete=models.CASCADE)
+    created_by = models.ForeignKey(
+        User, null=False, blank=False, on_delete=models.CASCADE, related_name='departments_created'
+    )
+    updated_by = models.ForeignKey(
+        User, blank=True, null=True, on_delete=models.CASCADE, related_name='departments_updated'
+    )
     created_at = models.DateField(auto_now=True)
     updated_at = models.DateField(auto_now_add=True)
 
     def __str__(self):
-        return f'{self.department_name}'
-    
+        return self.department_name
+
     class Meta:
         db_table = 'department_table'
-        unique_together = ('department_name','branch')
+        unique_together = ('department_name', 'branch')
 
-# forms for Branch and Department models to handle user input and validation when creating or updating branch and department records in the application.
 
-class branch_form(forms.Form):
+class branch_form(forms.ModelForm):
     class Meta:
         model = branch
-        fields = ['branch_name', 'branch_address', 'branch_email', 'contact_person', 'Cotact_mobile']
+        fields = ['branch_name', 'branch_address', 'branch_email', 'contact_person', 'contact_mobile']
 
-class department_form(forms.Form):
+
+class department_form(forms.ModelForm):
     class Meta:
         model = department
-        fields = ['department_name', 'branch']
+        fields = ['department_name', 'branch', 'companyid']
 
 
-# Views for handling the creation and updating of branch and department records, including form validation and saving the data to the database.
+# ---------------------------------------------------------------------------
+# Branch views
+# ---------------------------------------------------------------------------
 
+@login_required
+def create_branch(request):
+    companies = Company.objects.all()
+    if request.method == 'POST':
+        form = branch_form(request.POST)
+        company_id = request.POST.get('companyid')
+        company = get_object_or_404(Company, company_id=company_id)
+        if form.is_valid():
+            b = form.save(commit=False)
+            b.companyid = company
+            b.created_by = request.user
+            b.save()
+            messages.success(request, f"Branch '{b.branch_name}' created.")
+            return redirect('Aapp:branch_list')
+    else:
+        form = branch_form()
+    return render(request, 'Aapp/works/create_branch.html', {'form': form, 'companies': companies})
+
+
+@login_required
 def list_branch(request):
-    selected_company_id = request.session.get('selected_company_id')
-    if not selected_company_id:
-        return render(request, 'Aapp/works/list_branch.html', {'branches': []})
-   
-    selected_company = Company.objects.get(company_id=selected_company_id)
-    branches = branch.objects.filter(companyid=selected_company)
+    branches = branch.objects.select_related('companyid').all()
     return render(request, 'Aapp/works/list_branch.html', {'branches': branches})
 
-def create_branch(request):
-    selected_company_id = request.session.get('selected_company_id')
-    if not selected_company_id:
-        return render(request, 'Aapp/works/create_branch.html', {})
-    
-    selected_company = Company.objects.get(company_id=selected_company_id)
-    
-    if request.method == 'POST':
-        branch_name = request.POST.get('branch_name')
-        branch_address = request.POST.get('branch_address', '')
-        branch_email = request.POST.get('branch_email', '')
-        contact_person = request.POST.get('contact_person', '')
-        contact_mobile = request.POST.get('contact_mobile', '')
-        
-        if not branch_name:
-            messages.error(request, "Branch name is required.")
-        elif branch.objects.filter(companyid=selected_company, branch_name=branch_name).exists():
-            messages.error(request, f"Branch '{branch_name}' already exists in this company.")
-        else:
-            branch_count = branch.objects.filter(companyid=selected_company).count()
-            branch_code = f"{selected_company.pan[:4]}{branch_count + 1:03d}"
-            branch.objects.create(
-                branch_name=branch_name,
-                branch_code=branch_code,
-                branch_address=branch_address,
-                branch_email=branch_email,
-                contact_person=contact_person,
-                Cotact_mobile=contact_mobile,
-                companyid=selected_company,
-                created_by=request.user
-            )
-            messages.success(request, f"Branch '{branch_name}' created successfully.")
-            return redirect('branch_list')
-    
-    return render(request, 'Aapp/works/create_branch.html', {})
 
+@login_required
 def alter_branch(request, branch_id):
-    selected_company_id = request.session.get('selected_company_id')
-    if not selected_company_id:
-        return render(request, 'Aapp/works/alter_branch.html', {'branch': None})
-    
-    branch_instance = get_object_or_404(branch, branchid=branch_id, companyid__company_id=selected_company_id)
-    
+    b = get_object_or_404(branch, branchid=branch_id)
     if request.method == 'POST':
-        branch_instance.branch_name = request.POST.get('branch_name')
-        branch_instance.branch_address = request.POST.get('branch_address', '')
-        branch_instance.branch_email = request.POST.get('branch_email', '')
-        branch_instance.contact_person = request.POST.get('contact_person', '')
-        branch_instance.Cotact_mobile = request.POST.get('contact_mobile', '')
-        branch_instance.updated_by = request.user
-        branch_instance.save()
-        messages.success(request, f"Branch '{branch_instance.branch_name}' updated successfully.")
-        return redirect('branch_list')
-    
-    return render(request, 'Aapp/works/alter_branch.html', {'branch': branch_instance})
+        form = branch_form(request.POST, instance=b)
+        if form.is_valid():
+            updated = form.save(commit=False)
+            updated.updated_by = request.user
+            updated.save()
+            messages.success(request, 'Branch updated.')
+            return redirect('Aapp:branch_list')
+    else:
+        form = branch_form(instance=b)
+    return render(request, 'Aapp/works/alter_branch.html', {'form': form, 'branch': b})
 
+
+@login_required
 def delete_branch(request, branch_id):
-    selected_company_id = request.session.get('selected_company_id')
-    if not selected_company_id:
-        return render(request, 'Aapp/works/delete_branch.html', {'branch': None})
-    
-    branch_instance = get_object_or_404(branch, branchid=branch_id, companyid__company_id=selected_company_id)
-    
+    b = get_object_or_404(branch, branchid=branch_id)
     if request.method == 'POST':
-        branch_name = branch_instance.branch_name
-        branch_instance.delete()
-        messages.success(request, f"Branch '{branch_name}' deleted successfully.")
-        return redirect('branch_list')
-    
-    return render(request, 'Aapp/works/delete_branch.html', {'branch': branch_instance})
+        b.delete()
+        messages.success(request, 'Branch deleted.')
+        return redirect('Aapp:branch_list')
+    return render(request, 'Aapp/works/delete_branch.html', {'branch': b})
 
-# Department Views
+
+# ---------------------------------------------------------------------------
+# Department views
+# ---------------------------------------------------------------------------
+
+@login_required
 def create_department(request):
-    selected_company_id = request.session.get('selected_company_id')
-    if not selected_company_id:
-        messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
-    
-    selected_company = Company.objects.get(company_id=selected_company_id)
-    branches = branch.objects.filter(companyid=selected_company)
-    
     if request.method == 'POST':
-        department_name = request.POST.get('department_name')
-        branch_id = request.POST.get('branch')
-        
-        if not all([department_name, branch_id]):
-            messages.error(request, "All fields are required.")
-        else:
-            branch_instance = branch.objects.get(branchid=branch_id)
-            
-            if department.objects.filter(department_name=department_name, branch=branch_instance).exists():
-                messages.error(request, f"Department '{department_name}' already exists in this branch.")
-            else:
-                department.objects.create(
-                    department_name=department_name,
-                    branch=branch_instance,
-                    companyid=selected_company,
-                    created_by=request.user
-                )
-                messages.success(request, f"Department '{department_name}' created successfully.")
-                return redirect('department_list')
-    
-    return render(request, 'Aapp/works/create_department.html', {'branches': branches, 'selected_company': selected_company})
+        form = department_form(request.POST)
+        if form.is_valid():
+            d = form.save(commit=False)
+            d.created_by = request.user
+            d.save()
+            messages.success(request, f"Department '{d.department_name}' created.")
+            return redirect('Aapp:department_list')
+    else:
+        form = department_form()
+    return render(request, 'Aapp/works/create_department.html', {'form': form})
 
+
+@login_required
 def list_department(request):
-    selected_company_id = request.session.get('selected_company_id')
-    if not selected_company_id:
-        messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
-    
-    selected_company = Company.objects.get(company_id=selected_company_id)
-    dprtfilter = department.objects.filter(companyid=selected_company)
-    return render(request, 'Aapp/works/list_department.html', {'departments': dprtfilter})
+    departments = department.objects.select_related('branch', 'companyid').all()
+    return render(request, 'Aapp/works/list_department.html', {'departments': departments})
 
+
+@login_required
 def alter_department(request, department_id):
-    selected_company_id = request.session.get('selected_company_id')
-    if not selected_company_id:
-        messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
-    
-    selected_company = Company.objects.get(company_id=selected_company_id)
-    dept_instance = get_object_or_404(department, departmentid=department_id)
-    branches = branch.objects.filter(companyid=selected_company)
-    
+    d = get_object_or_404(department, departmentid=department_id)
     if request.method == 'POST':
-        dept_instance.department_name = request.POST.get('department_name')
-        branch_id = request.POST.get('branch')
-        dept_instance.branch = branch.objects.get(branchid=branch_id)
-        dept_instance.updated_by = request.user
-        dept_instance.save()
-        messages.success(request, f"Department '{dept_instance.department_name}' updated successfully.")
-        return redirect('department_list')
-    
-    return render(request, 'Aapp/works/alter_department.html', {'department': dept_instance, 'branches': branches})
+        form = department_form(request.POST, instance=d)
+        if form.is_valid():
+            updated = form.save(commit=False)
+            updated.updated_by = request.user
+            updated.save()
+            messages.success(request, 'Department updated.')
+            return redirect('Aapp:department_list')
+    else:
+        form = department_form(instance=d)
+    return render(request, 'Aapp/works/alter_department.html', {'form': form, 'department': d})
 
+
+@login_required
 def delete_department(request, department_id):
-    from django.shortcuts import get_object_or_404
-    from django.contrib import messages
-    
-    selected_company_id = request.session.get('selected_company_id')
-    if not selected_company_id:
-        messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
-    
-    dept_instance = get_object_or_404(department, departmentid=department_id, companyid__company_id=selected_company_id)
-    
+    d = get_object_or_404(department, departmentid=department_id)
     if request.method == 'POST':
-        dept_name = dept_instance.department_name
-        dept_instance.delete()
-        messages.success(request, f"Department '{dept_name}' deleted successfully.")
-        return redirect('department_list')
-    
-    return render(request, 'Aapp/works/delete_department.html', {'department': dept_instance})
-    
-# post migration code to create initial branches and departments for testing purposes. This code defines a function that creates an initial branch and an associated department, and a migration class that runs this function after the initial migration is applied to set up the database with some default data.
-
-def create_initial_branches_and_departments(apps, schema_editor):
-    Branch = apps.get_model('Aapp', 'branch')
-    Department = apps.get_model('Aapp', 'department')
-    # Create initial branches
-    branch1 = Branch.objects.create(branch_name='Head Office', branch_code='B001', branch_address='Update_as_company_address', contact_person='Insert owner Name', contact_mobile='9876543210')
-    # Create initial departments for Branch 1
-    Department.objects.create(department_name='All-in-One', branch=branch1)
-    #Department.objects.create(department_name='Finance', branch=branch1)
-    #Department.objects.create(department_name='IT', branch=branch1)
-    #Department.objects.create(department_name='Marketing', branch=branch1)
-
-class CreateInitialBranchesAndDepartments(migrations.Migration):
-
-    dependencies = [
-        ('Aapp', '0001_initial'),
-    ]
-
-    operations = [
-        migrations.RunPython(create_initial_branches_and_departments),
-    ]
+        d.delete()
+        messages.success(request, 'Department deleted.')
+        return redirect('Aapp:department_list')
+    return render(request, 'Aapp/works/delete_department.html', {'department': d})

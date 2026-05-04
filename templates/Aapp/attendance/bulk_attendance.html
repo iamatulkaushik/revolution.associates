@@ -1,0 +1,73 @@
+{% extends 'Aapp/base.html' %}
+{% block title %}Bulk Attendance{% endblock %}
+{% block content %}
+<div class="main-content">
+    {% if messages %}{% for m in messages %}
+    <div class="message-alert {% if m.tags == 'success' %}message-success{% else %}message-error{% endif %}">{{ m }}</div>
+    {% endfor %}{% endif %}
+    <form method="post">
+        {% csrf_token %}
+        <h2 style="padding:10px;">Bulk Attendance — {{ company.company_name }}</h2>
+        <div class="container_boxed">
+            <h2>Common Details</h2><hr>
+            <label>Month <span style="color:var(--Color1)">*</span></label>
+            <select class="sml" name="salary_month" required>
+                <option value="">--</option>
+                {% for val, label in months %}<option value="{{ val }}">{{ label }}</option>{% endfor %}
+            </select>
+            <label>Year <span style="color:var(--Color1)">*</span></label>
+            <input type="number" class="sml" name="salary_year" min="2026" max="2032" required placeholder="2026">
+            <label>Branch</label>
+            <select class="medium" name="branchid">
+                <option value="">-- All --</option>
+                {% for b in branches %}<option value="{{ b.branchid }}">{{ b.branch_name }}</option>{% endfor %}
+            </select>
+            <label>Division</label>
+            <input type="text" class="medium" name="divisionid" placeholder="Division (optional)"><br>
+        </div><br/>
+        <div class="container_boxed" style="margin-top:10px;">
+            <h2>Employee Attendance</h2><hr>
+            <label style="width:auto;margin-bottom:8px;">
+                <input type="checkbox" id="select_all" onchange="toggleAll(this)"> Select All
+            </label>
+            <table>
+                <thead>
+                    <tr>
+                        <th><input type="checkbox" id="select_all_hdr" onchange="toggleAll(this)"></th>
+                        <th>Code</th><th>Name</th>
+                        <th>Work Days</th><th>Holidays</th>
+                        <th>CL</th><th>EL</th><th>SL</th><th>Comp</th><th>Pay Days</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for emp in employees %}
+                    <tr>
+                        <td><input type="checkbox" name="employee_ids" value="{{ emp.employeeid }}" class="emp-chk"></td>
+                        <td>{{ emp.employeecode }}</td>
+                        <td>{{ emp.name }}</td>
+                        <td><input type="number" name="working_days_{{ emp.employeeid }}" value="0" min="0" step="0.5" style="width:55px;"></td>
+                        <td><input type="number" name="holidays_{{ emp.employeeid }}" value="0" min="0" step="0.5" style="width:45px;"></td>
+                        <td><input type="number" name="casual_leaves_{{ emp.employeeid }}" value="0" min="0" step="0.5" style="width:45px;"></td>
+                        <td><input type="number" name="earned_leaves_{{ emp.employeeid }}" value="0" min="0" step="0.5" style="width:45px;"></td>
+                        <td><input type="number" name="sick_leaves_{{ emp.employeeid }}" value="0" min="0" step="0.5" style="width:45px;"></td>
+                        <td><input type="number" name="comp_leaves_{{ emp.employeeid }}" value="0" min="0" step="0.5" style="width:45px;"></td>
+                        <td><input type="number" name="work_pay_{{ emp.employeeid }}" value="0" min="0" step="0.5" style="width:55px;"></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div style="margin:15px 10px;">
+            <button type="submit" class="button">Save Bulk Attendance</button>
+            <a href="{% url 'list_attendance' %}" class="button" style="margin-left:10px;">Cancel</a>
+        </div>
+    </form>
+</div>
+<script>
+function toggleAll(src) {
+    document.querySelectorAll('.emp-chk').forEach(c => c.checked = src.checked);
+    document.getElementById('select_all').checked = src.checked;
+    document.getElementById('select_all_hdr').checked = src.checked;
+}
+</script>
+{% endblock %}

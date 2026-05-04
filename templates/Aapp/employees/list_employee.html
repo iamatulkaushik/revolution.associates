@@ -10,7 +10,10 @@
 
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
             <h2>Employees — {{ company.company_name }} ({{ employees.count }})</h2>
-            <a href="{% url 'create_employee' %}" class="button">+ Add Employee</a>
+            <span>
+                <a href="{% url 'create_employee' %}" class="button">+ Add Employee</a>
+                <a href="{% url 'bulk_excel_upload_employees' %}" class="button" style="margin-left:6px;">⬆ Excel Upload</a>
+            </span>
         </div>
 
         {% if employees %}
@@ -38,10 +41,10 @@
                     <td>{{ emp.dateofjoining|date:"d M Y" }}</td>
                     <td>{% if emp.dateofretirement %}Retired{% elif emp.is_working %}Active{% else %}Disabled{% endif %}</td>
                     <td>
-                        <a href="{% url 'alter_employee' emp.employeeid %}" class="button" style="font-size:11px;padding:3px 8px;">Edit</a>
-                        <a href="{% url 'disable_employee' emp.employeeid %}" class="button" style="font-size:11px;padding:3px 8px;">{% if emp.is_working %}Disable{% else %}Enable{% endif %}</a>
-                        <a href="{% url 'retire_employee' emp.employeeid %}" class="button" style="font-size:11px;padding:3px 8px;">Retire</a>
-                        <a href="{% url 'delete_employee' emp.employeeid %}" class="button" style="font-size:11px;padding:3px 8px;color:var(--Color1);border-color:var(--Color1);">Delete</a>
+                        <a href="{% url 'Aapp:alter_employee' emp.employeeid %}" class="button" style="font-size:11px;padding:3px 8px;">Edit</a>
+                        <a href="{% url 'Aapp:disable_employee' emp.employeeid %}" class="button" style="font-size:11px;padding:3px 8px;">{% if emp.is_working %}Disable{% else %}Enable{% endif %}</a>
+                        <a href="{% url 'Aapp:retire_employee' emp.employeeid %}" class="button" style="font-size:11px;padding:3px 8px;">Retire</a>
+                        <a href="{% url 'Aapp:delete_employee' emp.employeeid %}" class="button" style="font-size:11px;padding:3px 8px;color:var(--Color1);border-color:var(--Color1);">Delete</a>
                     </td>
                 </tr>
                 {% endfor %}

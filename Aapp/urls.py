@@ -4,7 +4,8 @@ from Aapp.app.branch_department import create_branch, list_branch, alter_branch,
 from Aapp.app.designation import create_designation, list_designation, alter_designation, disable_designation
 from Sapp.app.company import create_company_associate, list_company_associate, alter_company_associate, mark_inactive_company, create_company_statutory, alter_company_statutory
 from Aapp.app.subuser import list_subusers, add_subuser, alter_subuser, reset_subuser_password, disable_subuser, subuser_companies
-from Aapp.app.employee import list_employee, create_employee, alter_employee, disable_employee, retire_employee, delete_employee
+from Aapp.app.employee import list_employee, create_employee, alter_employee, disable_employee, retire_employee, delete_employee, bulk_excel_upload_Employees as employee_bulk_excel_upload, download_employee_template
+from Aapp.app.attandance import list_attendance, add_attendance, update_attendance, bulk_attendance, delete_attendance, bulk_excel_upload_Attandance as attendance_bulk_excel_upload, download_attendance_template
 from Sapp.app.state_district import District
 from django.http import JsonResponse
 
@@ -53,5 +54,14 @@ urlpatterns = [
     path('employees/disable/<int:employee_id>/', disable_employee, name='disable_employee'),
     path('employees/retire/<int:employee_id>/', retire_employee, name='retire_employee'),
     path('employees/delete/<int:employee_id>/', delete_employee, name='delete_employee'),
+    path('employees/excel-upload/', employee_bulk_excel_upload, name='bulk_excel_upload_employees'),
+    path('employees/download-template/', download_employee_template, name='download_employee_template'),
+    path('attendance/', list_attendance, name='list_attendance'),
+    path('attendance/add/', add_attendance, name='add_attendance'),
+    path('attendance/bulk/', bulk_attendance, name='bulk_attendance'),
+    path('attendance/update/<int:attendance_id>/', update_attendance, name='update_attendance'),
+    path('attendance/delete/<int:attendance_id>/', delete_attendance, name='delete_attendance'),
+    path('attendance/excel-upload/', attendance_bulk_excel_upload, name='bulk_excel_upload_attendance'),
+    path('attendance/download-template/', download_attendance_template, name='download_attendance_template'),
     path('get_districts/<int:state_id>/', get_districts, name='get_districts'),
 ]
