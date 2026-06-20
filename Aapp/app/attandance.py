@@ -39,6 +39,10 @@ class attendance(models.Model):
     sick_leaves   = models.DecimalField(max_digits=5, decimal_places=2, default=0)
     comp_leaves   = models.DecimalField(max_digits=5, decimal_places=2, default=0)
     work_pay      = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    overtime_hours = models.DecimalField(max_digits=6, decimal_places=2, default=0)
+    ordinary_rate  = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    ot_rate        = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    ot_wages_paid  = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     created_by    = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='attendance_created')
     created_date  = models.DateTimeField(auto_now_add=True)
     updated_by    = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='attendance_updated')
@@ -52,6 +56,39 @@ class attendance(models.Model):
     def __str__(self):
         return f"{self.emp_code} — {self.get_salary_month_display()} {self.salary_year}"
 
+    def save(self, *args, **kwargs):
+        if self.ordinary_rate and not self.ot_rate:
+            self.ot_rate = self.ordinary_rate * 2
+        if self.overtime_hours and self.ot_rate and not self.ot_wages_paid:
+            self.ot_wages_paid = self.overtime_hours * self.ot_rate
+        super().save(*args, **kwargs)
+
+
+class MinimumWagesOvertimeRegister(models.Model):
+    ot_register_id = models.AutoField(primary_key=True)
+    attendance = models.ForeignKey(attendance, on_delete=models.CASCADE, related_name='ot_details')
+    ot_date = models.DateField()
+    overtime_hours = models.DecimalField(max_digits=6, decimal_places=2)
+    ordinary_rate = models.DecimalField(max_digits=10, decimal_places=2)
+    ot_rate = models.DecimalField(max_digits=10, decimal_places=2)
+    ot_wages_paid = models.DecimalField(max_digits=10, decimal_places=2)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'minimum_wages_overtime_register'
+        ordering = ['-ot_date']
+
+    def __str__(self):
+        return f"{self.attendance.emp_code} - {self.ot_date}"
+
+    def save(self, *args, **kwargs):
+        if self.ordinary_rate and not self.ot_rate:
+            self.ot_rate = self.ordinary_rate * 2
+        if self.overtime_hours and self.ot_rate:
+            self.ot_wages_paid = self.overtime_hours * self.ot_rate
+        super().save(*args, **kwargs)
+
 
 # ── Form ──────────────────────────────────────────────────────────────────────
 
@@ -62,7 +99,17 @@ class AttendanceForm(forms.ModelForm):
             'employee_id', 'emp_code', 'companyid', 'divisionid', 'branchid',
             'salary_month', 'salary_year', 'working_days', 'holidays',
             'casual_leaves', 'earned_leaves', 'sick_leaves', 'comp_leaves', 'work_pay',
+            'overtime_hours', 'ordinary_rate', 'ot_rate', 'ot_wages_paid',
         ]
+
+
+class MinimumWagesOvertimeRegisterForm(forms.ModelForm):
+    class Meta:
+        model = MinimumWagesOvertimeRegister
+        fields = ['attendance', 'ot_date', 'overtime_hours', 'ordinary_rate', 'ot_rate', 'ot_wages_paid']
+        widgets = {
+            'ot_date': forms.DateInput(attrs={'type': 'date'}),
+        }
 
 
 # ── Helper ────────────────────────────────────────────────────────────────────
@@ -123,6 +170,10 @@ def add_attendance(request):
                     sick_leaves   = p.get('sick_leaves', 0),
                     comp_leaves   = p.get('comp_leaves', 0),
                     work_pay      = p.get('work_pay', 0),
+                    overtime_hours = p.get('overtime_hours', 0),
+                    ordinary_rate  = p.get('ordinary_rate', 0),
+                    ot_rate        = p.get('ot_rate', 0),
+                    ot_wages_paid  = p.get('ot_wages_paid', 0),
                     created_by    = request.user,
                 )
                 messages.success(request, f"Attendance for {emp.name} saved.")
@@ -162,6 +213,10 @@ def update_attendance(request, attendance_id):
             rec.sick_leaves   = p.get('sick_leaves', rec.sick_leaves)
             rec.comp_leaves   = p.get('comp_leaves', rec.comp_leaves)
             rec.work_pay      = p.get('work_pay', rec.work_pay)
+            rec.overtime_hours = p.get('overtime_hours', rec.overtime_hours)
+            rec.ordinary_rate  = p.get('ordinary_rate', rec.ordinary_rate)
+            rec.ot_rate        = p.get('ot_rate', rec.ot_rate)
+            rec.ot_wages_paid  = p.get('ot_wages_paid', rec.ot_wages_paid)
             rec.updated_by    = request.user
             rec.save()
             messages.success(request, "Attendance updated.")
@@ -218,6 +273,10 @@ def bulk_attendance(request):
                 sick_leaves   = p.get(f'sick_leaves_{eid}', 0),
                 comp_leaves   = p.get(f'comp_leaves_{eid}', 0),
                 work_pay      = p.get(f'work_pay_{eid}', 0),
+                overtime_hours = p.get(f'overtime_hours_{eid}', 0),
+                ordinary_rate  = p.get(f'ordinary_rate_{eid}', 0),
+                ot_rate        = p.get(f'ot_rate_{eid}', 0),
+                ot_wages_paid  = p.get(f'ot_wages_paid_{eid}', 0),
                 created_by    = request.user,
             )
             created += 1
@@ -267,6 +326,7 @@ def download_attendance_template(request):
         'emp_code*', 'salary_month*', 'salary_year*',
         'working_days', 'holidays', 'casual_leaves',
         'earned_leaves', 'sick_leaves', 'comp_leaves', 'work_pay',
+        'overtime_hours', 'ordinary_rate', 'ot_rate', 'ot_wages_paid',
     ]
     hdr_fill = PatternFill('solid', fgColor='1D3557')
     hdr_font = Font(color='FFFFFF', bold=True)
@@ -296,6 +356,10 @@ def download_attendance_template(request):
         ('sick_leaves',    'Decimal. Defaults to 0 if blank.'),
         ('comp_leaves',    'Decimal. Defaults to 0 if blank.'),
         ('work_pay',       'Decimal. Defaults to 0 if blank.'),
+        ('overtime_hours', 'Decimal. OT hours worked. Defaults to 0 if blank.'),
+        ('ordinary_rate',  'Decimal. Regular hourly rate. Defaults to 0 if blank.'),
+        ('ot_rate',        'Decimal. OT rate (2× ordinary). Auto-calculated if blank.'),
+        ('ot_wages_paid',  'Decimal. OT wages. Auto-calculated if blank.'),
     ]
     ws2.cell(row=1, column=1, value='Column').font = Font(bold=True)
     ws2.cell(row=1, column=2, value='Description').font = Font(bold=True)
@@ -355,6 +419,10 @@ def bulk_excel_upload_Attandance(request):
             sick_leaves   = row[7] or 0
             comp_leaves   = row[8] or 0
             work_pay      = row[9] or 0
+            overtime_hours = row[10] or 0
+            ordinary_rate  = row[11] or 0
+            ot_rate        = row[12] or 0
+            ot_wages_paid  = row[13] or 0
 
             # Validate required fields
             if not emp_code or not salary_month or not salary_year:
@@ -400,6 +468,10 @@ def bulk_excel_upload_Attandance(request):
                     sick_leaves   = sick_leaves,
                     comp_leaves   = comp_leaves,
                     work_pay      = work_pay,
+                    overtime_hours = overtime_hours,
+                    ordinary_rate  = ordinary_rate,
+                    ot_rate        = ot_rate,
+                    ot_wages_paid  = ot_wages_paid,
                     created_by    = request.user,
                 )
                 created += 1
@@ -419,3 +491,82 @@ def bulk_excel_upload_Attandance(request):
         return redirect('Aapp:list_attendance')
 
     return render(request, 'Aapp/attendance/bulk_excel_upload.html', {'company': company})
+
+
+# ── Overtime Register Views ──────────────────────────────────────────────────
+
+@login_required
+def list_overtime_register(request):
+    company = _company(request)
+    if not company:
+        messages.warning(request, 'Please select a company first.')
+        return redirect('dashboard')
+    records = MinimumWagesOvertimeRegister.objects.filter(
+        attendance__companyid=company
+    ).select_related('attendance__employee_id')
+    return render(request, 'Aapp/attendance/list_overtime_register.html',
+                  {'records': records, 'company': company})
+
+
+@login_required
+def create_overtime_register(request):
+    company = _company(request)
+    if not company:
+        messages.warning(request, 'Please select a company first.')
+        return redirect('dashboard')
+
+    if request.method == 'POST':
+        form = MinimumWagesOvertimeRegisterForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Overtime record created successfully.')
+            return redirect('Aapp:list_overtime_register')
+    else:
+        form = MinimumWagesOvertimeRegisterForm()
+        form.fields['attendance'].queryset = attendance.objects.filter(companyid=company)
+
+    return render(request, 'Aapp/attendance/create_overtime_register.html',
+                  {'form': form, 'company': company})
+
+
+@login_required
+def alter_overtime_register(request, ot_register_id):
+    company = _company(request)
+    if not company:
+        messages.warning(request, 'Please select a company first.')
+        return redirect('dashboard')
+
+    record = get_object_or_404(MinimumWagesOvertimeRegister, ot_register_id=ot_register_id,
+                                attendance__companyid=company)
+
+    if request.method == 'POST':
+        form = MinimumWagesOvertimeRegisterForm(request.POST, instance=record)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Overtime record updated successfully.')
+            return redirect('Aapp:list_overtime_register')
+    else:
+        form = MinimumWagesOvertimeRegisterForm(instance=record)
+        form.fields['attendance'].queryset = attendance.objects.filter(companyid=company)
+
+    return render(request, 'Aapp/attendance/alter_overtime_register.html',
+                  {'form': form, 'record': record, 'company': company})
+
+
+@login_required
+def delete_overtime_register(request, ot_register_id):
+    company = _company(request)
+    if not company:
+        messages.warning(request, 'Please select a company first.')
+        return redirect('dashboard')
+
+    record = get_object_or_404(MinimumWagesOvertimeRegister, ot_register_id=ot_register_id,
+                                attendance__companyid=company)
+
+    if request.method == 'POST':
+        record.delete()
+        messages.success(request, 'Overtime record deleted successfully.')
+        return redirect('Aapp:list_overtime_register')
+
+    return render(request, 'Aapp/attendance/delete_overtime_register.html',
+                  {'record': record, 'company': company})

@@ -6,7 +6,9 @@ from Sapp.app.company import create_company_associate, list_company_associate, a
 from Aapp.app.subuser import list_subusers, add_subuser, alter_subuser, reset_subuser_password, disable_subuser, subuser_companies
 from Aapp.app.employee import list_employee, create_employee, alter_employee, disable_employee, retire_employee, delete_employee, bulk_excel_upload_Employees as employee_bulk_excel_upload, download_employee_template
 from Aapp.app.attandance import list_attendance, add_attendance, update_attendance, bulk_attendance, delete_attendance, bulk_excel_upload_Attandance as attendance_bulk_excel_upload, download_attendance_template
+from Aapp.app.leave_management import list_leave, add_leave, update_leave, delete_leave
 from Sapp.app.state_district import District
+from Aapp.app.factory_act import list_factory_registration, create_factory_registration, alter_factory_registration, list_whitewash_register, create_whitewash_register, list_vessel_examination, create_vessel_examination, list_leave_wages_register, create_leave_wages_register, create_annual_return, alter_annual_return, list_accident_register, create_accident_register
 from django.http import JsonResponse
 
 def get_districts(request, state_id):
@@ -63,5 +65,25 @@ urlpatterns = [
     path('attendance/delete/<int:attendance_id>/', delete_attendance, name='delete_attendance'),
     path('attendance/excel-upload/', attendance_bulk_excel_upload, name='bulk_excel_upload_attendance'),
     path('attendance/download-template/', download_attendance_template, name='download_attendance_template'),
+    path('leave/', list_leave, name='list_leave'),
+    path('leave/add/', add_leave, name='add_leave'),
+    path('leave/update/<int:leave_id>/', update_leave, name='update_leave'),
+    path('leave/delete/<int:leave_id>/', delete_leave, name='delete_leave'),
     path('get_districts/<int:state_id>/', get_districts, name='get_districts'),
+    
+    # Factory Act URLs
+    path('factory/dashboard/', list_factory_registration, name='factory_dashboard'),
+    path('factory/registration/', create_factory_registration, name='list_factory_registration'),
+    #path('factory/registration/create/', FactoryRegistration.as_view(), name='create_factory_registration'),
+    path('factory/registration/update/<int:factory_id>/', alter_factory_registration, name='update_factory_registration'),
+    path('factory/accident/', list_accident_register, name='list_accident_records'),
+    path('factory/accident/create/', create_accident_register, name='create_accident_record'),
+    #path('factory/annual-return/', list_annual_returns, name='list_annual_returns'),
+    path('factory/annual-return/create/', create_annual_return, name='create_annual_return'),
+    path('factory/whitewash/', list_whitewash_register, name='list_whitewash_register'),
+    path('factory/whitewash/create/', create_whitewash_register, name='create_whitewash_register'),
+    path('factory/vessel/', list_vessel_examination, name='list_vessel_examination'),
+    path('factory/vessel/create/', create_vessel_examination, name='create_vessel_examination'),
+    path('factory/leave-wages/', list_leave_wages_register, name='list_leave_with_wages_register'),
+    path('factory/leave-wages/create/', create_leave_wages_register, name='create_leave_with_wages_register'),
 ]
