@@ -1,9 +1,3 @@
-While I cannot access the live code in your specific repository right now, I can create a professional `README.md` based on your project goals for Revolution Associates—focusing on your Human Resource Management System (HRMS) and its unique licensing features.
-
-You can copy and paste the following content into your `README.md` file:
-
-***
-
 # Revolution Associates HRMS
 
 Revolution Associates is a modern, high-performance Human Resource Management System (HRMS) designed to bridge the gap between business owners and their global workforce. Our platform focuses on data sovereignty, allowing owners to operate their personal and business data within their own secure space while providing a seamless interface for associates working across multiple organizations.
