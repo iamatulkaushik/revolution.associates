@@ -13,7 +13,7 @@
         <div class="quickupdate" style="max-width:520px;">
             <h2>Manage Status — {{ subuser.user.username }}</h2><hr>
 
-            <table style="background:transparent; box-shadow:none; min-width:unset; margin-bottom:15px;">
+            <table class="data-table" style="background:transparent; box-shadow:none; min-width:unset; margin-bottom:15px;">
                 <tbody>
                     <tr><td>Full Name</td><td>{{ subuser.user.get_full_name|default:"—" }}</td></tr>
                     <tr><td>Role</td><td>{{ subuser.get_role_display }}</td></tr>
@@ -30,10 +30,10 @@
                 <textarea name="reason" rows="2" placeholder="Optional reason"></textarea>
                 <br><br>
                 {% if subuser.is_active %}
-                    <button type="submit" name="action" value="suspend" class="button">Suspend 24h</button>
-                    <button type="submit" name="action" value="disable" class="button" style="margin-left:10px; border-color:var(--Color1); color:var(--Color1);">Disable Permanently</button>
+                    <button type="submit" class="button btn-primary" name="action" value="suspend" class="button">Suspend 24h</button>
+                    <button type="submit" class="button btn-primary" name="action" value="disable" class="button" style="margin-left:10px; border-color:var(--Color1); color:var(--Color1);">Disable Permanently</button>
                 {% else %}
-                    <button type="submit" name="action" value="enable" class="button" style="border-color:#28a745; color:#28a745;">Enable User</button>
+                    <button type="submit" class="button btn-primary" name="action" value="enable" class="button" style="border-color:#28a745; color:#28a745;">Enable User</button>
                 {% endif %}
                 <a href="{% url 'list_subusers' %}" class="button" style="margin-left:10px;">Cancel</a>
             </form>

@@ -1,6 +1,14 @@
 {% extends 'Sapp/base.html' %}
 {% block title %}Delete Sub User{% endblock %}
 {% block content %}
+{% if messages %}
+<div class="messages-container">
+{% for message in messages %}
+<div class="message-alert {% if message.tags == 'error' %}message-error{% elif message.tags == 'warning' %}message-warning{% else %}message-success{% endif %}" role="alert">{{ message }}</div>
+{% endfor %}
+</div>
+{% endif %}
+
 <div class="main-content">
     <div class="container">
         <div class="quickupdate" style="max-width:480px;">

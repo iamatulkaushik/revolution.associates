@@ -1,323 +1,162 @@
 {% extends "Sapp/base.html" %}
 {% block title %}Dashboard{% endblock %}
-{% load static %}
-{% block additionalcss_js %}
-<style>
-    .dashboard-header {
-        background: linear-gradient(135deg, #007bff, #0056b3);
-        color: #fff;
-        padding: 30px;
-        border-radius: 8px;
-        margin-bottom: 30px;
-        text-align: center
-    }
-
-    .dashboard-header h1 {
-        margin: 0;
-        font-size: 2.5rem
-    }
-
-    .dashboard-header p {
-        margin: 10px 0 0;
-        opacity: 0.9
-    }
-
-    .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 20px;
-        margin-bottom: 30px
-    }
-
-    .stat-card {
-        background: #fff;
-        padding: 20px;
-        border-radius: 8px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        text-align: center;
-        border-top: 4px solid #007bff
-    }
-
-    .stat-card h3 {
-        margin: 0;
-        font-size: 2rem;
-        color: #007bff
-    }
-
-    .stat-card p {
-        margin: 10px 0 0;
-        color: #666;
-        font-weight: 600
-    }
-
-    .main-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 30px;
-        margin-bottom: 30px
-    }
-
-    .full-width {
-        grid-column: 1 / -1
-    }
-
-    .section-card {
-        background: #fff;
-        border-radius: 8px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        overflow: hidden
-    }
-
-    .section-header {
-        background: #f8f9fa;
-        padding: 20px;
-        border-bottom: 1px solid #eee;
-        display: flex;
-        justify-content: space-between;
-        align-items: center
-    }
-
-    .section-header h3 {
-        margin: 0;
-        color: #333
-    }
-
-    .section-body {
-        padding: 20px;
-        max-height: 400px;
-        overflow-y: auto
-    }
-
-    .item-list {
-        list-style: none;
-        padding: 0;
-        margin: 0
-    }
-
-    .item-list li {
-        padding: 12px 0;
-        border-bottom: 1px solid #f0f0f0;
-        display: flex;
-        justify-content: space-between;
-        align-items: center
-    }
-
-    .item-list li:last-child {
-        border-bottom: none
-    }
-
-    .item-name {
-        font-weight: 600;
-        color: #333
-    }
-
-    .item-detail {
-        color: #666;
-        font-size: 14px
-    }
-
-    .status-badge {
-        padding: 4px 8px;
-        border-radius: 4px;
-        font-size: 11px;
-        font-weight: 600;
-        display: inline-block
-    }
-
-    .status-active {
-        background: #d4edda;
-        color: #155724
-    }
-
-    .status-suspended {
-        background: #fff3cd;
-        color: #856404
-    }
-
-    .status-disabled {
-        background: #f8d7da;
-        color: #721c24
-    }
-
-    .btn {
-        padding: 8px 16px;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        text-decoration: none;
-        font-size: 14px
-    }
-
-    .btn-primary {
-        background: #007bff;
-        color: #fff
-    }
-
-    .btn-success {
-        background: #28a745;
-        color: #fff
-    }
-
-    .btn-warning {
-        background: #ffc107;
-        color: #212529
-    }
-
-    .btn-sm {
-        padding: 6px 12px;
-        font-size: 12px
-    }
-
-    .company-actions {
-        display: flex;
-        gap: 10px;
-        margin-top: 15px
-    }
-
-    .empty-state {
-        text-align: center;
-        color: #999;
-        padding: 40px 20px
-    }
-</style>
-{% endblock %}
 {% block content %}
-<div class="container">
-    <div class="stats-grid">
-        <div class="stat-card">
-            <h3><a href="{% url 'list_company' %}">{{CompanyDetails|length}}</a></h3>
-            <p>Total Companies</p>
-        </div>
-        <div class="stat-card">
-            <h3><a href="{% url 'list_associates' %}">{{associates_count}}</a></h3>
-            <p>Associates</p>
-        </div>
-        <div class="stat-card">
-            <h3><a href="{% url 'list_subusers' %}">{{subusers_count}}</a></h3>
-            <p>Sub Users</p>
-        </div>
-        <div class="stat-card">
-            <h3><a href="{% url 'list_licenses' %}">{{LicenseDetails|length}}</a></h3>
-            <p>Active Licenses</p>
-        </div>
-    </div>
-
-    <div class="main-grid">
-        <div class="section-card">
-            <div class="section-header">
-                <h3>👥 Associates</h3>
-                <a href="{% url 'create_associate' %}" class="btn btn-success btn-sm">New Associate</a>
-            </div>
-            <div class="section-body">
-                {% if associates_list %}
-                <ul class="item-list">
-                    {% for associate in associates_list %}
-                    <li>
-                        <div>
-                            <div class="item-name">{{associate.user.get_full_name}}</div>
-                            <div class="item-detail">
-                                ID: {{associate.associate_id}} | 
-                                Companies: {{associate.get_companies.count}} | 
-                                <span class="status-badge {% if associate.is_active %}status-active{% else %}status-disabled{% endif %}">
-                                    {{associate.get_status_display}}
-                                </span>
-                            </div>
-                        </div>
-                        <div>
-                            <a href="{% url 'alter_associate' associate.id %}" class="btn btn-warning btn-sm">Edit</a>
-                        </div>
-                    </li>
-                    {% endfor %}
-                </ul>
-                <div style="text-align:center;margin-top:15px">
-                    <a href="{% url 'list_associates' %}" class="btn btn-primary">View All Associates</a>
-                </div>
-                {% else %}
-                <div class="empty-state">
-                    <p>No associates created yet</p>
-                    <a href="{% url 'create_associate' %}" class="btn btn-primary">Create First Associate</a>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-
-        <div class="section-card">
-            <div class="section-header">
-                <h3>👤 Sub Users</h3>
-                <a href="{% url 'create_subuser' %}" class="btn btn-success btn-sm">New Sub User</a>
-            </div>
-            <div class="section-body">
-                {% if subusers_list %}
-                <ul class="item-list">
-                    {% for subuser in subusers_list %}
-                    <li>
-                        <div>
-                            <div class="item-name">{{subuser.user.get_full_name}}</div>
-                            <div class="item-detail">
-                                {{subuser.role|title}} | Associate: {{subuser.associate.associate_id}} | 
-                                <span class="status-badge {% if subuser.is_active %}status-active{% else %}status-disabled{% endif %}">
-                                    {{subuser.get_status_display}}
-                                </span>
-                            </div>
-                        </div>
-                        <div>
-                            <a href="{% url 'alter_subuser' subuser.id %}" class="btn btn-warning btn-sm">Edit</a>
-                        </div>
-                    </li>
-                    {% endfor %}
-                </ul>
-                <div style="text-align:center;margin-top:15px">
-                    <a href="{% url 'list_subusers' %}" class="btn btn-primary">View All Sub Users</a>
-                </div>
-                {% else %}
-                <div class="empty-state">
-                    <p>No sub users created yet</p>
-                    <a href="{% url 'create_subuser' %}" class="btn btn-primary">Create First Sub User</a>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-
-    <div class="main-grid">
-        <div class="section-card full-width">
-            <div class="section-header">
-                <h3>📄 Licenses</h3>
-                <a href="{% url 'issue_license' %}" class="btn btn-success btn-sm">Issue License</a>
-            </div>
-            <div class="section-body">
-                {% if LicenseDetails %}
-                <ul class="item-list">
-                    {% for license in LicenseDetails %}
-                    <li>
-                        <div>
-                            <div class="item-name">{{license.company.company_name}}</div>
-                            <div class="item-detail">
-                                {{license.get_license_type_display}} | Key: {{license.license_key}} | 
-                                Expires: {{license.expiry_date}} | 
-                                <span class="status-badge {% if license.status == 'active' %}status-active{% elif license.status == 'suspended' %}status-suspended{% else %}status-disabled{% endif %}">
-                                    {{license.get_status_display}}
-                                </span>
-                            </div>
-                        </div>
-                        <div>
-                            <a href="{% url 'alter_license' license.license_id %}" class="btn btn-warning btn-sm">Edit</a>
-                            <a href="{% url 'revoke_suspend_license' license.license_id %}" class="btn btn-sm" style="background:#dc3545;color:#fff">Manage</a>
-                        </div>
-                    </li>
-                    {% endfor %}
-                </ul>
-                <div style="text-align:center;margin-top:15px">
-                    <a href="{% url 'list_licenses' %}" class="btn btn-primary">View All Licenses</a>
-                </div>
-                {% else %}
-                <div class="empty-state">
-                    <p>No licenses issued yet</p>
-                    <a href="{% url 'issue_license' %}" class="btn btn-primary">Issue First License</a>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-    </div>
+{% if messages %}
+<div class="messages-container">
+{% for message in messages %}
+<div class="message-alert {% if message.tags == 'error' %}message-error{% elif message.tags == 'warning' %}message-warning{% else %}message-success{% endif %}" role="alert">{{ message }}</div>
+{% endfor %}
 </div>
+{% endif %}
+
+
+<div class="section-header">
+  <h2>Superadmin Dashboard</h2>
+  <div class="section-actions">
+    <a href="{% url 'create_company' %}" class="button btn-primary">+ Company</a>
+    <a href="{% url 'create_associate' %}" class="button">+ Associate</a>
+    <a href="{% url 'issue_license' %}" class="button">+ License</a>
+  </div>
+</div>
+
+<div class="stat-grid">
+  <div class="stat-card" style="--accent-color:#e63946">
+    <div class="stat-icon">П</div>
+    <div class="stat-value"><a href="{% url 'list_company' %}" style="color:inherit">{{ CompanyDetails|length }}</a></div>
+    <div class="stat-label">Total Companies</div>
+  </div>
+  <div class="stat-card" style="--accent-color:#457b9d">
+    <div class="stat-icon">ı</div>
+    <div class="stat-value"><a href="{% url 'list_associates' %}" style="color:inherit">{{ associates_count }}</a></div>
+    <div class="stat-label">Associates</div>
+  </div>
+  <div class="stat-card" style="--accent-color:#2a9d8f">
+    <div class="stat-icon">У</div>
+    <div class="stat-value"><a href="{% url 'list_subusers' %}" style="color:inherit">{{ subusers_count }}</a></div>
+    <div class="stat-label">Sub Users</div>
+  </div>
+  <div class="stat-card" style="--accent-color:#ff6f61">
+    <div class="stat-icon">Ē</div>
+    <div class="stat-value"><a href="{% url 'list_licenses' %}" style="color:inherit">{{ LicenseDetails|length }}</a></div>
+    <div class="stat-label">Licenses</div>
+  </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-5);margin-bottom:var(--sp-5)">
+
+  <!-- Associates -->
+  <div class="card">
+    <div class="card-header">
+      <h3>Associates</h3>
+      <div class="card-actions">
+        <a href="{% url 'create_associate' %}" class="button btn-sm" style="background:rgba(255,255,255,.15);color:#fff;border-color:rgba(255,255,255,.2)">+ New</a>
+      </div>
+    </div>
+    <div style="overflow-y:auto;max-height:320px">
+      {% if associates_list %}
+      <table class="data-table">
+        <thead><tr><th>Name</th><th>ID</th><th>Status</th><th></th></tr></thead>
+        <tbody>
+          {% for a in associates_list %}
+          <tr>
+            <td><strong>{{ a.user.get_full_name|default:a.user.username }}</strong></td>
+            <td class="text-muted text-sm">{{ a.associate_id }}</td>
+            <td>
+              {% if a.is_active %}<span class="badge badge-success">Active</span>
+              {% else %}<span class="badge badge-danger">Disabled</span>{% endif %}
+            </td>
+            <td><a href="{% url 'alter_associate' a.id %}" class="action-edit">Edit</a></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div style="text-align:center;padding:var(--sp-6);color:var(--c-muted)">No associates yet.</div>
+      {% endif %}
+    </div>
+    <div style="padding:var(--sp-3) var(--sp-5);border-top:1px solid var(--c-border);text-align:center">
+      <a href="{% url 'list_associates' %}" class="button btn-sm">View All Associates</a>
+    </div>
+  </div>
+
+  <!-- Sub Users -->
+  <div class="card">
+    <div class="card-header">
+      <h3>Sub Users</h3>
+      <div class="card-actions">
+        <a href="{% url 'create_subuser' %}" class="button btn-sm" style="background:rgba(255,255,255,.15);color:#fff;border-color:rgba(255,255,255,.2)">+ New</a>
+      </div>
+    </div>
+    <div style="overflow-y:auto;max-height:320px">
+      {% if subusers_list %}
+      <table class="data-table">
+        <thead><tr><th>Name</th><th>Role</th><th>Status</th><th></th></tr></thead>
+        <tbody>
+          {% for s in subusers_list %}
+          <tr>
+            <td><strong>{{ s.user.get_full_name|default:s.user.username }}</strong></td>
+            <td class="text-muted text-sm">{{ s.role|title }}</td>
+            <td>
+              {% if s.is_active %}<span class="badge badge-success">Active</span>
+              {% else %}<span class="badge badge-danger">Disabled</span>{% endif %}
+            </td>
+            <td><a href="{% url 'alter_subuser' s.id %}" class="action-edit">Edit</a></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div style="text-align:center;padding:var(--sp-6);color:var(--c-muted)">No sub users yet.</div>
+      {% endif %}
+    </div>
+    <div style="padding:var(--sp-3) var(--sp-5);border-top:1px solid var(--c-border);text-align:center">
+      <a href="{% url 'list_subusers' %}" class="button btn-sm">View All Sub Users</a>
+    </div>
+  </div>
+
+</div>
+
+<!-- Licenses -->
+<div class="card">
+  <div class="card-header">
+    <h3>Licenses</h3>
+    <div class="card-actions">
+      <a href="{% url 'issue_license' %}" class="button btn-sm" style="background:rgba(255,255,255,.15);color:#fff;border-color:rgba(255,255,255,.2)">+ Issue</a>
+    </div>
+  </div>
+  {% if LicenseDetails %}
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead><tr><th>Company</th><th>Type</th><th>Key</th><th>Expires</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody>
+        {% for lic in LicenseDetails %}
+        <tr>
+          <td><strong>{{ lic.company.company_name }}</strong></td>
+          <td class="text-muted">{{ lic.get_license_type_display }}</td>
+          <td class="text-sm" style="font-family:monospace">{{ lic.license_key }}</td>
+          <td class="text-muted text-sm">{{ lic.expiry_date|default:"—" }}</td>
+          <td>
+            {% if lic.status == 'active' %}<span class="badge badge-success">Active</span>
+            {% elif lic.status == 'suspended' %}<span class="badge badge-warn">Suspended</span>
+            {% else %}<span class="badge badge-danger">{{ lic.get_status_display }}</span>{% endif %}
+          </td>
+          <td>
+            <div class="action-cell">
+              <a href="{% url 'alter_license' lic.license_id %}" class="action-edit">Edit</a>
+              <a href="{% url 'revoke_suspend_license' lic.license_id %}" class="action-delete">Manage</a>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div style="text-align:center;padding:var(--sp-8);color:var(--c-muted)">No licenses issued yet. <a href="{% url 'issue_license' %}">Issue the first license</a>.</div>
+  {% endif %}
+  <div style="padding:var(--sp-3) var(--sp-5);border-top:1px solid var(--c-border);text-align:center">
+    <a href="{% url 'list_licenses' %}" class="button btn-sm">View All Licenses</a>
+  </div>
+</div>
+
 {% endblock %}

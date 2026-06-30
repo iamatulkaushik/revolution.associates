@@ -2,29 +2,17 @@
 {% block title %}Disable/Suspend Associate{% endblock %}
 {% load static %}
 {% block additionalcss_js %}
-<style>
-.container{max-width:700px;margin:40px auto;padding:30px;background:#fff;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,0.1)}
-.user-info{background:#f8f9fa;padding:20px;border-radius:6px;margin-bottom:25px;border-left:4px solid #007bff}
-.user-info h3{margin:0 0 15px;color:#333}
-.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:15px}
-.action-section{background:#fff3cd;border:1px solid #ffc107;padding:20px;border-radius:6px;margin-bottom:20px}
-.form-group{margin-bottom:20px}
-.form-group label{display:block;margin-bottom:8px;font-weight:600;color:#dc3545}
-.form-control{width:100%;padding:12px;border:2px solid #ddd;border-radius:4px}
-.btn{padding:15px 30px;border:none;border-radius:4px;cursor:pointer;font-size:16px;font-weight:600;margin:5px}
-.btn-danger{background:#dc3545;color:#fff}
-.btn-warning{background:#ffc107;color:#212529}
-.btn-secondary{background:#6c757d;color:#fff}
-.btn-success{background:#28a745;color:#fff}
-.actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
-.status-badge{padding:5px 10px;border-radius:4px;font-size:12px;font-weight:600}
-.status-active{background:#d4edda;color:#155724}
-.status-suspended{background:#fff3cd;color:#856404}
-.status-disabled{background:#f8d7da;color:#721c24}
-.suspension-info{background:#e2e3e5;padding:15px;border-radius:6px;margin-top:15px}
-</style>
+
 {% endblock %}
 {% block content %}
+{% if messages %}
+<div class="messages-container">
+{% for message in messages %}
+<div class="message-alert {% if message.tags == 'error' %}message-error{% elif message.tags == 'warning' %}message-warning{% else %}message-success{% endif %}" role="alert">{{ message }}</div>
+{% endfor %}
+</div>
+{% endif %}
+
 <div class="container">
 <h2 style="color:#dc3545;margin-bottom:25px">🚫 Disable/Suspend Associate</h2>
 <div class="user-info">
@@ -75,14 +63,14 @@
 <textarea name="reason" class="form-control" rows="3" placeholder="Enter reason for this action" required></textarea>
 </div>
 <div class="actions">
-<a href="{% url 'list_associates' %}" class="btn btn-secondary">Cancel</a>
-<button type="submit" name="action" value="suspend_24h" class="btn btn-warning" id="suspendBtn" style="display:none">
+<a href="{% url 'list_associates' %}" class="button">Cancel</a>
+<button type="submit" class="button btn-primary" name="action" value="suspend_24h" class="button" id="suspendBtn" style="display:none">
 🕒 Suspend 24h
 </button>
-<button type="submit" name="action" value="disable" class="btn btn-danger" id="disableBtn" style="display:none">
+<button type="submit" class="button btn-primary" name="action" value="disable" class="button btn-danger" id="disableBtn" style="display:none">
 🚫 Disable User
 </button>
-<button type="submit" name="action" value="enable" class="btn btn-success" id="enableBtn" style="display:none">
+<button type="submit" class="button btn-primary" name="action" value="enable" class="button btn-success" id="enableBtn" style="display:none">
 ✅ Enable User
 </button>
 </div>

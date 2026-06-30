@@ -2,148 +2,182 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %} {% endblock %} Admin : Revolution Associates</title>
-    <link rel="icon" type="image/ico" href="{% static 'favicon.ico' %}" />
-    <link rel="stylesheet" type="text/css" href="{% static 'css/base.css' %}" />
-    <link      rel="preload"      href="{% static 'fonts/Infinitude.ttf' %}"      as="font"      type="font/ttf"      crossorigin    />
-    <link      rel="preload"      href="{% static 'fonts/Ubuntu-R.ttf' %}"      as="font"      type="font/ttf"      crossorigin    />
-    <style>
-    /* Navbar Core Styles */
-    .navbar {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        background: #fff;
-        padding: 0 5%;
-        height: 70px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        position: sticky;
-        top: 0;
-        z-index: 1000;
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#1d3557">
+  <title>{% block title %}{% endblock %} · Superadmin · Revolution HRMS</title>
+  <link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
+  <link rel="preload" href="{% static 'fonts/Infinitude.ttf' %}" as="font" type="font/ttf" crossorigin>
+  <link rel="preload" href="{% static 'fonts/Ubuntu-R.ttf' %}" as="font" type="font/ttf" crossorigin>
+  <link rel="stylesheet" href="{% static 'css/base.css' %}">
+  <style>
+    /* ── Sapp admin overrides ─────────────────────────────────────────────── */
+    /* Sidebar accent is coral/red to visually distinguish admin from associate */
+    .sidebar { background: #14253d; }
+    .sidebar-logo { color: #ff6f61; }
+    .nav-link.active::before { background: #ff6f61; }
+    .card-header { background: linear-gradient(135deg, #1d3557, #0d1b2a); }
+    .topbar-title { color: #1d3557; }
+    .company-chip { background: #ff6f61; color: #fff; }
+    .company-chip:hover { background: #e55a4d; }
+    .admin-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      background: rgba(255,111,97,.12); color: #c0392b;
+      border: 1px solid rgba(255,111,97,.3); border-radius: var(--r-full);
+      font-size: 11px; font-weight: 600; padding: 2px 10px;
+      letter-spacing: .04em; text-transform: uppercase;
     }
+  </style>
+  {% block additionalcss_js %}{% endblock %}
+</head>
+<body>
 
-    .nav-links {
-        display: flex;
-        list-style: none;
-    }
+<div class="app-shell">
 
-    .nav-links li {
-        position: relative;
-    }
+  <!-- ── SIDEBAR ────────────────────────────────────────────────── -->
+  <aside class="sidebar" id="sidebar">
 
-    .nav-links li a {
-        display: block;
-        padding: 20px 25px;
-        color: #333;
-        font-weight: 500;
-        text-decoration: none;
-        transition: 0.3s;
-    }
+    <div class="sidebar-brand">
+      <span class="sidebar-logo noselect">Ň</span>
+      <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">&#9776;</button>
+    </div>
 
-    .nav-links li:hover > a {
-        color: var(--primary);
-        background: #f8fafc;
-    }
+    <nav class="sidebar-nav" aria-label="Admin navigation">
+      <ul>
 
-    /* Dropdown Level 1 */
-    .nav-links ul {
-        position: absolute;
-        top: 100%;
-        left: 0;
-        background: #fff;
-        min-width: 200px;
-        box-shadow: 0 8px 15px rgba(0,0,0,0.1);
-        display: none;
-        list-style: none;
-    }
+        <li class="nav-item">
+          <a href="{% url 'dashboard' %}" class="nav-link dashboard">
+            <span class="nav-label">Dashboard</span>
+          </a>
+        </li>
 
-    /* Dropdown Level 2 (The 3rd Level) */
-    .nav-links ul ul {
-        top: 0;
-        left: 100%; /* Opens to the right */
-    }
+        <li class="nav-item" id="nav-company">
+          <button class="nav-link companies" onclick="toggleNav('nav-company')" aria-expanded="false">
+            <span class="nav-label">Companies</span>
+            <span class="nav-chevron">&#9658;</span>
+          </button>
+          <ul class="nav-sub">
+            <li><a href="{% url 'list_company' %}" class="nav-link">All Companies</a></li>
+            <li><a href="{% url 'create_company' %}" class="nav-link">Create Company</a></li>
+            <li><a href="{% url 'quick_company' %}" class="nav-link">Quick Create</a></li>
+          </ul>
+        </li>
 
-    /* Show menus on hover (Desktop) */
-    .nav-links li:hover > ul {
-        display: block;
-        animation: fadeIn 0.2s ease-in;
-    }
+        <li class="nav-item" id="nav-associates">
+          <button class="nav-link employees" onclick="toggleNav('nav-associates')" aria-expanded="false">
+            <span class="nav-label">Associates</span>
+            <span class="nav-chevron">&#9658;</span>
+          </button>
+          <ul class="nav-sub">
+            <li><a href="{% url 'list_associates' %}" class="nav-link">All Associates</a></li>
+            <li><a href="{% url 'create_associate' %}" class="nav-link">Create Associate</a></li>
+          </ul>
+        </li>
 
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(5px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
+        <li class="nav-item" id="nav-subusers">
+          <button class="nav-link masters" onclick="toggleNav('nav-subusers')" aria-expanded="false">
+            <span class="nav-label">Sub Users</span>
+            <span class="nav-chevron">&#9658;</span>
+          </button>
+          <ul class="nav-sub">
+            <li><a href="{% url 'list_subusers' %}" class="nav-link">All Sub Users</a></li>
+            <li><a href="{% url 'create_subuser' %}" class="nav-link">Create Sub User</a></li>
+          </ul>
+        </li>
 
-    /* Mobile Menu Toggle (Hidden on Desktop) */
-    .menu-toggle {
-        display: none;
-        font-size: 24px;
-        cursor: pointer;
-    }
+        <li class="nav-item" id="nav-licenses">
+          <button class="nav-link statuary" onclick="toggleNav('nav-licenses')" aria-expanded="false">
+            <span class="nav-label">Licenses</span>
+            <span class="nav-chevron">&#9658;</span>
+          </button>
+          <ul class="nav-sub">
+            <li><a href="{% url 'list_licenses' %}" class="nav-link">All Licenses</a></li>
+            <li><a href="{% url 'issue_license' %}" class="nav-link">Issue License</a></li>
+          </ul>
+        </li>
 
-    #checkbox_toggle { display: none; }
-
-    /* Responsive Design for Tablets/Phones */
-    @media (max-width: 792px) {
-        .menu-toggle { display: block; }
-        
-        .nav-links {
-            display: none;
-            position: absolute;
-            background-color: #fff;
-            right: 0;
-            left: 0;
-            top: 70px;
-            flex-direction: column;
-            box-shadow: 0 10px 10px rgba(0,0,0,0.1);
-        }
-
-        /* Show menu when checkbox is checked */
-        #checkbox_toggle:checked ~ .nav-links {
-            display: block;
-        }
-
-        .nav-links li a { padding: 15px; border-bottom: 1px solid #eee; }
-
-        /* Mobile Dropdowns (Simple stack) */
-        .nav-links ul, .nav-links ul ul {
-            position: static;
-            display: block;
-            box-shadow: none;
-            background: #fdfdfd;
-            padding-left: 20px;
-        }
-    }
-</style>
-    {% block additionalcss_js %} {% endblock %}
-  </head>
-  <body>
-    <header>
-    <nav class="navbar">
-        <span class="logo_icon">Ň</span>
-        <!-- <div class="logo">REVOLUTION ASSOCIATES</div> -->
-        <!-- <span class="tagline">Innovate. Integrate. Elevate.</span> -->
-        <input type="checkbox" id="checkbox_toggle" />
-        <label for="checkbox_toggle" class="menu-toggle">&#9776;</label>
-        <ul class="nav-links">
-            <li><a href="{% url 'dashboard' %}">Home</a></li>
-            <li>
-                <a href="#">Masters &#9662;</a>
-                <ul>
-                    <li><a href="{% url 'list_company' %}">Company</a></li>
-                    <li><a href="{% url 'list_associates' %}">👥Associates</a></li>
-                    <li><a href="{% url 'list_subusers' %}">👤Sub Users</a></li>
-                    <li><a href="{% url 'list_licenses' %}">📄Licenses</a></li>
-                </ul>
-            </li>
-            <li><form method="post" action="{% url 'logout' %}">{% csrf_token %}
-                <a href="{% url 'logout' %}" class="button" style="margin-left: 15px;">Logout</a>
-        </form></li>
-        </ul>
+      </ul>
     </nav>
-</header>
-    {% block content %} {% endblock %}
-  </body>
+
+    <div class="sidebar-footer">
+      <a href="{% url 'logout' %}" class="nav-link logout">
+        <span class="nav-label">Logout</span>
+      </a>
+    </div>
+
+  </aside>
+
+  <!-- ── MAIN WRAP ──────────────────────────────────────────────── -->
+  <div class="main-wrap" id="mainWrap">
+
+    <header class="topbar">
+      <div class="topbar-left">
+        <h1 class="topbar-title">{% block title %}{% endblock %}</h1>
+        <span class="admin-badge">Superadmin</span>
+      </div>
+      <div class="topbar-right">
+        <div class="user-pill">
+          <div class="user-avatar" style="background:#e63946" aria-hidden="true">ţ</div>
+          <span class="user-name">{{ user.username }}</span>
+        </div>
+        <a href="{% url 'logout' %}" class="btn-logout logout" aria-label="Logout">Logout</a>
+      </div>
+    </header>
+
+    <main class="page-content">
+      {% block content %}{% endblock %}
+    </main>
+
+    <footer class="app-footer">
+      <div class="footer-col">
+        <span>Revolution Associates</span>
+        <span class="tagline">Superadmin Control Panel</span>
+      </div>
+      <div class="footer-col">
+        <span>Contact</span>
+        <a href="tel:+91-8307145638" class="tagline">+91-8307145638</a>
+      </div>
+      <div class="footer-col">
+        <span>Legal</span>
+        <span class="tagline">© 2024–2026 Revolution Associates.</span>
+      </div>
+    </footer>
+
+  </div>
+
+</div>
+
+<script>
+const sidebar = document.getElementById('sidebar');
+const COLLAPSED_KEY = 'sapp_sidebar_collapsed';
+
+function applyCollapsed(c) {
+  sidebar.classList.toggle('collapsed', c);
+  document.getElementById('sidebarToggle').setAttribute('aria-label', c ? 'Expand sidebar' : 'Collapse sidebar');
+}
+document.getElementById('sidebarToggle').addEventListener('click', () => {
+  const c = !sidebar.classList.contains('collapsed');
+  applyCollapsed(c);
+  try { localStorage.setItem(COLLAPSED_KEY, c ? '1' : '0'); } catch(e){}
+});
+try { if (localStorage.getItem(COLLAPSED_KEY) === '1') applyCollapsed(true); } catch(e){}
+
+function toggleNav(id) {
+  const item = document.getElementById(id);
+  const wasOpen = item.classList.contains('open');
+  document.querySelectorAll('.nav-item.open').forEach(el => {
+    if (el !== item) { el.classList.remove('open'); el.querySelector('[aria-expanded]')?.setAttribute('aria-expanded','false'); }
+  });
+  item.classList.toggle('open', !wasOpen);
+  item.querySelector('[aria-expanded]')?.setAttribute('aria-expanded', !wasOpen ? 'true' : 'false');
+}
+document.querySelectorAll('.nav-sub .nav-link').forEach(link => {
+  if (link.href === location.href) {
+    link.classList.add('active');
+    link.closest('.nav-item')?.classList.add('open');
+  }
+});
+</script>
+
+</body>
 </html>

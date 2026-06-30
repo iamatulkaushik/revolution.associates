@@ -16,7 +16,7 @@
             <div class="quickupdate">
                 <h2>Assigned Companies ({{ assigned.count }})</h2><hr>
                 {% if assigned %}
-                <table>
+                <table class="data-table">
                     <thead>
                         <tr><th>Company</th><th>Action</th></tr>
                     </thead>
@@ -47,7 +47,7 @@
                 <h2>Available Companies</h2><hr>
                 {% with unassigned=available %}
                 {% if available %}
-                <table>
+                <table class="data-table">
                     <thead>
                         <tr><th>Company</th><th>Action</th></tr>
                     </thead>

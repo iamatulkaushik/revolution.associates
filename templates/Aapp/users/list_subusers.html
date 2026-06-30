@@ -13,14 +13,14 @@
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
             <h2>Sub Users ({{ subusers.count }} / {{ limit }})</h2>
             {% if subusers.count < limit %}
-                <a href="{% url 'Aapp:add_subuser' %}" class="button">+ Add Sub User</a>
+                <a href="{% url 'add_subuser' %}" class="button">+ Add Sub User</a>
             {% else %}
                 <span class="button" style="opacity:0.5; cursor:not-allowed;" title="License limit reached ({{ limit }})">+ Add Sub User</span>
             {% endif %}
         </div>
 
         {% if subusers %}
-        <table>
+        <table class="data-table">
             <thead>
                 <tr>
                     <th>Name</th>

@@ -1,0 +1,103 @@
+{% extends 'Aapp/base.html' %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block content %}
+
+<div class="section-header">
+  <h2>{{ page_title }}</h2>
+  {% if cancel_url %}<a href="{{ cancel_url }}" class="button">← Back</a>{% endif %}
+</div>
+
+{% if messages %}
+<div class="messages-container">
+  {% for message in messages %}
+  <div class="message-alert {% if message.tags == 'error' %}message-error{% else %}message-success{% endif %}" role="alert">{{ message }}</div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<div class="card">
+  <div class="card-header">
+    <h3>{{ page_title }}</h3>
+    {% if company %}<span style="color:rgba(255,255,255,.7);font-size:13px">{{ company.company_name }}</span>{% endif %}
+  </div>
+  <div class="card-body">
+
+    {# Employee selector (shown when view passes 'employees' context) #}
+    {% if employees %}
+    <div class="form-grid" style="margin-bottom:var(--sp-5);padding-bottom:var(--sp-5);border-bottom:1px solid var(--c-border)">
+      <div class="form-group">
+        <label for="employee_id">Employee <span class="required">*</span></label>
+        <select id="employee_id" name="employee_id" required>
+          <option value="">— Select Employee —</option>
+          {% for emp in employees %}
+          <option value="{{ emp.employeeid }}">{{ emp.name }} ({{ emp.employeecode }})</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+    {% endif %}
+
+    {# Standard Django ModelForm #}
+    {% if form %}
+    <form method="post" novalidate>
+      {% csrf_token %}
+      <div class="form-grid">
+        {% for field in form %}
+        <div class="form-group {% if field.field.widget.attrs.rows %}full-width{% endif %}">
+          <label for="{{ field.id_for_label }}">
+            {{ field.label }}
+            {% if field.field.required %}<span class="required">*</span>{% endif %}
+          </label>
+          {{ field }}
+          {% if field.help_text %}<span class="hint">{{ field.help_text }}</span>{% endif %}
+          {% if field.errors %}<span class="field-error">{{ field.errors|striptags }}</span>{% endif %}
+        </div>
+        {% endfor %}
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="button btn-primary">{{ submit_label|default:"Save" }}</button>
+        {% if cancel_url %}<a href="{{ cancel_url }}" class="button">Cancel</a>{% endif %}
+      </div>
+    </form>
+
+    {# Manual fields (non-ModelForm views) #}
+    {% elif manual_fields %}
+    <form method="post" novalidate>
+      {% csrf_token %}
+      <div class="form-grid">
+        {% for f in manual_fields %}
+        <div class="form-group {% if f.type == 'textarea' %}full-width{% endif %}">
+          <label for="{{ f.name }}">{{ f.label }}</label>
+          {% if f.type == 'select' %}
+          <select id="{{ f.name }}" name="{{ f.name }}">
+            <option value="">— Choose —</option>
+            {% for val, lbl in f.choices %}<option value="{{ val }}" {% if f.value == val %}selected{% endif %}>{{ lbl }}</option>{% endfor %}
+          </select>
+          {% elif f.type == 'textarea' %}
+          <textarea id="{{ f.name }}" name="{{ f.name }}" rows="3">{{ f.value|default:'' }}</textarea>
+          {% else %}
+          <input type="{{ f.type|default:'text' }}" id="{{ f.name }}" name="{{ f.name }}" value="{{ f.value|default:'' }}">
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="button btn-primary">{{ submit_label|default:"Save" }}</button>
+        {% if cancel_url %}<a href="{{ cancel_url }}" class="button">Cancel</a>{% endif %}
+      </div>
+    </form>
+    {% endif %}
+
+  </div>
+</div>
+
+<script>
+fetch('{% url "get_selected_company" %}').then(r=>r.json()).then(d=>{
+  if(!d.company_id){
+    document.querySelector('.card').insertAdjacentHTML('beforebegin',
+      '<div class="message-alert message-warning" role="alert">No company selected. <a href="{% url \'dashboard\' %}">Select a company first.</a></div>'
+    );
+  }
+});
+</script>
+{% endblock %}

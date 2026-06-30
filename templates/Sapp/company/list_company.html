@@ -2,86 +2,21 @@
 {% block title %}Companies{% endblock %}
 {% load static %}
 {% block additionalcss_js %}
-<style>
-    .container {
-        max-width: 1200px;
-        margin: 20px auto;
-        padding: 20px
-    }
 
-    .header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 20px
-    }
-
-    .btn {
-        padding: 10px 20px;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        text-decoration: none;
-        display: inline-block
-    }
-
-    .btn-primary {
-        background: #007bff;
-        color: #fff
-    }
-
-    .grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-        gap: 20px
-    }
-
-    .card {
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        padding: 10px;
-        background: #fff
-    }
-
-    .card h3 {
-        margin: 0 0 10px;
-        color: var(--Color2);
-        font-size: xx-large;
-    }
-
-    .card p {
-        margin: 5px 0;
-        color: var(--Color2);
-        font-size: 12px
-    }
-
-    .card-actions {
-        margin-top: 15px;
-        display: flex;
-        gap: 10px
-    }
-
-    .btn-sm {
-        padding: 6px 12px;
-        font-size: 13px
-    }
-
-    .btn-edit {
-        background: #28a745;
-        color: #fff
-    }
-
-    .btn-shut {
-        background: #dc3545;
-        color: #fff
-    }
-</style>
 {% endblock %}
 {% block content %}
+{% if messages %}
+<div class="messages-container">
+{% for message in messages %}
+<div class="message-alert {% if message.tags == 'error' %}message-error{% elif message.tags == 'warning' %}message-warning{% else %}message-success{% endif %}" role="alert">{{ message }}</div>
+{% endfor %}
+</div>
+{% endif %}
+
 <div class="container">
     <div class="header">
         <h2>Companies</h2>
-        <a href="{% url 'create_company' %}" class="btn btn-primary">+ New Company</a>
+        <a href="{% url 'create_company' %}" class="button btn-primary">+ New Company</a>
     </div>
     <div class="grid">
         {% for company in companies %}
@@ -93,8 +28,8 @@
             <p><strong>Start Date:</strong> {{company.start_date}}</p>
             {% if company.shut_date %}<p><strong>Shut Date:</strong> {{company.shut_date}}</p>{% endif %}
             <div class="card-actions">
-                <a href="{% url 'alter_company' company.company_id %}" class="btn btn-sm btn-edit">Edit</a>
-                <a href="{% url 'shut_company' company.company_id %}" class="btn btn-sm btn-shut">Shut</a>
+                <a href="{% url 'alter_company' company.company_id %}" class="action-edit">Edit</a>
+                <a href="{% url 'shut_company' company.company_id %}" class="action-delete">Shut</a>
             </div>
         </div>
         {% empty %}

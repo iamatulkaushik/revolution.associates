@@ -5,6 +5,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.http import HttpResponse
+from django.urls import reverse
 from Sapp.app.company import Company
 from Aapp.app.branch_department import branch
 from Aapp.app.employee import employee
@@ -62,7 +63,6 @@ class attendance(models.Model):
         if self.overtime_hours and self.ot_rate and not self.ot_wages_paid:
             self.ot_wages_paid = self.overtime_hours * self.ot_rate
         super().save(*args, **kwargs)
-
 
 class MinimumWagesOvertimeRegister(models.Model):
     ot_register_id = models.AutoField(primary_key=True)
@@ -177,7 +177,7 @@ def add_attendance(request):
                     created_by    = request.user,
                 )
                 messages.success(request, f"Attendance for {emp.name} saved.")
-                return redirect('Aapp:list_attendance')
+                return redirect('list_attendance')
             except Exception as e:
                 messages.error(request, f"Error: {e}")
 
@@ -220,7 +220,7 @@ def update_attendance(request, attendance_id):
             rec.updated_by    = request.user
             rec.save()
             messages.success(request, "Attendance updated.")
-            return redirect('Aapp:list_attendance')
+            return redirect('list_attendance')
         except Exception as e:
             messages.error(request, f"Error: {e}")
 
@@ -282,7 +282,7 @@ def bulk_attendance(request):
             created += 1
 
         messages.success(request, f"{created} record(s) saved, {skipped} skipped (already exist).")
-        return redirect('Aapp:list_attendance')
+        return redirect('list_attendance')
 
     return render(request, 'Aapp/attendance/bulk_attendance.html', {
         'employees': employees, 'branches': branches,
@@ -304,7 +304,7 @@ def delete_attendance(request, attendance_id):
     if request.method == 'POST':
         rec.delete()
         messages.success(request, "Attendance record deleted.")
-        return redirect('Aapp:list_attendance')
+        return redirect('list_attendance')
 
     return render(request, 'Aapp/attendance/delete_attendance.html', {'rec': rec})
 
@@ -390,14 +390,14 @@ def bulk_excel_upload_Attandance(request):
         xl = request.FILES.get('excel_file')
         if not xl:
             messages.error(request, 'No file uploaded.')
-            return redirect('Aapp:bulk_excel_upload')
+            return redirect('bulk_excel_upload')
 
         try:
             wb = openpyxl.load_workbook(xl, data_only=True)
             ws = wb.active
         except Exception:
             messages.error(request, 'Invalid Excel file.')
-            return redirect('Aapp:bulk_excel_upload')
+            return redirect('bulk_excel_upload')
 
         # Build emp_code → employee map for this company
         emp_map = {e.employeecode: e for e in employee.objects.filter(CompanyID=company, is_working=True)}
@@ -488,7 +488,7 @@ def bulk_excel_upload_Attandance(request):
             for err in error_rows[:10]:   # show max 10 errors
                 messages.error(request, err)
 
-        return redirect('Aapp:list_attendance')
+        return redirect('list_attendance')
 
     return render(request, 'Aapp/attendance/bulk_excel_upload.html', {'company': company})
 
@@ -504,8 +504,20 @@ def list_overtime_register(request):
     records = MinimumWagesOvertimeRegister.objects.filter(
         attendance__companyid=company
     ).select_related('attendance__employee_id')
-    return render(request, 'Aapp/attendance/list_overtime_register.html',
-                  {'records': records, 'company': company})
+    rows = [{
+        'cells': [r.attendance.emp_code, r.ot_date, r.overtime_hours, r.ordinary_rate, r.ot_rate, r.ot_wages_paid],
+        'actions': [
+            {'url': reverse('alter_overtime_register', args=[r.ot_register_id]), 'label': 'Edit', 'css': 'edit'},
+            {'url': reverse('delete_overtime_register', args=[r.ot_register_id]), 'label': 'Delete', 'css': 'delete'},
+        ],
+    } for r in records]
+    return render(request, 'Aapp/generic/list.html', {
+        'page_title': 'Minimum Wages Act — Overtime Register (Form IV)',
+        'columns': ['Employee Code', 'OT Date', 'OT Hours', 'Ordinary Rate', 'OT Rate (2x)', 'OT Wages Paid'],
+        'rows': rows, 'company': company,
+        'add_url': reverse('create_overtime_register'), 'add_label': 'Add Overtime Record',
+        'empty_message': 'No overtime records yet.',
+    })
 
 
 @login_required
@@ -520,13 +532,16 @@ def create_overtime_register(request):
         if form.is_valid():
             form.save()
             messages.success(request, 'Overtime record created successfully.')
-            return redirect('Aapp:list_overtime_register')
+            return redirect('list_overtime_register')
     else:
         form = MinimumWagesOvertimeRegisterForm()
         form.fields['attendance'].queryset = attendance.objects.filter(companyid=company)
 
-    return render(request, 'Aapp/attendance/create_overtime_register.html',
-                  {'form': form, 'company': company})
+    return render(request, 'Aapp/generic/form.html', {
+        'form': form, 'company': company,
+        'page_title': 'Add Overtime Record (Minimum Wages Act — Form IV)',
+        'cancel_url': reverse('list_overtime_register'),
+    })
 
 
 @login_required
@@ -544,13 +559,16 @@ def alter_overtime_register(request, ot_register_id):
         if form.is_valid():
             form.save()
             messages.success(request, 'Overtime record updated successfully.')
-            return redirect('Aapp:list_overtime_register')
+            return redirect('list_overtime_register')
     else:
         form = MinimumWagesOvertimeRegisterForm(instance=record)
         form.fields['attendance'].queryset = attendance.objects.filter(companyid=company)
 
-    return render(request, 'Aapp/attendance/alter_overtime_register.html',
-                  {'form': form, 'record': record, 'company': company})
+    return render(request, 'Aapp/generic/form.html', {
+        'form': form, 'company': company,
+        'page_title': 'Edit Overtime Record',
+        'cancel_url': reverse('list_overtime_register'),
+    })
 
 
 @login_required
@@ -566,7 +584,12 @@ def delete_overtime_register(request, ot_register_id):
     if request.method == 'POST':
         record.delete()
         messages.success(request, 'Overtime record deleted successfully.')
-        return redirect('Aapp:list_overtime_register')
+        return redirect('list_overtime_register')
 
-    return render(request, 'Aapp/attendance/delete_overtime_register.html',
-                  {'record': record, 'company': company})
+    return render(request, 'Aapp/generic/confirm.html', {
+        'company': company,
+        'page_title': 'Delete Overtime Record',
+        'confirm_message': f'Are you sure you want to delete the overtime record for '
+                            f'<strong>{record.attendance.emp_code}</strong> on {record.ot_date}?',
+        'cancel_url': reverse('list_overtime_register'),
+    })

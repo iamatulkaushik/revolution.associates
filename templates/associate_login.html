@@ -1,81 +1,186 @@
-{% extends 'default.html' %}
-{% block title %}Associate Login{% endblock %}
-{% block additionalcss_js %}{% endblock %}
-{% block content %}
-<style>
-.main_container{padding:12px 0; display: inline-block; width:100vw;	margin: 0 auto; text-align:center; position: relative;vertical-align: text-top;}
-form{position: inherit;display: inherit;width: auto;vertical-align: top; text-align: justify;}
-.first_container{position: relative; display: inline-block;height: 65vh; padding: 2% 0;}
-input[type="text"],input[type="password"],input[type="email"],select
-{font-size:18px; color:white; border:2px;background-color:transparent;border-bottom:2px solid #fff;padding:2% 0;  font-family: ubuntu;  width:100%;}
-input:last-of-type{margin-bottom: 15px;}
-#trclass{background: linear-gradient(200deg, transparent 50%, var(--Color3) 50%), var(--Color1);	position: relative;	display: inline-block;
- height:70vh;                    background-size: 550px 250px;                   background-repeat: no-repeat;
- background-position: left bottom;                   box-shadow: 4px 4px 4px rgba(0, 0, 0, .5);}
-.login_panel{background:linear-gradient(-71deg, #26547C, #26547C), #0094ff;padding:12px 24px; position:relative;display:inline-block;width:25vw;}
-.login_text{font-family:'Ubuntu';font-size:25px;color:white;padding:25px 0 12px 0;position:relative;display:inline-block;width:100%;}
-label{font-family:'Ubuntu';font-size:12px;color:white;padding-top:15px;position:relative;display:inline-block;width:80%;}
-.button{    padding:9px 25px;    background-color: white;    border:2px solid black;    border-radius:8px;    font-family:Ubuntu;    font-size:19px;}
-.button:hover{    background-color: rgba(255, 255, 255, 1.9);   border:2px solid #0094ff;    color:#0094ff;    border-radius:10px;    }
-.new-user{vertical-align:bottom;bottom:10px;position:absolute;width:100%;}
-.new-user > a{text-align:right;text-decoration:none;position:absolute;right:1px; padding:4% 12%; bottom:1px;}
-.termslink{color:#353535;bottom:0;position:relative;display:inline-block;padding:9px 0;
-		& a {color:#353535;text-decoration:none;font-size:12px; bottom:0;position:relative;}
-		& a:not(:last-child)::after{ content:" Р ";font-family: 'Infinitude';}
-	}
-.forgotlink{color:white;right:0;position:relative;display:inline-block;padding:9px 0}
-.forgotlink a {color:white;text-decoration:none;}
-.signupbtn{font-family:Infinitude;font-size:60px;color:var(--Color4);}
-</style>
-        <div class="main_container">
-    <div class="first_container">
-        <h1>associate hrms app</h1>
-        <p class="small">by Revolution Associates</p>
-        <br/>
-        <h2 style="text-align: center; margin-bottom: 20px;">Key Features</h2>
-        <div>
-            <div style="flex: 1; min-width: 250px; background: white; color: #333; padding: 20px; margin: 10px; border-radius: 5px;">
-                <h3>Employee Management</h3>
-                <p>Centralize employee records and data.</p>
-            </div>
-            <div style="flex: 1; min-width: 250px; background: white; color: #333; padding: 20px; margin: 10px; border-radius: 5px;">
-                <h3>Time & Attendance</h3>
-                <p>Track employee hours and attendance.</p>
-            </div>
-            <div style="flex: 1; min-width: 250px; background: white; color: #333; padding: 20px; margin: 10px; border-radius: 5px;">
-                <h3>Payroll Processing</h3>
-                <p>Automate salary calculations and payments. <br/>with sub users and staff</p>
-            </div>
-            <div style="flex: 1; min-width: 250px; background: white; color: #333; padding: 20px; margin: 10px; border-radius: 5px;">
-                <h3>Statuary Compliance</h3>
-                <p>Statuary Compliance for EPF, ESI, Labour <br/>various departments.</p>
-            </div>
-        </div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#1d3557">
+  <title>Associate Login · Revolution HRMS</title>
+  {% load static %}
+  <link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
+  <link rel="preload" href="{% static 'fonts/Infinitude.ttf' %}" as="font" type="font/ttf" crossorigin>
+  <link rel="preload" href="{% static 'fonts/Ubuntu-R.ttf' %}" as="font" type="font/ttf" crossorigin>
+  <style>
+    @font-face{font-family:'Infinitude';src:url("{% static 'fonts/Infinitude.ttf' %}") format('truetype');font-display:swap}
+    @font-face{font-family:'Ubuntu';src:url("{% static 'fonts/Ubuntu-R.ttf' %}") format('truetype');font-display:swap}
+
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --navy:#1d3557;--steel:#457b9d;--teal:#a8dadc;--cream:#f0f4f8;
+      --red:#e63946;--white:#ffffff;
+      --font-b:'Ubuntu',system-ui,sans-serif;--font-h:'Infinitude','Ubuntu',sans-serif;
+    }
+    html,body{height:100%;font-family:var(--font-b)}
+    body{background:var(--cream);display:flex;align-items:stretch;min-height:100vh}
+
+    /* Split layout */
+    .login-shell{display:flex;width:100%;min-height:100vh}
+
+    /* Left panel — brand/features */
+    .brand-panel{
+      flex:1.1;background:linear-gradient(155deg,var(--navy) 0%,var(--steel) 100%);
+      color:var(--white);padding:48px 52px;
+      display:flex;flex-direction:column;justify-content:space-between;
+      position:relative;overflow:hidden;
+    }
+    .brand-panel::before{
+      content:'';position:absolute;right:-60px;top:-60px;width:320px;height:320px;
+      border-radius:50%;background:rgba(168,218,220,.12);pointer-events:none;
+    }
+    .brand-panel::after{
+      content:'';position:absolute;left:-40px;bottom:-40px;width:240px;height:240px;
+      border-radius:50%;background:rgba(69,123,157,.18);pointer-events:none;
+    }
+    .brand-logo{font-family:var(--font-h);font-size:52px;color:var(--teal);line-height:1;margin-bottom:8px;position:relative;z-index:1}
+    .brand-name{font-family:var(--font-b);font-size:13px;font-weight:600;color:rgba(255,255,255,.6);letter-spacing:.12em;text-transform:uppercase;margin-bottom:40px;position:relative;z-index:1}
+    .brand-tagline{font-family:var(--font-h);font-size:28px;line-height:1.35;color:var(--white);margin-bottom:8px;position:relative;z-index:1}
+    .brand-sub{font-size:14px;color:rgba(255,255,255,.6);margin-bottom:48px;position:relative;z-index:1}
+
+    .feature-list{display:grid;gap:20px;position:relative;z-index:1}
+    .feature-item{display:flex;align-items:flex-start;gap:14px}
+    .feature-icon{font-family:var(--font-h);font-size:28px;color:var(--teal);line-height:1;flex-shrink:0;margin-top:2px}
+    .feature-text h4{font-size:14px;font-weight:600;color:var(--white);margin-bottom:2px}
+    .feature-text p{font-size:12.5px;color:rgba(255,255,255,.55);line-height:1.5}
+
+    .brand-footer{font-size:11px;color:rgba(255,255,255,.35);position:relative;z-index:1}
+
+    /* Right panel — form */
+    .login-panel{
+      flex:.75;background:var(--white);padding:48px 52px;
+      display:flex;flex-direction:column;justify-content:center;
+      min-width:340px;
+    }
+    .login-header{margin-bottom:36px}
+    .login-header h2{font-family:var(--font-h);font-size:26px;color:var(--navy);margin-bottom:6px}
+    .login-header p{font-size:13px;color:#6b7c93}
+
+    .form-group{display:flex;flex-direction:column;gap:5px;margin-bottom:20px}
+    .form-group label{font-size:11.5px;font-weight:600;color:#6b7c93;text-transform:uppercase;letter-spacing:.06em}
+    .form-group input{
+      font-family:var(--font-b);font-size:15px;color:var(--navy);
+      background:var(--cream);border:1.5px solid #dde5ed;border-radius:8px;
+      padding:11px 14px;width:100%;transition:border-color .2s,box-shadow .2s;outline:none;
+    }
+    .form-group input:focus{border-color:var(--steel);box-shadow:0 0 0 3px rgba(69,123,157,.15)}
+
+    .error-box{
+      background:#fdecea;border-left:4px solid var(--red);border-radius:6px;
+      padding:10px 14px;margin-bottom:20px;font-size:13px;color:#7d2027;
+    }
+
+    .btn-login{
+      width:100%;padding:13px;background:var(--navy);color:var(--white);
+      border:none;border-radius:8px;font-family:var(--font-b);font-size:15px;
+      font-weight:600;cursor:pointer;transition:background .2s,transform .15s;
+      letter-spacing:.02em;margin-bottom:20px;
+    }
+    .btn-login:hover{background:var(--steel);transform:translateY(-1px)}
+    .btn-login:focus{outline:2px solid var(--steel);outline-offset:3px}
+    .btn-login:active{transform:translateY(0)}
+
+    .login-links{display:flex;justify-content:space-between;align-items:center;font-size:12.5px}
+    .login-links a{color:var(--steel);text-decoration:none;transition:color .2s}
+    .login-links a:hover{color:var(--navy)}
+
+    .login-footer{margin-top:auto;padding-top:32px;font-size:11px;color:#9fb0c2;text-align:center}
+
+    @media(max-width:720px){
+      .login-shell{flex-direction:column}
+      .brand-panel{padding:32px 28px;flex:none}
+      .feature-list{grid-template-columns:1fr 1fr}
+      .login-panel{padding:32px 28px;flex:none}
+    }
+    @media(prefers-reduced-motion:reduce){*{transition-duration:.01ms !important}}
+  </style>
+</head>
+<body>
+
+<div class="login-shell">
+
+  <!-- Brand panel -->
+  <div class="brand-panel">
+    <div>
+      <div class="brand-logo">Ń</div>
+      <div class="brand-name">Revolution Associates</div>
+      <div class="brand-tagline">HRMS built for<br>Indian compliance</div>
+      <div class="brand-sub">EPF · ESI · Factories Act · Contract Labour · Gratuity · Bonus</div>
     </div>
-    <form method="post">
-        <div id="trclass" class="login_panel">
-          <span class="login_text">Associate Login</span>
-            {% csrf_token %}
-            {% if form.errors %}
-            <div class="errors">
-            Your username and password didn't match. <br/>Please try again with correct ID/Password.
-            </div>
-            {% endif %}
-            <label for="id_username">Username:</label>
-            {{ form.username }}
-            <label for="id_password">Password:</label>
-            {{ form.password }}
-        <div class="button_panel">
-            <button class="button" type="submit">Log In</button></div>
-        </form>
-          <span class="forgotlink"></span>
-          <div class="new-user">
-            <span class="termslink">need help ?<br/>
-              <a href="#" title="reset password">forgot password</a><br/>
-              <a href="#" title="Terms & Conditions">(*)terms and conditions</a> <a href="#" title="Privacy Policy">privacy policy</a></span>
-              <a href="#" class="signupbtn">Ň</a><br/>
-              <small><small>© 2021-26 Revolution Associates |
-              All Rights Reserved.</small></small>
-            </div>
+
+    <div class="feature-list">
+      <div class="feature-item">
+        <div class="feature-icon">ı</div>
+        <div class="feature-text">
+          <h4>Employee Management</h4>
+          <p>Full lifecycle — hire to retirement.</p>
         </div>
-{% endblock %}
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">Ɠ</div>
+        <div class="feature-text">
+          <h4>Attendance & Payroll</h4>
+          <p>Half-day, OT, overtime wages.</p>
+        </div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">Ē</div>
+        <div class="feature-text">
+          <h4>Statutory Compliance</h4>
+          <p>55 registers, all Haryana Labour forms.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="brand-footer">© 2024–2026 Revolution Associates · All Rights Reserved</div>
+  </div>
+
+  <!-- Login form panel -->
+  <div class="login-panel">
+    <div>
+      <div class="login-header">
+        <h2>Associate Login</h2>
+        <p>Enter your credentials to continue.</p>
+      </div>
+
+      {% if form.errors %}
+      <div class="error-box" role="alert">
+        Username or password incorrect. Please try again.
+      </div>
+      {% endif %}
+
+      <form method="post" novalidate>
+        {% csrf_token %}
+        <div class="form-group">
+          <label for="id_username">Username</label>
+          {{ form.username }}
+        </div>
+        <div class="form-group">
+          <label for="id_password">Password</label>
+          {{ form.password }}
+        </div>
+        <button type="submit" class="btn-login">Log In</button>
+      </form>
+
+      <div class="login-links">
+        <a href="#">Forgot password?</a>
+        <a href="#">Terms &amp; Privacy</a>
+      </div>
+    </div>
+
+    <div class="login-footer">
+      Revolution Associates HRMS · Haryana Labour Compliance Platform
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

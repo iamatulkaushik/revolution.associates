@@ -1,3 +1,5 @@
+from datetime import date
+
 from django import forms
 from django.db import models
 from django.forms import ModelForm
@@ -33,6 +35,10 @@ class Company(models.Model):
     account = models.CharField(max_length=20, null=True, blank=True)
     ifsc = models.CharField(max_length=11, null=True, blank=True)
     branch_address = models.CharField(max_length=255, null=True, blank=True)
+    created_at = models.DateTimeField(default=date.today)
+    created_by = models.CharField(max_length=50, null=True, blank=True)
+    updated_at = models.DateTimeField(default=date.today)
+    updated_by = models.CharField(max_length=50, null=True, blank=True)
 
     def __str__(self):
         return self.company_name
@@ -80,6 +86,14 @@ class company_statury(models.Model):
     psara = models.CharField(max_length=15, null=True, blank=True)
     psara_from = models.DateField(null=True, blank=True)
     psara_to = models.DateField(null=True, blank=True)
+    factory = models.CharField(max_length=15, null=True, blank=True)
+    factory_from = models.DateField(null=True, blank=True)
+    factory_to = models.DateField(null=True, blank=True)
+    created_at = models.DateTimeField(default=date.today)
+    created_by = models.CharField(max_length=50, null=True, blank=True)
+    updated_at = models.DateTimeField(default=date.today)
+    updated_by = models.CharField(max_length=50, null=True, blank=True)
+    
 
     def __str__(self):
         return f"Statutory Info for {self.company.company_name}"
@@ -337,6 +351,12 @@ def alter_company_associate(request, company_id):
         company.account = request.POST.get('account', '')
         company.ifsc = request.POST.get('ifsc', '')
         company.branch_address = request.POST.get('branch_address', '')
+        company.state_id = State.objects.get(id=request.POST.get('state_id'))
+        company.district_id = District.objects.get(id=request.POST.get('district_id'))
+        company.updated_by = request.user.username
+        company.updated_at = date.today()
+        company.created_by = company.created_by or request.user.username  # Preserve original created_by
+        company.created_at = company.created_at or date.today()  # Preserve original created_at
         company.save()
         messages.success(request, f"Company '{company.company_name}' updated successfully.")
         return redirect('list_company_associate')
@@ -387,7 +407,14 @@ def create_company_statutory(request):
             labour_to=request.POST.get('labour_to') or None,
             psara=request.POST.get('psara', ''),
             psara_from=request.POST.get('psara_from') or None,
-            psara_to=request.POST.get('psara_to') or None
+            psara_to=request.POST.get('psara_to') or None,
+            factory=request.POST.get('factory', ''),
+            factory_from=request.POST.get('factory_from') or None,
+            factory_to=request.POST.get('factory_to') or None,
+            created_by=request.user.username,
+            updated_by=request.user.username,
+            created_at=date.today(),
+            updated_at=date.today(),
         )
         messages.success(request, f"Statutory details for '{selected_company.company_name}' created successfully.")
         return redirect('list_company_associate')
@@ -421,6 +448,11 @@ def alter_company_statutory(request, company_id):
         statutory.psara = request.POST.get('psara', '')
         statutory.psara_from = request.POST.get('psara_from') or None
         statutory.psara_to = request.POST.get('psara_to') or None
+        statutory.factory = request.POST.get('factory', '')
+        statutory.factory_from = request.POST.get('factory_from') or None
+        statutory.factory_to = request.POST.get('factory_to') or None
+        statutory.updated_by = request.user.username
+        statutory.updated_at = date.today()
         statutory.save()
         messages.success(request, f"Statutory details updated successfully.")
         return redirect('list_company_associate')

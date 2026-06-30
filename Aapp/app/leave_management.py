@@ -1,6 +1,7 @@
 from django import forms
 from django.db import models
 from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
@@ -96,17 +97,27 @@ def list_leave(request):
 
     records = employee_leave.objects.filter(companyid=company).select_related('employee_id')
 
-    # optional filters
     month = request.GET.get('month')
-    year  = request.GET.get('year')
+    year = request.GET.get('year')
     if month:
         records = records.filter(salary_month=month)
     if year:
         records = records.filter(salary_year=year)
 
-    return render(request, 'Aapp/leave/list_leave.html', {
-        'records': records, 'company': company,
-        'months': MONTH_CHOICES, 'sel_month': month, 'sel_year': year,
+    rows = [{
+        'cells': [r.emp_code, r.get_salary_month_display(), r.salary_year, r.leaves_earned,
+                  r.leave_availed, r.leave_balance, r.wages_paid],
+        'actions': [
+            {'url': reverse('update_leave', args=[r.leaveid]), 'label': 'Edit', 'css': 'edit'},
+            {'url': reverse('delete_leave', args=[r.leaveid]), 'label': 'Delete', 'css': 'delete'},
+        ],
+    } for r in records]
+    return render(request, 'Aapp/generic/list.html', {
+        'page_title': 'Employee Leave Records',
+        'columns': ['Employee Code', 'Month', 'Year', 'Earned', 'Availed', 'Balance', 'Wages Paid'],
+        'rows': rows, 'company': company,
+        'add_url': reverse('add_leave'), 'add_label': 'Add Leave Record',
+        'empty_message': 'No leave records yet.',
     })
 
 
@@ -121,36 +132,38 @@ def add_leave(request):
     employees = employee.objects.filter(CompanyID=company, is_working=True).order_by('name')
 
     if request.method == 'POST':
-        p     = request.POST
-        emp   = get_object_or_404(employee, employeeid=p.get('employee_id'), CompanyID=company)
+        p = request.POST
+        emp = get_object_or_404(employee, employeeid=p.get('employee_id'), CompanyID=company)
         month = int(p.get('salary_month', 0))
-        year  = int(p.get('salary_year', 0))
+        year = int(p.get('salary_year', 0))
 
         if employee_leave.objects.filter(employee_id=emp, salary_month=month, salary_year=year).exists():
             messages.error(request, f"Leave record for {emp.name} — {month}/{year} already exists.")
         else:
             try:
-                earned  = float(p.get('leaves_earned', 0) or 0)
+                earned = float(p.get('leaves_earned', 0) or 0)
                 availed = float(p.get('leave_availed', 0) or 0)
                 employee_leave.objects.create(
-                    employee_id   = emp,
-                    emp_code      = emp.employeecode,
-                    companyid     = company,
-                    salary_month  = month,
-                    salary_year   = year,
-                    leaves_earned = earned,
-                    leave_availed = availed,
-                    leave_balance = earned - availed,
-                    wages_paid    = p.get('wages_paid', 0) or 0,
-                    created_by    = request.user,
+                    employee_id=emp,
+                    emp_code=emp.employeecode,
+                    companyid=company,
+                    salary_month=month,
+                    salary_year=year,
+                    leaves_earned=earned,
+                    leave_availed=availed,
+                    leave_balance=earned - availed,
+                    wages_paid=p.get('wages_paid', 0) or 0,
+                    created_by=request.user,
                 )
                 messages.success(request, f"Leave record for {emp.name} saved.")
-                return redirect('Aapp:list_leave')
+                return redirect('list_leave')
             except Exception as e:
                 messages.error(request, f"Error: {e}")
 
-    return render(request, 'Aapp/leave/add_leave.html', {
-        'employees': employees, 'months': MONTH_CHOICES, 'company': company,
+    return render(request, 'Aapp/generic/form.html', {
+        'form': LeaveForm(), 'employees': employees, 'company': company,
+        'page_title': 'Add Leave Record',
+        'cancel_url': reverse('list_leave'),
     })
 
 
@@ -167,23 +180,26 @@ def update_leave(request, leave_id):
     if request.method == 'POST':
         p = request.POST
         try:
-            earned  = float(p.get('leaves_earned', rec.leaves_earned) or 0)
+            earned = float(p.get('leaves_earned', rec.leaves_earned) or 0)
             availed = float(p.get('leave_availed', rec.leave_availed) or 0)
-            rec.salary_month  = int(p.get('salary_month', rec.salary_month))
-            rec.salary_year   = int(p.get('salary_year', rec.salary_year))
+            rec.salary_month = int(p.get('salary_month', rec.salary_month))
+            rec.salary_year = int(p.get('salary_year', rec.salary_year))
             rec.leaves_earned = earned
             rec.leave_availed = availed
             rec.leave_balance = earned - availed
-            rec.wages_paid    = p.get('wages_paid', rec.wages_paid) or rec.wages_paid
-            rec.updated_by    = request.user
+            rec.wages_paid = p.get('wages_paid', rec.wages_paid) or rec.wages_paid
+            rec.updated_by = request.user
             rec.save()
             messages.success(request, "Leave record updated.")
-            return redirect('Aapp:list_leave')
+            return redirect('list_leave')
         except Exception as e:
             messages.error(request, f"Error: {e}")
 
-    return render(request, 'Aapp/leave/update_leave.html', {
-        'rec': rec, 'months': MONTH_CHOICES,
+    form = LeaveForm(instance=rec)
+    return render(request, 'Aapp/generic/form.html', {
+        'form': form, 'rec': rec, 'company': company,
+        'page_title': f'Edit Leave Record — {rec.emp_code}',
+        'cancel_url': reverse('list_leave'),
     })
 
 
@@ -200,6 +216,12 @@ def delete_leave(request, leave_id):
     if request.method == 'POST':
         rec.delete()
         messages.success(request, "Leave record deleted.")
-        return redirect('Aapp:list_leave')
+        return redirect('list_leave')
 
-    return render(request, 'Aapp/leave/delete_leave.html', {'rec': rec})
+    return render(request, 'Aapp/generic/confirm.html', {
+        'company': company,
+        'page_title': 'Delete Leave Record',
+        'confirm_message': f'Delete leave record for <strong>{rec.emp_code}</strong> — '
+                            f'{rec.get_salary_month_display()} {rec.salary_year}?',
+        'cancel_url': reverse('list_leave'),
+    })

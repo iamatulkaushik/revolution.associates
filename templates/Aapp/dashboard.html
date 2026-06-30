@@ -1,188 +1,65 @@
 {% extends 'Aapp/base.html' %}
 {% block title %}Dashboard{% endblock %}
-{% block additionalcss_js %}
-<style>
-    .company-banner {
-        background: #fff;
-        padding: 10px;
-        border-radius: 8px;
-        border-left: 4px solid #28a745;
-        margin-bottom: 20px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-    .company-info h3 {
-        margin: 0 0 10px 0;
-        color: var(--Color2);
-    }
-    .company-info div span {
-        margin-right: 15px;
-        font-size: inherit;
-        color: var(--Color2);
-    }
-    .company-popup {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0,0,0,0.5);
-        z-index: 1000;
-    }
-    .company-popup.active { display: flex; justify-content: center; align-items: center; }
-    .popup-content {
-        background: white;
-        padding: 20px;
-        border-radius: 8px;
-        width: 400px;
-        max-height: 500px;
-        overflow-y: auto;
-    }
-    .company-item {
-        padding: 10px;
-        border: 1px solid #ddd;
-        margin: 5px 0;
-        cursor: pointer;
-        border-radius: 4px;
-    }
-    .company-item:hover { background: #f5f5f5; }
-</style>
-{% endblock %}
 {% block content %}
-<div class="main-content">
-    <div class="selectedcompany">
-        <div class="company-banner">
-            <a href="#" title="Click to change selected company" onclick="showCompanySelector()"><div class="company-info">
-                <h3 id="company-name">No Company Selected</h3>
-                <div>
-                    <span id="company-mobile">Mobile:</span>
-                    <span id="company-email">Email: --</span>
-                    <span id="company-pan">PAN: --</span>
-                </div>
-            </div></a>
-            <!-- <button class="button" onclick="showCompanySelector()">Select Company</button> -->
-            <div class="user-info">
-                <span class="username"> Good Morning, {{ user.username }}</span> | 
-                <span class="userrole">{% if user.associate_profile %}Associate{% elif user.profile %}{{ user.profile.get_role_display }}{% else %}User{% endif %}</span>
-                <hr>
-                <span class="useremail">{{ user.email }}</span> </br> <span>{{ user.last_login }}</span>
-                <a href="{% url 'associate_profile' %}" class="button" style="float: left; margin-right: 10px;">My Profile</a>
-                <a href="{% url 'logout' %}" class="logout" style="float: right;">Logout</a>
-            </div>
-    </div>
-    </div>
-    <div class="l-container">
-        <div class="card">
-            <div class="icon" id="icon">У</div>
-            <div class="data" id="dept-branch-count">0 | 0</div>
-            <div class="title">
-                <a href="{% url 'department_list' %}" style="color: inherit; text-decoration: none;">Departments</a> |
-                <a href="{% url 'branch_list' %}" style="color: inherit; text-decoration: none;">Branches</a>
-            </div>
-            <div class="comments">Total No of Departments & Branches</div>
-        </div>
-        <div class="card">
-            <div class="icon" id="icon">ŧ</div>
-            <div class="data">₹ 1.2M</div>
-            <div class="title">Monthly Payroll</div>
-            <div class="comments">Total Payroll for Current Month</div>
-        </div>
-        <div class="card">
-            <div class="icon" id="icon">ı</div>
-            <div class="data">1,240</div>
-            <div class="title">Employees</div>
-            <div class="comments">Total No of Employees in company</div>
-        </div>
-        <!-- <div class="card">
-            <div class="icon" id="icon">Ī</div>
-            <div class="data">08</div>
-            <div class="title">Active Sub-Users</div>
-            <div class="comments">Total No of Sub-Users</div>
-        </div> -->
-        <div class="card">
-            <div class="icon" id="icon">П</div>
-            <div class="data">05</div>
-            <div class="title">Total Companies</div>
-            <div class="comments">My total companies</div>
-        </div>
-    </div>
+<div class="section-header">
+  <h2>Dashboard</h2>
+  <div class="section-actions">
+    <a href="{% url 'compliance_dashboard' %}" class="button btn-primary">Compliance Calendar</a>
+    <a href="{% url 'create_employee' %}" class="button">+ Add Employee</a>
+  </div>
 </div>
 
-<div class="company-popup" id="companyPopup">
-    <div class="popup-content">
-        <h3>Select Company <span style="float: right; cursor: pointer;" onclick="hideCompanySelector()">&times;</span></h3>
-        <div id="companyList">Loading...</div>
+<div class="stat-grid">
+  <div class="stat-card" style="--accent-color:#457b9d">
+    <div class="stat-icon">У</div>
+    <div class="stat-value">{{ departments_count|default:"0" }} / {{ branches_count|default:"0" }}</div>
+    <div class="stat-label">Departments / Branches</div>
+    <div class="stat-note"><a href="{% url 'department_list' %}">Departments</a> · <a href="{% url 'branch_list' %}">Branches</a></div>
+  </div>
+  <div class="stat-card" style="--accent-color:#2a9d8f">
+    <div class="stat-icon">ı</div>
+    <div class="stat-value" id="stat-employees">—</div>
+    <div class="stat-label">Active Employees</div>
+    <div class="stat-note"><a href="{% url 'list_employee' %}">View all</a></div>
+  </div>
+  <div class="stat-card" style="--accent-color:#e63946" id="compliance-card">
+    <div class="stat-icon">Ē</div>
+    <div class="stat-value" id="stat-overdue">—</div>
+    <div class="stat-label">Overdue Returns</div>
+    <div class="stat-note"><a href="{% url 'compliance_dashboard' %}">View compliance</a></div>
+  </div>
+  <div class="stat-card" style="--accent-color:#f4a261">
+    <div class="stat-icon">П</div>
+    <div class="stat-value" id="stat-companies">—</div>
+    <div class="stat-label">My Companies</div>
+    <div class="stat-note"><a href="{% url 'list_company_associate' %}">Manage</a></div>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom:var(--sp-5)">
+  <div class="card-header">
+    <h3>Quick Actions</h3>
+  </div>
+  <div class="card-body">
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:var(--sp-3)">
+      <a href="{% url 'generate_wages' %}" class="button">Generate Wages</a>
+      <a href="{% url 'add_attendance' %}" class="button">Add Attendance</a>
+      <a href="{% url 'add_epf_ecr' %}" class="button">EPF ECR</a>
+      <a href="{% url 'add_esi_return' %}" class="button">ESI Return</a>
+      <a href="{% url 'add_lwf' %}" class="button">LWF Contribution</a>
+      <a href="{% url 'seed_compliance_calendar' %}" class="button btn-primary">Seed Compliance</a>
     </div>
+  </div>
 </div>
 
 <script>
-function showCompanySelector() {
-    document.getElementById('companyPopup').classList.add('active');
-    loadCompanies();
-}
-
-function hideCompanySelector() {
-    document.getElementById('companyPopup').classList.remove('active');
-}
-
-function loadCompanies() {
-    fetch('{% url "get_user_companies" %}')
-        .then(response => response.json())
-        .then(data => {
-            const list = document.getElementById('companyList');
-            list.innerHTML = data.companies.map(company => 
-                `<div class="company-item" onclick="selectCompany(${company.company_id})">
-                    <strong>${company.company_name}</strong><br>
-                    <small>ID: ${company.company_id}</small>
-                </div>`
-            ).join('');
-        });
-}
-
-function selectCompany(companyId) {
-    const formData = new FormData();
-    formData.append('company_id', companyId);
-    formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
-    
-    fetch('{% url "select_company" %}', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.status === 'success') {
-            hideCompanySelector();
-            loadSelectedCompany();
-        }
-    });
-}
-
-function loadSelectedCompany() {
-    fetch('{% url "get_selected_company" %}')
-        .then(response => response.json())
-        .then(data => {
-            if (data.company_id) {
-                document.getElementById('company-name').textContent = data.company_name;
-                document.getElementById('company-mobile').textContent = `Mobile:${data.mobile}`;
-                document.getElementById('company-email').textContent = `Email:${data.email}`;
-                document.getElementById('company-pan').textContent = `PAN:${data.pan || '--'}`;
-                loadCounts();
-            }
-        });
-}
-
-function loadCounts() {
-    fetch('{% url "get_selected_company" %}')
-        .then(response => response.json())
-        .then(data => {
-            if (data.company_id) {
-                document.getElementById('dept-branch-count').textContent = `{{ departments_count }} | {{ branches_count }}`;
-            }
-        });
-}
-
-document.addEventListener('DOMContentLoaded', loadSelectedCompany);
+fetch('{% url "get_selected_company" %}')
+  .then(r=>r.json()).then(d=>{
+    if(d.company_id){
+      document.getElementById('stat-companies').textContent='1 selected';
+    } else {
+      document.getElementById('stat-companies').textContent='None selected';
+    }
+  }).catch(()=>{});
 </script>
 {% endblock %}

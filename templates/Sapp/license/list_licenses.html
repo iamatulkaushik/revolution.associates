@@ -1,37 +1,21 @@
 {% extends "Sapp/base.html" %}
 {% block title %}Licenses{% endblock %}
 {% block additionalcss_js %}
-<style>
-.container{max-width:1200px;margin:40px auto;padding:20px}
-.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:30px}
-.btn{padding:10px 20px;border:none;border-radius:4px;cursor:pointer;text-decoration:none;display:inline-block}
-.btn-primary{background:#007bff;color:#fff}
-.licenses-grid{display:grid;gap:20px}
-.license-card{background:#fff;padding:20px;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,0.1);border-left:4px solid #007bff}
-.license-card.suspended{border-left-color:#ffc107}
-.license-card.revoked{border-left-color:#dc3545}
-.license-card.expired{border-left-color:#6c757d}
-.license-header{display:flex;justify-content:space-between;align-items:start;margin-bottom:15px}
-.license-header h3{margin:0;color:#333}
-.status-badge{padding:5px 10px;border-radius:4px;font-size:12px;font-weight:600}
-.status-active{background:#d4edda;color:#155724}
-.status-suspended{background:#fff3cd;color:#856404}
-.status-revoked{background:#f8d7da;color:#721c24}
-.status-expired{background:#e2e3e5;color:#383d41}
-.license-info{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:15px}
-.license-info p{margin:5px 0;color:#666;font-size:14px}
-.license-actions{display:flex;gap:10px}
-.btn-sm{padding:6px 12px;font-size:13px}
-.btn-warning{background:#ffc107;color:#000}
-.btn-danger{background:#dc3545;color:#fff}
-.btn-success{background:#28a745;color:#fff}
-</style>
+
 {% endblock %}
 {% block content %}
+{% if messages %}
+<div class="messages-container">
+{% for message in messages %}
+<div class="message-alert {% if message.tags == 'error' %}message-error{% elif message.tags == 'warning' %}message-warning{% else %}message-success{% endif %}" role="alert">{{ message }}</div>
+{% endfor %}
+</div>
+{% endif %}
+
 <div class="container">
 <div class="header">
 <h2>License Management</h2>
-<a href="{% url 'issue_license' %}" class="btn btn-primary">Issue New License</a>
+<a href="{% url 'issue_license' %}" class="button btn-primary">Issue New License</a>
 </div>
 <div class="licenses-grid">
 {% for license in licenses %}
@@ -52,8 +36,8 @@
 <p><strong>Days Left:</strong> {% if license.is_expired %}Expired{% else %}{{license.expiry_date|timeuntil}}{% endif %}</p>
 </div>
 <div class="license-actions">
-<a href="{% url 'alter_license' license.license_id %}" class="btn btn-sm btn-primary">Edit</a>
-<a href="{% url 'revoke_suspend_license' license.license_id %}" class="btn btn-sm {% if license.status == 'active' %}btn-warning{% elif license.status == 'suspended' %}btn-success{% else %}btn-danger{% endif %}">
+<a href="{% url 'alter_license' license.license_id %}" class="action-edit">Edit</a>
+<a href="{% url 'revoke_suspend_license' license.license_id %}" class="action-delete">
 {% if license.status == 'active' %}Suspend/Revoke{% elif license.status == 'suspended' %}Activate{% else %}View{% endif %}
 </a>
 </div>

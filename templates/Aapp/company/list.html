@@ -26,9 +26,9 @@
             <td>{{ company.email1 }}</td>
             <td>{{ company.start_date }}</td>
             <td>
-                <a href="{% url 'alter_company_associate' company.company_id %}" class="button edit"></a>
-                <a href="{% url 'alter_company_statutory' company.company_id %}" class="button statuary"></a>
-                <a href="{% url 'mark_inactive_company' company.company_id %}" class="button inactive"></a>
+                <a href="{% url 'alter_company_associate' company.company_id %}" title="Company Basics Update" class="button edit"></a>
+                <a href="{% url 'alter_company_statutory' company.company_id %}" title="Company Statutory Update" class="button statuary"></a>
+                <a href="{% url 'mark_inactive_company' company.company_id %}" title="Mark Inactive" class="button inactive"></a>
             </td>
         </tr>
         {% endfor %}

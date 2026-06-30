@@ -1,0 +1,75 @@
+{% extends 'Aapp/base.html' %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block content %}
+
+<div class="section-header">
+  <h2>{{ page_title }}</h2>
+  <div class="section-actions">
+    {% if add_url %}<a href="{{ add_url }}" class="button btn-primary">{{ add_label|default:"Add New" }}</a>{% endif %}
+    {% for link in extra_links %}<a href="{{ link.url }}" class="button">{{ link.label }}</a>{% endfor %}
+  </div>
+</div>
+
+{% if subtitle %}<p class="text-muted" style="margin-bottom:var(--sp-4)">{{ subtitle|safe }}</p>{% endif %}
+
+{% if messages %}
+<div class="messages-container">
+  {% for message in messages %}
+  <div class="message-alert {% if message.tags == 'error' %}message-error{% elif message.tags == 'warning' %}message-warning{% else %}message-success{% endif %}" role="alert">
+    {{ message }}
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<div class="card">
+  {% if rows %}
+  <div style="padding:var(--sp-3) var(--sp-5);border-bottom:1px solid var(--c-border);display:flex;align-items:center;justify-content:space-between">
+    <span class="text-muted text-sm">{{ rows|length }} record{{ rows|length|pluralize }}</span>
+  </div>
+  <div class="table-wrap">
+    <table class="data-table" role="table">
+      <thead>
+        <tr>
+          <th>#</th>
+          {% for col in columns %}<th>{{ col }}</th>{% endfor %}
+          {% if rows.0.actions %}<th>Actions</th>{% endif %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+        <tr>
+          <td class="text-muted text-sm">{{ forloop.counter }}</td>
+          {% for cell in row.cells %}
+          <td>{% if cell is not None %}{{ cell }}{% else %}<span class="text-muted">—</span>{% endif %}</td>
+          {% endfor %}
+          {% if row.actions %}
+          <td><div class="action-cell">
+            {% for action in row.actions %}
+            <a href="{{ action.url }}" class="{% if action.css == 'delete' %}action-delete{% else %}action-edit{% endif %}">{{ action.label }}</a>
+            {% endfor %}
+          </div></td>
+          {% endif %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="card-body text-center" style="padding:var(--sp-8)">
+    <div style="font-family:var(--font-head);font-size:48px;color:var(--c-border);margin-bottom:var(--sp-4)">Ē</div>
+    <p style="color:var(--c-muted);font-size:15px">{{ empty_message|default:"No records found." }}</p>
+    {% if add_url %}<a href="{{ add_url }}" class="button btn-primary" style="margin-top:var(--sp-4)">{{ add_label|default:"Add First Record" }}</a>{% endif %}
+  </div>
+  {% endif %}
+</div>
+
+<script>
+fetch('{% url "get_selected_company" %}').then(r=>r.json()).then(d=>{
+  if(!d.company_id){
+    const b=document.querySelector('.card');
+    if(b)b.insertAdjacentHTML('beforebegin','<div class="message-alert message-warning" role="alert">No company selected. <a href="{% url \'dashboard\' %}">Go to Dashboard</a> to select one.</div>');
+  }
+});
+</script>
+{% endblock %}

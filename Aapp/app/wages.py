@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from Sapp.app.company import Company
@@ -110,12 +111,6 @@ class wages_deduction(models.Model):
 
 
 # ── Helper ────────────────────────────────────────────────────────────────────
-
-def _company(request):
-    cid = request.session.get('selected_company_id')
-    return Company.objects.filter(company_id=cid).first() if cid else None
-
-
 def _calculate_wages(emp, att, desig):
     """Calculate wages from designation rates and attendance days."""
     days = float(att.working_days) if att else 0
@@ -156,7 +151,38 @@ def _calculate_wages(emp, att, desig):
     }
 
 
-# ── Views ─────────────────────────────────────────────────────────────────────
+
+
+from django import forms as _wforms
+
+class WagesRecordForm(_wforms.ModelForm):
+    class Meta:
+        model = wages_record
+        fields = ['basic_wages', 'da', 'hra', 'overtime_wages', 'other_earnings',
+                  'working_days', 'overtime_hours', 'epf_deduction', 'esi_deduction',
+                  'professional_tax', 'income_tax', 'labour_welfare', 'other_deductions',
+                  'remarks']
+
+class WagesFineForm(_wforms.ModelForm):
+    class Meta:
+        model = wages_fine
+        fields = ['employee', 'fine_date', 'fine_reason', 'fine_amount',
+                  'salary_month', 'salary_year']
+        widgets = {'fine_date': _wforms.DateInput(attrs={'type': 'date'})}
+
+class WagesDeductionForm(_wforms.ModelForm):
+    class Meta:
+        model = wages_deduction
+        fields = ['employee', 'deduction_type', 'reason',
+                  'deduction_amount', 'salary_month', 'salary_year']
+
+
+def _company(request):
+    cid = request.session.get('selected_company_id')
+    return Company.objects.filter(company_id=cid).first() if cid else None
+
+
+# ── Wage Register Views (Form 17 — Register of Wages) ────────────────────────
 
 @login_required
 def list_wages(request):
@@ -165,56 +191,76 @@ def list_wages(request):
         messages.warning(request, 'Please select a company first.')
         return redirect('dashboard')
     records = wages_record.objects.filter(company=company).select_related('employee')
-    return render(request, 'Aapp/wages/list_wages.html', {'records': records, 'company': company})
+    rows = [{
+        'cells': [r.employee.name, r.emp_code, f'{r.salary_month}/{r.salary_year}',
+                  r.basic_wages, r.net_wages, 'Finalised' if r.is_finalized else 'Draft'],
+        'actions': [
+            {'url': reverse('update_wages', args=[r.wages_id]), 'label': 'Edit', 'css': 'edit'},
+        ] + ([{'url': reverse('finalize_wages', args=[r.wages_id]), 'label': 'Finalise'}]
+             if not r.is_finalized else []) +
+            [{'url': reverse('delete_wages', args=[r.wages_id]), 'label': 'Delete', 'css': 'delete'}],
+    } for r in records]
+    return render(request, 'Aapp/generic/list.html', {
+        'page_title': 'Wages Register (Form 17 / Form III)',
+        'columns': ['Employee', 'Code', 'Month/Year', 'Basic Wages', 'Net Wages', 'Status'],
+        'rows': rows, 'company': company,
+        'add_url': reverse('generate_wages'), 'add_label': 'Generate Wages',
+        'extra_links': [
+            {'url': reverse('list_fines'), 'label': 'Fines Register (Form I)'},
+            {'url': reverse('list_deductions'), 'label': 'Deductions Register (Form II)'},
+        ],
+        'empty_message': 'No wage records yet. Use "Generate Wages" to auto-calculate.',
+    })
 
 
 @login_required
 def generate_wages(request):
-    """Generate wages for one employee+month+year from attendance + designation."""
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
         return redirect('dashboard')
 
-    employees = employee.objects.filter(CompanyID=company, is_working=True).order_by('name')
-
     if request.method == 'POST':
-        p       = request.POST
-        emp     = get_object_or_404(employee, employeeid=p.get('employee_id'), CompanyID=company)
-        month   = int(p.get('salary_month', 0))
-        year    = int(p.get('salary_year', 0))
-
-        if wages_record.objects.filter(employee=emp, salary_month=month, salary_year=year).exists():
-            messages.error(request, f'Wages for {emp.name} — {month}/{year} already generated.')
+        from Aapp.app.attandance import attendance
+        from Aapp.app.designation import designation
+        p = request.POST
+        month = int(p.get('salary_month', 0))
+        year = int(p.get('salary_year', 0))
+        if not month or not year:
+            messages.error(request, 'Please provide month and year.')
         else:
-            att    = attendance.objects.filter(employee_id=emp, salary_month=month, salary_year=year).first()
-            desig  = emp.designationID
-            calc   = _calculate_wages(emp, att, desig)
+            employees = employee.objects.filter(CompanyID=company, is_working=True)
+            created = 0
+            for emp in employees:
+                att = attendance.objects.filter(
+                    employee_id=emp, salary_month=month, salary_year=year
+                ).first()
+                desig = designation.objects.filter(
+                    CompanyID=company, is_active=True,
+                    designationid=emp.designation_id
+                ).first() if hasattr(emp, 'designation_id') else None
+                if not wages_record.objects.filter(
+                    employee=emp, salary_month=month, salary_year=year
+                ).exists():
+                    wages = _calculate_wages(emp, att, desig)
+                    wages_record.objects.create(
+                        company=company, employee=emp,
+                        salary_month=month, salary_year=year,
+                        created_by=request.user, **wages,
+                    )
+                    created += 1
+            messages.success(request, f'Generated wages for {created} employee(s) — {month}/{year}.')
+            return redirect('list_wages')
 
-            # Add any fines for this month
-            fines_total = sum(
-                float(f.fine_amount)
-                for f in wages_fine.objects.filter(employee=emp, salary_month=month, salary_year=year)
-            )
-            # Add any extra deductions for this month
-            extra_ded = sum(
-                float(d.deduction_amount)
-                for d in wages_deduction.objects.filter(employee=emp, salary_month=month, salary_year=year)
-            )
-            calc['other_deductions'] = round(fines_total + extra_ded, 2)
-            calc['total_deductions'] = round(calc['total_deductions'] + calc['other_deductions'], 2)
-            calc['net_wages']        = round(calc['gross_wages'] - calc['total_deductions'], 2)
-
-            wr = wages_record.objects.create(
-                company=company, employee=emp, attendance=att,
-                salary_month=month, salary_year=year,
-                created_by=request.user, **calc
-            )
-            messages.success(request, f'Wages generated for {emp.name} — {month}/{year}.')
-            return redirect('Aapp:list_wages')
-
-    return render(request, 'Aapp/wages/generate_wages.html', {
-        'employees': employees, 'months': MONTH_CHOICES, 'company': company,
+    return render(request, 'Aapp/generic/form.html', {
+        'manual_fields': [
+            {'name': 'salary_month', 'label': 'Month', 'type': 'select',
+             'choices': [(str(i), name) for i, name in MONTH_CHOICES]},
+            {'name': 'salary_year', 'label': 'Year', 'type': 'text'},
+        ],
+        'company': company,
+        'page_title': 'Generate Monthly Wages (Form 17)',
+        'cancel_url': reverse('list_wages'),
     })
 
 
@@ -229,26 +275,31 @@ def update_wages(request, wages_id):
 
     if request.method == 'POST':
         p = request.POST
-        rec.overtime_hours   = p.get('overtime_hours', rec.overtime_hours)
-        rec.other_earnings   = p.get('other_earnings', rec.other_earnings)
-        rec.other_deductions = p.get('other_deductions', rec.other_deductions)
-        rec.remarks          = p.get('remarks', rec.remarks)
-        rec.gross_wages      = round(
-            float(rec.basic_wages) + float(rec.da) + float(rec.hra) +
-            float(rec.overtime_wages) + float(rec.other_earnings), 2
-        )
-        rec.total_deductions = round(
-            float(rec.epf_deduction) + float(rec.esi_deduction) +
-            float(rec.professional_tax) + float(rec.labour_welfare) +
-            float(rec.other_deductions), 2
-        )
-        rec.net_wages   = round(float(rec.gross_wages) - float(rec.total_deductions), 2)
-        rec.updated_by  = request.user
+        for field in ['basic_wages', 'da', 'hra', 'overtime_wages', 'other_earnings',
+                      'working_days', 'epf_deduction', 'esi_deduction',
+                      'professional_tax', 'income_tax', 'labour_welfare', 'other_deductions']:
+            if p.get(field):
+                setattr(rec, field, p[field])
+        rec.gross_wages = sum([
+            float(rec.basic_wages or 0), float(rec.da or 0), float(rec.hra or 0),
+            float(rec.overtime_wages or 0), float(rec.other_earnings or 0),
+        ])
+        rec.total_deductions = sum([
+            float(rec.epf_deduction or 0), float(rec.esi_deduction or 0),
+            float(rec.professional_tax or 0), float(rec.income_tax or 0),
+            float(rec.labour_welfare or 0), float(rec.other_deductions or 0),
+        ])
+        rec.net_wages = round(float(rec.gross_wages) - float(rec.total_deductions), 2)
+        rec.updated_by = request.user
         rec.save()
-        messages.success(request, 'Wages record updated.')
-        return redirect('Aapp:list_wages')
+        messages.success(request, f'Wages updated for {rec.employee.name}.')
+        return redirect('list_wages')
 
-    return render(request, 'Aapp/wages/update_wages.html', {'rec': rec, 'months': MONTH_CHOICES})
+    return render(request, 'Aapp/generic/form.html', {
+        'form': WagesRecordForm(instance=rec), 'company': company,
+        'page_title': f'Edit Wages — {rec.employee.name} ({rec.salary_month}/{rec.salary_year})',
+        'cancel_url': reverse('list_wages'),
+    })
 
 
 @login_required
@@ -258,14 +309,21 @@ def finalize_wages(request, wages_id):
         messages.warning(request, 'Please select a company first.')
         return redirect('dashboard')
 
-    rec = get_object_or_404(wages_record, wages_id=wages_id, company=company)
+    rec = get_object_or_404(wages_record, wages_id=wages_id, company=company, is_finalized=False)
     if request.method == 'POST':
         rec.is_finalized = True
-        rec.updated_by   = request.user
         rec.save()
-        messages.success(request, f'Wages finalized for {rec.employee.name}.')
-        return redirect('Aapp:list_wages')
-    return render(request, 'Aapp/wages/finalize_wages.html', {'rec': rec})
+        messages.success(request, f'Wages finalised for {rec.employee.name}.')
+        return redirect('list_wages')
+    return render(request, 'Aapp/generic/confirm.html', {
+        'company': company,
+        'page_title': 'Finalise Wages',
+        'confirm_message': f'Finalise wages for <strong>{rec.employee.name}</strong> '
+                            f'({rec.salary_month}/{rec.salary_year})? '
+                            f'Net wages: <strong>₹{rec.net_wages}</strong>. '
+                            f'This cannot be undone.',
+        'cancel_url': reverse('list_wages'),
+    })
 
 
 @login_required
@@ -279,11 +337,17 @@ def delete_wages(request, wages_id):
     if request.method == 'POST':
         rec.delete()
         messages.success(request, 'Wages record deleted.')
-        return redirect('Aapp:list_wages')
-    return render(request, 'Aapp/wages/delete_wages.html', {'rec': rec})
+        return redirect('list_wages')
+    return render(request, 'Aapp/generic/confirm.html', {
+        'company': company,
+        'page_title': 'Delete Wages Record',
+        'confirm_message': f'Delete wages record for <strong>{rec.employee.name}</strong> '
+                            f'({rec.salary_month}/{rec.salary_year})?',
+        'cancel_url': reverse('list_wages'),
+    })
 
 
-# ── Fine Views ────────────────────────────────────────────────────────────────
+# ── Fines Register Views (Form I) ─────────────────────────────────────────────
 
 @login_required
 def list_fines(request):
@@ -292,7 +356,18 @@ def list_fines(request):
         messages.warning(request, 'Please select a company first.')
         return redirect('dashboard')
     fines = wages_fine.objects.filter(company=company).select_related('employee')
-    return render(request, 'Aapp/wages/list_fines.html', {'fines': fines, 'company': company})
+    rows = [{
+        'cells': [f.employee.name, f.fine_date, f.fine_reason, f.fine_amount,
+                  f'{f.salary_month}/{f.salary_year}'],
+        'actions': [{'url': reverse('delete_fine', args=[f.fine_id]), 'label': 'Delete', 'css': 'delete'}],
+    } for f in fines]
+    return render(request, 'Aapp/generic/list.html', {
+        'page_title': 'Payment of Wages Act — Fines Register (Form I)',
+        'columns': ['Employee', 'Fine Date', 'Reason', 'Fine Amount (₹)', 'Month/Year'],
+        'rows': rows, 'company': company,
+        'add_url': reverse('add_fine'), 'add_label': 'Add Fine',
+        'empty_message': 'No fines recorded.',
+    })
 
 
 @login_required
@@ -305,22 +380,22 @@ def add_fine(request):
     employees = employee.objects.filter(CompanyID=company, is_working=True).order_by('name')
 
     if request.method == 'POST':
-        p   = request.POST
-        emp = get_object_or_404(employee, employeeid=p.get('employee_id'), CompanyID=company)
-        wages_fine.objects.create(
-            company=company, employee=emp,
-            fine_date=p.get('fine_date'),
-            fine_amount=p.get('fine_amount'),
-            fine_reason=p.get('fine_reason'),
-            salary_month=int(p.get('salary_month')),
-            salary_year=int(p.get('salary_year')),
-            created_by=request.user,
-        )
-        messages.success(request, 'Fine recorded.')
-        return redirect('Aapp:list_fines')
+        form = WagesFineForm(request.POST)
+        if form.is_valid():
+            fine = form.save(commit=False)
+            fine.company = company
+            fine.created_by = request.user
+            fine.save()
+            messages.success(request, 'Fine recorded.')
+            return redirect('list_fines')
+    else:
+        form = WagesFineForm()
+        form.fields['employee'].queryset = employees
 
-    return render(request, 'Aapp/wages/add_fine.html', {
-        'employees': employees, 'months': MONTH_CHOICES, 'company': company,
+    return render(request, 'Aapp/generic/form.html', {
+        'form': form, 'company': company,
+        'page_title': 'Add Fine (Payment of Wages Act — Form I)',
+        'cancel_url': reverse('list_fines'),
     })
 
 
@@ -335,11 +410,17 @@ def delete_fine(request, fine_id):
     if request.method == 'POST':
         fine.delete()
         messages.success(request, 'Fine deleted.')
-        return redirect('Aapp:list_fines')
-    return render(request, 'Aapp/wages/delete_fine.html', {'fine': fine})
+        return redirect('list_fines')
+    return render(request, 'Aapp/generic/confirm.html', {
+        'company': company,
+        'page_title': 'Delete Fine',
+        'confirm_message': f'Delete fine of <strong>₹{fine.fine_amount}</strong> '
+                            f'for {fine.employee.name} ({fine.fine_reason})?',
+        'cancel_url': reverse('list_fines'),
+    })
 
 
-# ── Deduction Views ───────────────────────────────────────────────────────────
+# ── Deductions Register Views (Form II) ──────────────────────────────────────
 
 @login_required
 def list_deductions(request):
@@ -348,7 +429,18 @@ def list_deductions(request):
         messages.warning(request, 'Please select a company first.')
         return redirect('dashboard')
     deductions = wages_deduction.objects.filter(company=company).select_related('employee')
-    return render(request, 'Aapp/wages/list_deductions.html', {'deductions': deductions, 'company': company})
+    rows = [{
+        'cells': [d.employee.name, d.deduction_type, d.reason, d.deduction_amount,
+                  f'{d.salary_month}/{d.salary_year}'],
+        'actions': [{'url': reverse('delete_deduction', args=[d.deduction_id]), 'label': 'Delete', 'css': 'delete'}],
+    } for d in deductions]
+    return render(request, 'Aapp/generic/list.html', {
+        'page_title': 'Payment of Wages Act — Deductions Register (Form II)',
+        'columns': ['Employee', 'Deduction Type', 'Reason', 'Amount (₹)', 'Month/Year'],
+        'rows': rows, 'company': company,
+        'add_url': reverse('add_deduction'), 'add_label': 'Add Deduction',
+        'empty_message': 'No deductions recorded.',
+    })
 
 
 @login_required
@@ -361,23 +453,22 @@ def add_deduction(request):
     employees = employee.objects.filter(CompanyID=company, is_working=True).order_by('name')
 
     if request.method == 'POST':
-        p   = request.POST
-        emp = get_object_or_404(employee, employeeid=p.get('employee_id'), CompanyID=company)
-        wages_deduction.objects.create(
-            company=company, employee=emp,
-            deduction_type=p.get('deduction_type'),
-            deduction_amount=p.get('deduction_amount'),
-            reason=p.get('reason'),
-            salary_month=int(p.get('salary_month')),
-            salary_year=int(p.get('salary_year')),
-            created_by=request.user,
-        )
-        messages.success(request, 'Deduction recorded.')
-        return redirect('Aapp:list_deductions')
+        form = WagesDeductionForm(request.POST)
+        if form.is_valid():
+            ded = form.save(commit=False)
+            ded.company = company
+            ded.created_by = request.user
+            ded.save()
+            messages.success(request, 'Deduction recorded.')
+            return redirect('list_deductions')
+    else:
+        form = WagesDeductionForm()
+        form.fields['employee'].queryset = employees
 
-    return render(request, 'Aapp/wages/add_deduction.html', {
-        'employees': employees, 'months': MONTH_CHOICES,
-        'deduction_types': DEDUCTION_TYPE_CHOICES, 'company': company,
+    return render(request, 'Aapp/generic/form.html', {
+        'form': form, 'company': company,
+        'page_title': 'Add Deduction (Payment of Wages Act — Form II)',
+        'cancel_url': reverse('list_deductions'),
     })
 
 
@@ -392,5 +483,11 @@ def delete_deduction(request, deduction_id):
     if request.method == 'POST':
         ded.delete()
         messages.success(request, 'Deduction deleted.')
-        return redirect('Aapp:list_deductions')
-    return render(request, 'Aapp/wages/delete_deduction.html', {'ded': ded})
+        return redirect('list_deductions')
+    return render(request, 'Aapp/generic/confirm.html', {
+        'company': company,
+        'page_title': 'Delete Deduction',
+        'confirm_message': f'Delete deduction of <strong>₹{ded.deduction_amount}</strong> '
+                            f'({ded.deduction_type} — {ded.reason}) for {ded.employee.name}?',
+        'cancel_url': reverse('list_deductions'),
+    })

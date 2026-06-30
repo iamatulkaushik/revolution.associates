@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from Sapp.app.company import Company
@@ -114,12 +115,43 @@ class contractor_worker(models.Model):
 
 # ── Helper ────────────────────────────────────────────────────────────────────
 
+from django import forms as _cforms
+
+class ContractorForm(_cforms.ModelForm):
+    class Meta:
+        model = contractor
+        fields = ['contractor_name', 'contractor_license_no', 'contractor_address',
+                  'contractor_mobile', 'contractor_email', 'contractor_pan',
+                  'work_description', 'contract_start_date', 'contract_end_date',
+                  'contract_amount', 'max_contract_workers', 'worksite_address', 'status']
+        widgets = {
+            'contract_start_date': _cforms.DateInput(attrs={'type': 'date'}),
+            'contract_end_date': _cforms.DateInput(attrs={'type': 'date'}),
+        }
+
+class ContractorWorkerForm(_cforms.ModelForm):
+    class Meta:
+        model = contractor_worker
+        fields = ['employee', 'deployment_start', 'deployment_end', 'work_description']
+        widgets = {
+            'deployment_start': _cforms.DateInput(attrs={'type': 'date'}),
+            'deployment_end': _cforms.DateInput(attrs={'type': 'date'}),
+        }
+
+class ContractorPaymentForm(_cforms.ModelForm):
+    class Meta:
+        model = contractor_payment
+        fields = ['salary_month', 'salary_year', 'payment_amount',
+                  'payment_date', 'payment_reference', 'remarks']
+        widgets = {'payment_date': _cforms.DateInput(attrs={'type': 'date'})}
+
+
 def _company(request):
     cid = request.session.get('selected_company_id')
     return Company.objects.filter(company_id=cid).first() if cid else None
 
 
-# ── Contractor Views ──────────────────────────────────────────────────────────
+# ── Contractor Views ─────────────────────────────────────────────────────────
 
 @login_required
 def list_contractors(request):
@@ -128,8 +160,24 @@ def list_contractors(request):
         messages.warning(request, 'Please select a company first.')
         return redirect('dashboard')
     contractors = contractor.objects.filter(company=company)
-    return render(request, 'Aapp/contractor/list_contractors.html', {
-        'contractors': contractors, 'company': company,
+    rows = [{
+        'cells': [c.contractor_name, c.contractor_license_no or '—', c.work_description[:50],
+                  c.max_contract_workers, c.contract_end_date or '—',
+                  c.status],
+        'actions': [
+            {'url': reverse('update_contractor', args=[c.contractor_id]), 'label': 'Edit', 'css': 'edit'},
+            {'url': reverse('list_contractor_workers', args=[c.contractor_id]), 'label': 'Workers'},
+            {'url': reverse('add_contractor_payment', args=[c.contractor_id]), 'label': 'Payment'},
+            {'url': reverse('list_cl_returns', args=[c.contractor_id]), 'label': 'CL Returns'},
+            {'url': reverse('delete_contractor', args=[c.contractor_id]), 'label': 'Delete', 'css': 'delete'},
+        ],
+    } for c in contractors]
+    return render(request, 'Aapp/generic/list.html', {
+        'page_title': 'Contract Labour Act 1970 — Register of Contractors (Form IV)',
+        'columns': ['Contractor Name', 'Licence No.', 'Work Description', 'Max Workers', 'Contract End', 'Status'],
+        'rows': rows, 'company': company,
+        'add_url': reverse('add_contractor'), 'add_label': 'Add Contractor',
+        'empty_message': 'No contractors registered.',
     })
 
 
@@ -141,32 +189,21 @@ def add_contractor(request):
         return redirect('dashboard')
 
     if request.method == 'POST':
-        p = request.POST
-        contractor.objects.create(
-            company=company,
-            principal_employer=p.get('principal_employer', company.company_name),
-            contractor_name=p.get('contractor_name'),
-            contractor_license_no=p.get('contractor_license_no', ''),
-            contractor_address=p.get('contractor_address', ''),
-            contractor_mobile=p.get('contractor_mobile', ''),
-            contractor_email=p.get('contractor_email', ''),
-            contractor_pan=p.get('contractor_pan', ''),
-            contractor_gstin=p.get('contractor_gstin', ''),
-            work_description=p.get('work_description'),
-            contract_start_date=p.get('contract_start_date'),
-            contract_end_date=p.get('contract_end_date'),
-            contract_amount=p.get('contract_amount', 0),
-            payment_schedule=p.get('payment_schedule'),
-            reason_for_contract=p.get('reason_for_contract', ''),
-            max_contract_workers=p.get('max_contract_workers', 0),
-            worksite_address=p.get('worksite_address', ''),
-            created_by=request.user,
-        )
-        messages.success(request, f"Contractor '{p.get('contractor_name')}' added.")
-        return redirect('Aapp:list_contractors')
+        form = ContractorForm(request.POST)
+        if form.is_valid():
+            con = form.save(commit=False)
+            con.company = company
+            con.created_by = request.user
+            con.save()
+            messages.success(request, f"Contractor '{con.contractor_name}' added.")
+            return redirect('list_contractors')
+    else:
+        form = ContractorForm()
 
-    return render(request, 'Aapp/contractor/add_contractor.html', {
-        'payment_schedules': PAYMENT_SCHEDULE_CHOICES, 'company': company,
+    return render(request, 'Aapp/generic/form.html', {
+        'form': form, 'company': company,
+        'page_title': 'Add Contractor (Form IV)',
+        'cancel_url': reverse('list_contractors'),
     })
 
 
@@ -180,32 +217,18 @@ def update_contractor(request, contractor_id):
     con = get_object_or_404(contractor, contractor_id=contractor_id, company=company)
 
     if request.method == 'POST':
-        p = request.POST
-        con.contractor_name       = p.get('contractor_name', con.contractor_name)
-        con.contractor_license_no = p.get('contractor_license_no', con.contractor_license_no)
-        con.contractor_address    = p.get('contractor_address', con.contractor_address)
-        con.contractor_mobile     = p.get('contractor_mobile', con.contractor_mobile)
-        con.contractor_email      = p.get('contractor_email', con.contractor_email)
-        con.contractor_pan        = p.get('contractor_pan', con.contractor_pan)
-        con.contractor_gstin      = p.get('contractor_gstin', con.contractor_gstin)
-        con.work_description      = p.get('work_description', con.work_description)
-        con.contract_start_date   = p.get('contract_start_date', con.contract_start_date)
-        con.contract_end_date     = p.get('contract_end_date', con.contract_end_date)
-        con.contract_amount       = p.get('contract_amount', con.contract_amount)
-        con.payment_schedule      = p.get('payment_schedule', con.payment_schedule)
-        con.reason_for_contract   = p.get('reason_for_contract', con.reason_for_contract)
-        con.status                = p.get('status', con.status)
-        con.max_contract_workers  = p.get('max_contract_workers', con.max_contract_workers)
-        con.worksite_address      = p.get('worksite_address', con.worksite_address)
-        con.updated_by            = request.user
-        con.save()
-        messages.success(request, 'Contractor updated.')
-        return redirect('Aapp:list_contractors')
+        form = ContractorForm(request.POST, instance=con)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"Contractor '{con.contractor_name}' updated.")
+            return redirect('list_contractors')
+    else:
+        form = ContractorForm(instance=con)
 
-    return render(request, 'Aapp/contractor/update_contractor.html', {
-        'con': con,
-        'payment_schedules': PAYMENT_SCHEDULE_CHOICES,
-        'statuses': CONTRACT_STATUS_CHOICES,
+    return render(request, 'Aapp/generic/form.html', {
+        'form': form, 'company': company,
+        'page_title': f'Edit Contractor — {con.contractor_name}',
+        'cancel_url': reverse('list_contractors'),
     })
 
 
@@ -219,12 +242,18 @@ def delete_contractor(request, contractor_id):
     con = get_object_or_404(contractor, contractor_id=contractor_id, company=company)
     if request.method == 'POST':
         con.delete()
-        messages.success(request, 'Contractor deleted.')
-        return redirect('Aapp:list_contractors')
-    return render(request, 'Aapp/contractor/delete_contractor.html', {'con': con})
+        messages.success(request, f"Contractor '{con.contractor_name}' deleted.")
+        return redirect('list_contractors')
+    return render(request, 'Aapp/generic/confirm.html', {
+        'company': company,
+        'page_title': 'Delete Contractor',
+        'confirm_message': f'Delete contractor <strong>{con.contractor_name}</strong>? '
+                            f'All associated workers and payments will also be deleted.',
+        'cancel_url': reverse('list_contractors'),
+    })
 
 
-# ── Contractor Worker Views ───────────────────────────────────────────────────
+# ── Contractor Worker Views (Form XII) ───────────────────────────────────────
 
 @login_required
 def list_contractor_workers(request, contractor_id):
@@ -233,10 +262,24 @@ def list_contractor_workers(request, contractor_id):
         messages.warning(request, 'Please select a company first.')
         return redirect('dashboard')
 
-    con     = get_object_or_404(contractor, contractor_id=contractor_id, company=company)
+    con = get_object_or_404(contractor, contractor_id=contractor_id, company=company)
     workers = contractor_worker.objects.filter(contractor=con).select_related('employee')
-    return render(request, 'Aapp/contractor/list_contractor_workers.html', {
-        'con': con, 'workers': workers, 'company': company,
+    rows = [{
+        'cells': [w.employee.name, w.employee.employeecode, w.deployment_start,
+                  w.deployment_end or '—', w.work_description[:40]],
+        'actions': [],
+    } for w in workers]
+    return render(request, 'Aapp/generic/list.html', {
+        'page_title': f'Contract Workers (Form XII) — {con.contractor_name}',
+        'columns': ['Name', 'Code', 'Deployed From', 'Deployed To', 'Work Description'],
+        'rows': rows, 'company': company,
+        'add_url': reverse('add_contractor_worker', args=[contractor_id]), 'add_label': 'Add Worker',
+        'extra_links': [
+            {'url': reverse('list_employment_cards', args=[contractor_id]), 'label': 'Employment Cards (Form XIII)'},
+            {'url': reverse('list_service_certificates', args=[contractor_id]), 'label': 'Service Certs (Form XIV)'},
+            {'url': reverse('list_cl_returns', args=[contractor_id]), 'label': 'Half-Yearly Returns'},
+        ],
+        'empty_message': 'No workers added yet.',
     })
 
 
@@ -247,31 +290,29 @@ def add_contractor_worker(request, contractor_id):
         messages.warning(request, 'Please select a company first.')
         return redirect('dashboard')
 
-    con       = get_object_or_404(contractor, contractor_id=contractor_id, company=company)
-    employees = employee.objects.filter(
-        CompanyID=company, is_working=True,
-        employment_type='Contract'
-    ).order_by('name')
+    con = get_object_or_404(contractor, contractor_id=contractor_id, company=company)
 
     if request.method == 'POST':
-        p   = request.POST
-        emp = get_object_or_404(employee, employeeid=p.get('employee_id'), CompanyID=company)
-        contractor_worker.objects.create(
-            contractor=con, company=company, employee=emp,
-            deployment_start=p.get('deployment_start'),
-            deployment_end=p.get('deployment_end') or None,
-            work_description=p.get('work_description', ''),
-            created_by=request.user,
-        )
-        messages.success(request, f'{emp.name} added to contractor.')
-        return redirect('Aapp:list_contractor_workers', contractor_id=contractor_id)
+        form = ContractorWorkerForm(request.POST)
+        if form.is_valid():
+            w = form.save(commit=False)
+            w.contractor = con
+            w.created_by = request.user
+            w.save()
+            messages.success(request, f"Worker '{w.employee.name}' added to {con.contractor_name}.")
+            return redirect('list_contractor_workers', contractor_id=contractor_id)
+    else:
+        form = ContractorWorkerForm()
+        form.fields['employee'].queryset = employee.objects.filter(CompanyID=company, is_working=True)
 
-    return render(request, 'Aapp/contractor/add_contractor_worker.html', {
-        'con': con, 'employees': employees, 'company': company,
+    return render(request, 'Aapp/generic/form.html', {
+        'form': form, 'company': company, 'con': con,
+        'page_title': f'Add Worker — {con.contractor_name}',
+        'cancel_url': reverse('list_contractor_workers', args=[contractor_id]),
     })
 
 
-# ── Payment Views ─────────────────────────────────────────────────────────────
+# ── Contractor Payment Views ──────────────────────────────────────────────────
 
 @login_required
 def add_contractor_payment(request, contractor_id):
@@ -283,20 +324,19 @@ def add_contractor_payment(request, contractor_id):
     con = get_object_or_404(contractor, contractor_id=contractor_id, company=company)
 
     if request.method == 'POST':
-        p = request.POST
-        contractor_payment.objects.create(
-            contractor=con, company=company,
-            salary_month=int(p.get('salary_month', 0)),
-            salary_year=int(p.get('salary_year', 0)),
-            payment_amount=p.get('payment_amount'),
-            payment_date=p.get('payment_date'),
-            payment_reference=p.get('payment_reference', ''),
-            remarks=p.get('remarks', ''),
-            created_by=request.user,
-        )
-        messages.success(request, 'Payment recorded.')
-        return redirect('Aapp:list_contractors')
+        form = ContractorPaymentForm(request.POST)
+        if form.is_valid():
+            pmt = form.save(commit=False)
+            pmt.contractor = con
+            pmt.created_by = request.user
+            pmt.save()
+            messages.success(request, f'Payment of ₹{pmt.amount} recorded for {con.contractor_name}.')
+            return redirect('list_contractors')
+    else:
+        form = ContractorPaymentForm()
 
-    return render(request, 'Aapp/contractor/add_contractor_payment.html', {
-        'con': con, 'company': company,
+    return render(request, 'Aapp/generic/form.html', {
+        'form': form, 'company': company, 'con': con,
+        'page_title': f'Record Payment — {con.contractor_name}',
+        'cancel_url': reverse('list_contractors'),
     })

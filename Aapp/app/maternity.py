@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from Sapp.app.company import Company
@@ -90,14 +91,55 @@ class maternity_record(models.Model):
         return 0
 
 
+class maternity_nomination(models.Model):
+    """Form F (Sec 6) — nominee to receive maternity benefit if employee dies."""
+    nomination_id      = models.AutoField(primary_key=True)
+    company             = models.ForeignKey(Company, on_delete=models.CASCADE, db_column='CompanyID')
+    employee             = models.ForeignKey(employee, on_delete=models.CASCADE, db_column='EmployeeID',
+                            related_name='maternity_nominations', limit_choices_to={'gender': 'Female'})
+    nominee_name           = models.CharField(max_length=255)
+    relationship             = models.CharField(max_length=20, choices=[
+                                ('spouse', 'Spouse'), ('son', 'Son'), ('daughter', 'Daughter'),
+                                ('father', 'Father'), ('mother', 'Mother'), ('brother', 'Brother'),
+                                ('sister', 'Sister'), ('other', 'Other'),
+                             ])
+    nominee_address           = models.TextField()
+    nomination_date             = models.DateField()
+    is_active                    = models.BooleanField(default=True)
+    created_by                    = models.ForeignKey(User, on_delete=models.SET_NULL, null=True,
+                                related_name='mat_nominations_created')
+    created_date                   = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'maternity_nomination'
+        ordering = ['employee']
+
+    def __str__(self):
+        return f"Maternity Nomination — {self.employee.name} → {self.nominee_name}"
+
+
 # ── Helper ────────────────────────────────────────────────────────────────────
+
+from django import forms as _mforms
+
+class MaternityRecordForm(_mforms.ModelForm):
+    class Meta:
+        model = maternity_record
+        fields = ['expected_delivery_date', 'maternity_leave_start', 'maternity_leave_end',
+                  'daily_wage_rate', 'medical_bonus', 'remarks']
+        widgets = {
+            'expected_delivery_date': _mforms.DateInput(attrs={'type': 'date'}),
+            'maternity_leave_start': _mforms.DateInput(attrs={'type': 'date'}),
+            'maternity_leave_end': _mforms.DateInput(attrs={'type': 'date'}),
+        }
+
 
 def _company(request):
     cid = request.session.get('selected_company_id')
     return Company.objects.filter(company_id=cid).first() if cid else None
 
 
-# ── Views ─────────────────────────────────────────────────────────────────────
+# ── Maternity Record Views (Form B) ──────────────────────────────────────────
 
 @login_required
 def list_maternity(request):
@@ -105,9 +147,24 @@ def list_maternity(request):
     if not company:
         messages.warning(request, 'Please select a company first.')
         return redirect('dashboard')
-    records = maternity_record.objects.filter(company=company).select_related('employee', 'department')
-    return render(request, 'Aapp/maternity/list_maternity.html', {
-        'records': records, 'company': company,
+    records = maternity_record.objects.filter(company=company).select_related('employee')
+    rows = [{
+        'cells': [r.employee.name, r.expected_delivery_date, r.maternity_leave_start,
+                  r.maternity_leave_end or '—', r.maternity_benefit_amount,
+                  'Paid' if r.is_paid else 'Pending'],
+        'actions': [
+            {'url': reverse('update_maternity', args=[r.maternity_id]), 'label': 'Edit', 'css': 'edit'},
+        ] + ([{'url': reverse('mark_maternity_paid', args=[r.maternity_id]), 'label': 'Mark Paid'}]
+             if not r.is_paid else []) +
+            [{'url': reverse('delete_maternity', args=[r.maternity_id]), 'label': 'Delete', 'css': 'delete'}],
+    } for r in records]
+    return render(request, 'Aapp/generic/list.html', {
+        'page_title': 'Maternity Benefit Act 1961 — Maternity Register (Form B)',
+        'columns': ['Employee', 'Expected Delivery', 'Leave Start', 'Leave End', 'Benefit Amount', 'Status'],
+        'rows': rows, 'company': company,
+        'add_url': reverse('add_maternity'), 'add_label': 'Add Maternity Record',
+        'extra_links': [{'url': reverse('list_maternity_nominations'), 'label': 'Nominations (Form F)'}],
+        'empty_message': 'No maternity records yet.',
     })
 
 
@@ -118,49 +175,27 @@ def add_maternity(request):
         messages.warning(request, 'Please select a company first.')
         return redirect('dashboard')
 
-    # Only female employees
-    employees   = employee.objects.filter(CompanyID=company, is_working=True, gender='Female').order_by('name')
-    departments = department.objects.filter(companyid=company)
+    employees = employee.objects.filter(CompanyID=company, is_working=True, gender='Female').order_by('name')
 
     if request.method == 'POST':
-        p   = request.POST
-        emp = get_object_or_404(employee, employeeid=p.get('employee_id'), CompanyID=company, gender='Female')
+        emp = get_object_or_404(employee, employeeid=request.POST.get('employee_id'),
+                                 CompanyID=company, gender='Female')
+        form = MaternityRecordForm(request.POST)
+        if form.is_valid():
+            rec = form.save(commit=False)
+            rec.company = company
+            rec.employee = emp
+            rec.created_by = request.user
+            rec.save()
+            messages.success(request, f'Maternity record created for {emp.name}.')
+            return redirect('list_maternity')
+    else:
+        form = MaternityRecordForm()
 
-        leave_start = p.get('maternity_leave_start')
-        leave_end   = p.get('maternity_leave_end')
-        daily_rate  = float(p.get('daily_wage_rate', 0))
-
-        from datetime import date as dt
-        from datetime import datetime
-        start_dt = datetime.strptime(leave_start, '%Y-%m-%d').date() if leave_start else None
-        end_dt   = datetime.strptime(leave_end, '%Y-%m-%d').date() if leave_end else None
-        days     = maternity_record.calculate_leave_days(start_dt, end_dt)
-
-        maternity_record.objects.create(
-            company=company,
-            employee=emp,
-            department_id=p.get('department_id') or None,
-            date_of_joining=emp.dateofjoining,
-            salary_month=int(p.get('salary_month', 0)),
-            salary_year=int(p.get('salary_year', 0)),
-            expected_delivery_date=p.get('expected_delivery_date'),
-            maternity_leave_start=leave_start,
-            maternity_leave_end=leave_end,
-            daily_wage_rate=daily_rate,
-            maternity_benefit_days=days,
-            medical_bonus=p.get('medical_bonus', 3500),
-            nursing_breaks=p.get('nursing_breaks') == 'on',
-            status=p.get('status', 'applied'),
-            remarks=p.get('remarks', ''),
-            created_by=request.user,
-        )
-        messages.success(request, f'Maternity record created for {emp.name}.')
-        return redirect('Aapp:list_maternity')
-
-    return render(request, 'Aapp/maternity/add_maternity.html', {
-        'employees': employees, 'departments': departments,
-        'months': MONTH_CHOICES, 'statuses': MATERNITY_STATUS_CHOICES,
-        'company': company,
+    return render(request, 'Aapp/generic/form.html', {
+        'form': form, 'employees': employees, 'company': company,
+        'page_title': 'Add Maternity Record (Form B)',
+        'cancel_url': reverse('list_maternity'),
     })
 
 
@@ -174,31 +209,18 @@ def update_maternity(request, maternity_id):
     rec = get_object_or_404(maternity_record, maternity_id=maternity_id, company=company)
 
     if request.method == 'POST':
-        p = request.POST
-        rec.expected_delivery_date  = p.get('expected_delivery_date', rec.expected_delivery_date)
-        rec.actual_delivery_date    = p.get('actual_delivery_date') or rec.actual_delivery_date
-        rec.maternity_leave_start   = p.get('maternity_leave_start', rec.maternity_leave_start)
-        rec.maternity_leave_end     = p.get('maternity_leave_end', rec.maternity_leave_end)
-        rec.actual_return_date      = p.get('actual_return_date') or rec.actual_return_date
-        rec.daily_wage_rate         = p.get('daily_wage_rate', rec.daily_wage_rate)
-        rec.medical_bonus           = p.get('medical_bonus', rec.medical_bonus)
-        rec.nursing_breaks          = p.get('nursing_breaks') == 'on'
-        rec.status                  = p.get('status', rec.status)
-        rec.remarks                 = p.get('remarks', rec.remarks)
-        rec.updated_by              = request.user
+        form = MaternityRecordForm(request.POST, instance=rec)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Maternity record updated.')
+            return redirect('list_maternity')
+    else:
+        form = MaternityRecordForm(instance=rec)
 
-        from datetime import datetime
-        start_dt = datetime.strptime(str(rec.maternity_leave_start), '%Y-%m-%d').date()
-        end_dt   = datetime.strptime(str(rec.maternity_leave_end), '%Y-%m-%d').date()
-        rec.maternity_benefit_days = maternity_record.calculate_leave_days(start_dt, end_dt)
-        rec.save()
-        messages.success(request, 'Maternity record updated.')
-        return redirect('Aapp:list_maternity')
-
-    return render(request, 'Aapp/maternity/update_maternity.html', {
-        'rec': rec,
-        'months': MONTH_CHOICES,
-        'statuses': MATERNITY_STATUS_CHOICES,
+    return render(request, 'Aapp/generic/form.html', {
+        'form': form, 'company': company,
+        'page_title': f'Edit Maternity Record — {rec.employee.name}',
+        'cancel_url': reverse('list_maternity'),
     })
 
 
@@ -209,17 +231,23 @@ def mark_maternity_paid(request, maternity_id):
         messages.warning(request, 'Please select a company first.')
         return redirect('dashboard')
 
-    rec = get_object_or_404(maternity_record, maternity_id=maternity_id, company=company)
+    rec = get_object_or_404(maternity_record, maternity_id=maternity_id, company=company, is_paid=False)
     if request.method == 'POST':
         from datetime import date
-        rec.is_paid      = True
+        rec.is_paid = True
         rec.payment_date = request.POST.get('payment_date') or date.today()
-        rec.status       = 'on_leave'
-        rec.updated_by   = request.user
         rec.save()
-        messages.success(request, f'Maternity benefit paid for {rec.employee.name}.')
-        return redirect('Aapp:list_maternity')
-    return render(request, 'Aapp/maternity/mark_maternity_paid.html', {'rec': rec})
+        messages.success(request, f'Maternity benefit marked as paid for {rec.employee.name}.')
+        return redirect('list_maternity')
+    return render(request, 'Aapp/generic/confirm.html', {
+        'company': company,
+        'page_title': 'Mark Maternity Benefit as Paid',
+        'confirm_message': f'Mark maternity benefit of '
+                            f'<strong>₹{rec.maternity_benefit_amount}</strong> for '
+                            f'<strong>{rec.employee.name}</strong> as paid?',
+        'extra_fields': [{'name': 'payment_date', 'label': 'Payment Date', 'type': 'date'}],
+        'cancel_url': reverse('list_maternity'),
+    })
 
 
 @login_required
@@ -233,5 +261,94 @@ def delete_maternity(request, maternity_id):
     if request.method == 'POST':
         rec.delete()
         messages.success(request, 'Maternity record deleted.')
-        return redirect('Aapp:list_maternity')
-    return render(request, 'Aapp/maternity/delete_maternity.html', {'rec': rec})
+        return redirect('list_maternity')
+    return render(request, 'Aapp/generic/confirm.html', {
+        'company': company,
+        'page_title': 'Delete Maternity Record',
+        'confirm_message': f'Delete maternity record for <strong>{rec.employee.name}</strong>?',
+        'cancel_url': reverse('list_maternity'),
+    })
+
+
+# ── Nomination Views (Form F) ────────────────────────────────────────────────
+
+@login_required
+def list_maternity_nominations(request):
+    company = _company(request)
+    if not company:
+        messages.warning(request, 'Please select a company first.')
+        return redirect('dashboard')
+    nominations = maternity_nomination.objects.filter(company=company).select_related('employee')
+    rows = [{
+        'cells': [n.employee.name, n.nominee_name, n.get_relationship_display(),
+                  n.nomination_date],
+        'actions': [{'url': reverse('delete_maternity_nomination', args=[n.nomination_id]),
+                     'label': 'Delete', 'css': 'delete'}],
+    } for n in nominations]
+    return render(request, 'Aapp/generic/list.html', {
+        'page_title': 'Maternity Benefit Act — Nominations (Form F)',
+        'columns': ['Employee', 'Nominee', 'Relationship', 'Nomination Date'],
+        'rows': rows, 'company': company,
+        'add_url': reverse('add_maternity_nomination'), 'add_label': 'Add Nomination',
+        'empty_message': 'No maternity nominations recorded.',
+    })
+
+
+@login_required
+def add_maternity_nomination(request):
+    company = _company(request)
+    if not company:
+        messages.warning(request, 'Please select a company first.')
+        return redirect('dashboard')
+
+    employees = employee.objects.filter(CompanyID=company, is_working=True, gender='Female').order_by('name')
+
+    if request.method == 'POST':
+        p = request.POST
+        emp = get_object_or_404(employee, employeeid=p.get('employee_id'),
+                                 CompanyID=company, gender='Female')
+        maternity_nomination.objects.create(
+            company=company, employee=emp,
+            nominee_name=p.get('nominee_name'),
+            relationship=p.get('relationship'),
+            nominee_address=p.get('nominee_address'),
+            nomination_date=p.get('nomination_date'),
+            created_by=request.user,
+        )
+        messages.success(request, f'Nomination recorded for {emp.name}.')
+        return redirect('list_maternity_nominations')
+
+    return render(request, 'Aapp/generic/form.html', {
+        'manual_fields': [
+            {'name': 'nominee_name', 'label': 'Nominee Name', 'type': 'text'},
+            {'name': 'relationship', 'label': 'Relationship', 'type': 'select',
+             'choices': [('spouse','Spouse'),('son','Son'),('daughter','Daughter'),
+                         ('father','Father'),('mother','Mother'),('other','Other')]},
+            {'name': 'nominee_address', 'label': 'Nominee Address', 'type': 'textarea'},
+            {'name': 'nomination_date', 'label': 'Nomination Date', 'type': 'date'},
+        ],
+        'employees': employees, 'company': company,
+        'page_title': 'Add Maternity Nomination (Form F)',
+        'cancel_url': reverse('list_maternity_nominations'),
+    })
+
+
+@login_required
+def delete_maternity_nomination(request, nomination_id):
+    company = _company(request)
+    if not company:
+        messages.warning(request, 'Please select a company first.')
+        return redirect('dashboard')
+
+    nom = get_object_or_404(maternity_nomination, nomination_id=nomination_id, company=company)
+    if request.method == 'POST':
+        nom.delete()
+        messages.success(request, 'Nomination deleted.')
+        return redirect('list_maternity_nominations')
+    return render(request, 'Aapp/generic/confirm.html', {
+        'company': company,
+        'page_title': 'Delete Maternity Nomination',
+        'confirm_message': f'Delete nomination for <strong>{nom.employee.name}</strong> '
+                            f'→ {nom.nominee_name}?',
+        'cancel_url': reverse('list_maternity_nominations'),
+    })

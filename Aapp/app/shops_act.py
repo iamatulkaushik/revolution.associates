@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from Sapp.app.company import Company
@@ -110,12 +111,34 @@ class overtime_register(models.Model):
 
 # ── Helper ────────────────────────────────────────────────────────────────────
 
+from django import forms as _saforms
+
+class EstablishmentForm(_saforms.ModelForm):
+    class Meta:
+        model = establishment_details
+        fields = ['establishment_name', 'registration_number', 'registration_date',
+                  'renewal_date', 'manager_name', 'manager_mobile', 'address',
+                  'daily_work_hours', 'weekly_work_hours', 'weekly_off_day',
+                  'opening_time', 'closing_time']
+        widgets = {
+            'registration_date': _saforms.DateInput(attrs={'type': 'date'}),
+            'renewal_date': _saforms.DateInput(attrs={'type': 'date'}),
+        }
+
+class OvertimeRegisterForm(_saforms.ModelForm):
+    class Meta:
+        model = overtime_register
+        fields = ['employee', 'salary_month', 'salary_year', 'ot_date',
+                  'ot_hours', 'ot_reason', 'ot_wages']
+        widgets = {'ot_date': _saforms.DateInput(attrs={'type': 'date'})}
+
+
 def _company(request):
     cid = request.session.get('selected_company_id')
     return Company.objects.filter(company_id=cid).first() if cid else None
 
 
-# ── Establishment Views ───────────────────────────────────────────────────────
+# ── Establishment Views (Punjab Shops Act — Form F / G) ──────────────────────
 
 @login_required
 def list_establishments(request):
@@ -124,8 +147,21 @@ def list_establishments(request):
         messages.warning(request, 'Please select a company first.')
         return redirect('dashboard')
     estabs = establishment_details.objects.filter(company=company)
-    return render(request, 'Aapp/shops_act/list_establishments.html', {
-        'estabs': estabs, 'company': company,
+    rows = [{
+        'cells': [e.registration_number or '—', e.establishment_name, e.manager_name or '—',
+                  e.registration_date, e.renewal_date or '—'],
+        'actions': [
+            {'url': reverse('update_establishment', args=[e.estab_id]), 'label': 'Edit', 'css': 'edit'},
+            {'url': reverse('delete_establishment', args=[e.estab_id]), 'label': 'Delete', 'css': 'delete'},
+        ],
+    } for e in estabs]
+    return render(request, 'Aapp/generic/list.html', {
+        'page_title': 'Punjab Shops & Establishments Act 1958 (Haryana) — Establishments (Form F)',
+        'columns': ['Reg. No.', 'Establishment', 'Manager', 'Reg. Date', 'Renewal Due'],
+        'rows': rows, 'company': company,
+        'add_url': reverse('add_establishment'), 'add_label': 'Register Establishment',
+        'extra_links': [{'url': reverse('list_overtime'), 'label': 'Overtime Register'}],
+        'empty_message': 'No establishments registered.',
     })
 
 
@@ -137,34 +173,21 @@ def add_establishment(request):
         return redirect('dashboard')
 
     if request.method == 'POST':
-        p = request.POST
-        establishment_details.objects.create(
-            company=company,
-            establishment_name=p.get('establishment_name'),
-            registration_number=p.get('registration_number', ''),
-            registration_date=p.get('registration_date') or None,
-            renewal_date=p.get('renewal_date') or None,
-            opening_time=p.get('opening_time'),
-            closing_time=p.get('closing_time'),
-            daily_work_hours=p.get('daily_work_hours', 8.0),
-            weekly_work_hours=p.get('weekly_work_hours', 48.0),
-            weekly_off_day=p.get('weekly_off_day', 'sunday'),
-            second_off_day=p.get('second_off_day', ''),
-            ot_rate_type=p.get('ot_rate_type', 'double'),
-            max_ot_hours_day=p.get('max_ot_hours_day', 2.0),
-            max_ot_hours_week=p.get('max_ot_hours_week', 10.0),
-            address=p.get('address', ''),
-            manager_name=p.get('manager_name', ''),
-            manager_mobile=p.get('manager_mobile', ''),
-            created_by=request.user,
-        )
-        messages.success(request, 'Establishment registered.')
-        return redirect('Aapp:list_establishments')
+        form = EstablishmentForm(request.POST)
+        if form.is_valid():
+            est = form.save(commit=False)
+            est.company = company
+            est.created_by = request.user
+            est.save()
+            messages.success(request, 'Establishment registered.')
+            return redirect('list_establishments')
+    else:
+        form = EstablishmentForm()
 
-    return render(request, 'Aapp/shops_act/add_establishment.html', {
-        'weekly_off_choices': WEEKLY_OFF_CHOICES,
-        'ot_rate_choices': OT_RATE_CHOICES,
-        'company': company,
+    return render(request, 'Aapp/generic/form.html', {
+        'form': form, 'company': company,
+        'page_title': 'Register Establishment (Shops Act — Form F)',
+        'cancel_url': reverse('list_establishments'),
     })
 
 
@@ -175,35 +198,21 @@ def update_establishment(request, estab_id):
         messages.warning(request, 'Please select a company first.')
         return redirect('dashboard')
 
-    estab = get_object_or_404(establishment_details, estab_id=estab_id, company=company)
+    est = get_object_or_404(establishment_details, estab_id=estab_id, company=company)
 
     if request.method == 'POST':
-        p = request.POST
-        estab.establishment_name  = p.get('establishment_name', estab.establishment_name)
-        estab.registration_number = p.get('registration_number', estab.registration_number)
-        estab.registration_date   = p.get('registration_date') or estab.registration_date
-        estab.renewal_date        = p.get('renewal_date') or estab.renewal_date
-        estab.opening_time        = p.get('opening_time', estab.opening_time)
-        estab.closing_time        = p.get('closing_time', estab.closing_time)
-        estab.daily_work_hours    = p.get('daily_work_hours', estab.daily_work_hours)
-        estab.weekly_work_hours   = p.get('weekly_work_hours', estab.weekly_work_hours)
-        estab.weekly_off_day      = p.get('weekly_off_day', estab.weekly_off_day)
-        estab.second_off_day      = p.get('second_off_day', estab.second_off_day)
-        estab.ot_rate_type        = p.get('ot_rate_type', estab.ot_rate_type)
-        estab.max_ot_hours_day    = p.get('max_ot_hours_day', estab.max_ot_hours_day)
-        estab.max_ot_hours_week   = p.get('max_ot_hours_week', estab.max_ot_hours_week)
-        estab.address             = p.get('address', estab.address)
-        estab.manager_name        = p.get('manager_name', estab.manager_name)
-        estab.manager_mobile      = p.get('manager_mobile', estab.manager_mobile)
-        estab.updated_by          = request.user
-        estab.save()
-        messages.success(request, 'Establishment updated.')
-        return redirect('Aapp:list_establishments')
+        form = EstablishmentForm(request.POST, instance=est)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Establishment updated.')
+            return redirect('list_establishments')
+    else:
+        form = EstablishmentForm(instance=est)
 
-    return render(request, 'Aapp/shops_act/update_establishment.html', {
-        'estab': estab,
-        'weekly_off_choices': WEEKLY_OFF_CHOICES,
-        'ot_rate_choices': OT_RATE_CHOICES,
+    return render(request, 'Aapp/generic/form.html', {
+        'form': form, 'company': company,
+        'page_title': f'Edit Establishment — {est.establishment_name}',
+        'cancel_url': reverse('list_establishments'),
     })
 
 
@@ -214,15 +223,20 @@ def delete_establishment(request, estab_id):
         messages.warning(request, 'Please select a company first.')
         return redirect('dashboard')
 
-    estab = get_object_or_404(establishment_details, estab_id=estab_id, company=company)
+    est = get_object_or_404(establishment_details, estab_id=estab_id, company=company)
     if request.method == 'POST':
-        estab.delete()
+        est.delete()
         messages.success(request, 'Establishment deleted.')
-        return redirect('Aapp:list_establishments')
-    return render(request, 'Aapp/shops_act/delete_establishment.html', {'estab': estab})
+        return redirect('list_establishments')
+    return render(request, 'Aapp/generic/confirm.html', {
+        'company': company,
+        'page_title': 'Delete Establishment',
+        'confirm_message': f'Delete establishment <strong>{est.establishment_name} ({est.registration_number})</strong>?',
+        'cancel_url': reverse('list_establishments'),
+    })
 
 
-# ── Overtime Register Views ───────────────────────────────────────────────────
+# ── Overtime Register Views (Form IV) ────────────────────────────────────────
 
 @login_required
 def list_overtime(request):
@@ -230,9 +244,20 @@ def list_overtime(request):
     if not company:
         messages.warning(request, 'Please select a company first.')
         return redirect('dashboard')
-    records = overtime_register.objects.filter(company=company).select_related('employee', 'establishment')
-    return render(request, 'Aapp/shops_act/list_overtime.html', {
-        'records': records, 'company': company,
+    records = overtime_register.objects.filter(
+        employee__CompanyID=company
+    ).select_related('employee')
+    rows = [{
+        'cells': [r.employee.name, r.ot_date, r.ot_hours, r.ot_reason or '—',
+                  r.ot_wages, f'{r.salary_month}/{r.salary_year}'],
+        'actions': [{'url': reverse('delete_overtime', args=[r.ot_id]), 'label': 'Delete', 'css': 'delete'}],
+    } for r in records]
+    return render(request, 'Aapp/generic/list.html', {
+        'page_title': 'Shops Act / Minimum Wages Act — Overtime Register (Form IV)',
+        'columns': ['Employee', 'OT Date', 'OT Hours', 'Reason', 'OT Wages Paid', 'Month/Year'],
+        'rows': rows, 'company': company,
+        'add_url': reverse('add_overtime'), 'add_label': 'Add Overtime Record',
+        'empty_message': 'No overtime records yet.',
     })
 
 
@@ -243,29 +268,21 @@ def add_overtime(request):
         messages.warning(request, 'Please select a company first.')
         return redirect('dashboard')
 
-    employees = employee.objects.filter(CompanyID=company, is_working=True).order_by('name')
-    estabs    = establishment_details.objects.filter(company=company)
-
     if request.method == 'POST':
-        p   = request.POST
-        emp = get_object_or_404(employee, employeeid=p.get('employee_id'), CompanyID=company)
-        overtime_register.objects.create(
-            company=company,
-            establishment_id=p.get('establishment_id') or None,
-            employee=emp,
-            salary_month=int(p.get('salary_month', 0)),
-            salary_year=int(p.get('salary_year', 0)),
-            ot_date=p.get('ot_date'),
-            ot_hours=p.get('ot_hours', 0),
-            ot_reason=p.get('ot_reason', ''),
-            created_by=request.user,
-        )
-        messages.success(request, 'Overtime recorded.')
-        return redirect('Aapp:list_overtime')
+        form = OvertimeRegisterForm(request.POST)
+        if form.is_valid():
+            rec = form.save(commit=False)
+            rec.save()
+            messages.success(request, 'Overtime record added.')
+            return redirect('list_overtime')
+    else:
+        form = OvertimeRegisterForm()
+        form.fields['employee'].queryset = employee.objects.filter(CompanyID=company, is_working=True)
 
-    return render(request, 'Aapp/shops_act/add_overtime.html', {
-        'employees': employees, 'estabs': estabs,
-        'months': MONTH_CHOICES, 'company': company,
+    return render(request, 'Aapp/generic/form.html', {
+        'form': form, 'company': company,
+        'page_title': 'Add Overtime Record (Form IV)',
+        'cancel_url': reverse('list_overtime'),
     })
 
 
@@ -276,9 +293,14 @@ def delete_overtime(request, ot_id):
         messages.warning(request, 'Please select a company first.')
         return redirect('dashboard')
 
-    rec = get_object_or_404(overtime_register, ot_id=ot_id, company=company)
+    rec = get_object_or_404(overtime_register, ot_id=ot_id, employee__CompanyID=company)
     if request.method == 'POST':
         rec.delete()
         messages.success(request, 'Overtime record deleted.')
-        return redirect('Aapp:list_overtime')
-    return render(request, 'Aapp/shops_act/delete_overtime.html', {'rec': rec})
+        return redirect('list_overtime')
+    return render(request, 'Aapp/generic/confirm.html', {
+        'company': company,
+        'page_title': 'Delete Overtime Record',
+        'confirm_message': f'Delete overtime record for <strong>{rec.employee.name}</strong> on {rec.ot_date} ({rec.ot_hours} hrs)?',
+        'cancel_url': reverse('list_overtime'),
+    })

@@ -14,7 +14,7 @@
             <h2>Edit Sub User — {{ subuser.user.username }}</h2><hr>
             <form method="post">
                 {% csrf_token %}
-                <table style="background:transparent; box-shadow:none; min-width:unset;">
+                <table class="data-table" style="background:transparent; box-shadow:none; min-width:unset;">
                     <tbody>
                         <tr>
                             <td><label>Username</label></td>
