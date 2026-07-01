@@ -26,11 +26,9 @@ if _env_file.exists():
 
 
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-fallback-dev-key-replace-in-production')
-
 DEBUG = os.environ.get('DJANGO_DEBUG', 'True') == 'True'
-
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'aapp.localhost', 'www.localhost', 'admin.localhost'] + \
-    [h.strip() for h in os.environ.get('DJANGO_ALLOWED_HOSTS', '').split(',') if h.strip()]
+    [h.strip() for h in os.environ.get('ALLOWED_HOSTS', '').split(',') if h.strip()]
 DEFAULT_HOST = 'www'
 ROOT_HOSTCONF = 'revolution.hosts'
 PARENT_HOST = os.environ.get('DJANGO_PARENT_HOST', 'localhost:8000')
@@ -99,11 +97,11 @@ else:
     DATABASES = {
         'default': {
             'ENGINE': DATABASE_ENGINE,
-            'NAME': os.environ.get('DB_NAME', 'revolution_db'),
-            'USER': os.environ.get('DB_USER', ''),
-            'PASSWORD': os.environ.get('DB_PASSWORD', ''),
-            'HOST': os.environ.get('DB_HOST', 'localhost'),
-            'PORT': os.environ.get('DB_PORT', '5432'),
+            'NAME': os.environ.get('PGDATABASE'),
+            'USER': os.environ.get('PGUSER'),
+            'PASSWORD': os.environ.get('PGPASSWORD'),
+            'HOST': os.environ.get('PGHOST'),
+            'PORT': os.environ.get('PGPORT'),
             'OPTIONS': {
                 'connect_timeout': 10,
             },
