@@ -62,7 +62,11 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'revolution.urls'
+# settings.py
 
+CSRF_TRUSTED_ORIGINS = [
+    'https://revolutionassociates-production.up.railway.app',
+]
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
