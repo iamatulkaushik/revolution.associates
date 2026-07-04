@@ -9,6 +9,8 @@
 !.env.example
 
 raw_data.text
+readme.md
+whole_project.md
 
 # Python bytecode
 __pycache__/

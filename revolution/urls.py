@@ -26,6 +26,7 @@ urlpatterns = [
     path('baseurls/', admin.site.urls),
     path('admin/', include('Sapp.urls')),
     path('associate/',include('Aapp.urls')),
+    path('capp/',include('Capp.urls')),
 ]
 urlpatterns += staticfiles_urlpatterns()
 
@@ -33,4 +34,5 @@ host_patterns = patterns('',
     host(r'www', 'revolution.urls', name='www'),
     host(r'associate', 'Aapp.urls', name='associate'),
     host(r'admin', 'Sapp.urls', name='admin'),
+    host(r'company', 'Capp.urls', name='company'),
 )

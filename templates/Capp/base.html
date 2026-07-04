@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#1d3557">
+  <meta name="rights" content="Revolution Associates">
+  <title>{% block title %}{% endblock %} · Revolution HRMS · Owner</title>
+  {% load static %}
+  <link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
+  <link rel="preload" href="{% static 'fonts/Infinitude.ttf' %}" as="font" type="font/ttf" crossorigin>
+  <link rel="preload" href="{% static 'fonts/Ubuntu-R.ttf' %}" as="font" type="font/ttf" crossorigin>
+  <link rel="stylesheet" href="{% static 'css/base.css' %}">
+  {% block additionalcss_js %}{% endblock %}
+</head>
+<body>
+
+<div class="app-shell">
+
+  <!-- ── SIDEBAR ──────────────────────────────────────────────── -->
+  <aside class="sidebar" id="sidebar">
+
+    <div class="sidebar-brand">
+      <span class="sidebar-logo noselect">Ō</span>
+      <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar" title="Toggle sidebar">
+        &#9776;
+      </button>
+    </div>
+
+    <nav class="sidebar-nav" aria-label="Main navigation">
+      <ul>
+
+        <li class="nav-item">
+          <a href="{% url 'dashboard' %}" class="nav-link dashboard">
+            <span class="nav-label">Dashboard</span>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a href="{% url 'company_detail' %}" class="nav-link company">
+            <span class="nav-label">My Company</span>
+          </a>
+        </li>
+
+        {% for group in nav_categories %}
+        <li class="nav-item" id="nav-{{ forloop.counter }}">
+          <button class="nav-link" onclick="toggleNav('nav-{{ forloop.counter }}')" aria-expanded="false">
+            <span class="nav-label">{{ group.category }}</span>
+            <span class="nav-chevron">&#9658;</span>
+          </button>
+          <ul class="nav-sub">
+            {% for m in group.modules %}
+            <li><a href="/{{ m.slug }}/" class="nav-link">{{ m.label }}</a></li>
+            {% endfor %}
+          </ul>
+        </li>
+        {% endfor %}
+
+        <li class="nav-item">
+          <a href="{% url 'owner_profile' %}" class="nav-link profile">
+            <span class="nav-label">My Profile</span>
+          </a>
+        </li>
+
+      </ul>
+    </nav>
+
+    <div class="sidebar-footer">
+      <a href="{% url 'logout' %}" class="nav-link logout">
+        <span class="nav-label">Logout</span>
+      </a>
+    </div>
+
+  </aside><!-- /sidebar -->
+
+  <!-- ── MAIN WRAP ─────────────────────────────────────────────── -->
+  <div class="main-wrap" id="mainWrap">
+
+    <header class="topbar">
+      <div class="topbar-left">
+        <h1 class="topbar-title"></h1>
+      </div>
+      <div class="topbar-right">
+        <div class="company-chip" title="Your company">
+          <span class="company-chip-icon">П</span>
+          <span class="company-chip-name">{{ owned_company.company_name|default:"—" }}</span>
+        </div>
+        <div class="user-pill">
+          <div class="user-avatar" aria-hidden="true">ţ</div>
+          <span class="user-name">{{ user.username }}</span>
+        </div>
+        <a href="{% url 'logout' %}" class="btn-logout logout" aria-label="Logout">
+          <span>Logout</span>
+        </a>
+      </div>
+    </header>
+
+    <main class="page-content" id="main-content">
+      {% block content %}{% endblock %}
+    </main>
+
+    <footer class="app-footer">
+      <div class="footer-col">
+        <span>Revolution Associates</span>
+        <span class="tagline">Company Owner Portal</span>
+      </div>
+      <div class="footer-col">
+        <span>Contact</span>
+        <a href="tel:+91-8307145638" class="tagline">+91-8307145638</a>
+        <a href="mailto:revolution.associates@gmail.com" class="tagline">revolution.associates@gmail.com</a>
+      </div>
+      <div class="footer-col">
+        <span>Legal</span>
+        <span class="tagline">© 2024–2026 Revolution Associates. All Rights Reserved.</span>
+      </div>
+    </footer>
+
+  </div><!-- /main-wrap -->
+
+</div><!-- /app-shell -->
+
+<script>
+const sidebar = document.getElementById('sidebar');
+const COLLAPSED_KEY = 'capp_sidebar_collapsed';
+
+function applyCollapsed(collapsed) {
+  sidebar.classList.toggle('collapsed', collapsed);
+  const btn = document.getElementById('sidebarToggle');
+  btn.setAttribute('aria-label', collapsed ? 'Expand sidebar' : 'Collapse sidebar');
+}
+
+document.getElementById('sidebarToggle').addEventListener('click', () => {
+  const collapsed = !sidebar.classList.contains('collapsed');
+  applyCollapsed(collapsed);
+  try { localStorage.setItem(COLLAPSED_KEY, collapsed ? '1' : '0'); } catch(e){}
+});
+
+try {
+  const saved = localStorage.getItem(COLLAPSED_KEY);
+  if (saved === '1') applyCollapsed(true);
+} catch(e){}
+
+function toggleNav(id) {
+  const item = document.getElementById(id);
+  const wasOpen = item.classList.contains('open');
+  document.querySelectorAll('.nav-item.open').forEach(el => {
+    if (el !== item) {
+      el.classList.remove('open');
+      el.querySelector('[aria-expanded]')?.setAttribute('aria-expanded', 'false');
+    }
+  });
+  item.classList.toggle('open', !wasOpen);
+  item.querySelector('[aria-expanded]')?.setAttribute('aria-expanded', !wasOpen ? 'true' : 'false');
+}
+
+document.querySelectorAll('.nav-sub .nav-link').forEach(link => {
+  if (link.href === location.href) {
+    link.classList.add('active');
+    const navItem = link.closest('.nav-item');
+    if (navItem) navItem.classList.add('open');
+  }
+});
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

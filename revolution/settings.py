@@ -27,7 +27,7 @@ if _env_file.exists():
 
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-fallback-dev-key-replace-in-production')
 DEBUG = os.environ.get('DJANGO_DEBUG', 'True') == 'True'
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'aapp.localhost', 'www.localhost', 'admin.localhost'] + \
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'aapp.localhost', 'capp.localhost', 'www.localhost', 'admin.localhost'] + \
     [h.strip() for h in os.environ.get('ALLOWED_HOSTS', '').split(',') if h.strip()]
 DEFAULT_HOST = 'www'
 ROOT_HOSTCONF = 'revolution.hosts'
@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django_hosts',
     'Sapp',
     'Aapp',
+    'Capp',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
