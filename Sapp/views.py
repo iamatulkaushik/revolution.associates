@@ -23,6 +23,7 @@ from Sapp.app.user import (
 from Sapp.app.license import License
 from Sapp.app.state_district import District
 from Sapp.decorators import superadmin_required
+from Capp.models import CompanyOwnerProfile
 
 logger = logging.getLogger(__name__)
 
@@ -134,7 +135,95 @@ def alter_company(request, company_id):
             return redirect('list_company')
     else:
         form = create_company_form_superadmin(instance=company)
-    return render(request, 'Sapp/company/alter_company.html', {'form': form, 'company': company})
+        current_owner = CompanyOwnerProfile.objects.filter(company=company).select_related('user').first()
+        eligible_users = User.objects.filter(company_owner_profile__isnull=True).order_by('username')
+    if current_owner:
+        eligible_users = (eligible_users | User.objects.filter(pk=current_owner.user_id)).order_by('username')
+    return render(request, 'Sapp/company/alter_company.html', {
+        'form': form,
+        'company': company,
+        'current_owner': current_owner,
+        'eligible_users': eligible_users,
+    })
+
+
+@superadmin_required
+def assign_company_owner(request, company_id):
+    company = get_object_or_404(Company, company_id=company_id)
+    profile = CompanyOwnerProfile.objects.filter(company=company).select_related('user').first()
+
+    if request.method != 'POST':
+        return redirect('alter_company', company_id=company_id)
+
+    mode = request.POST.get('mode', 'existing')
+    owner_id = request.POST.get('owner_id', '').strip()
+    mobile = request.POST.get('mobile', '').strip()
+
+    try:
+        with transaction.atomic():
+            if mode == 'new':
+                username = request.POST.get('username', '').strip()
+                password1 = request.POST.get('password1', '')
+                password2 = request.POST.get('password2', '')
+
+                if not username or not password1:
+                    messages.error(request, 'Username and password are required.')
+                    return redirect('alter_company', company_id=company_id)
+                if password1 != password2:
+                    messages.error(request, 'Passwords do not match!')
+                    return redirect('alter_company', company_id=company_id)
+                if User.objects.filter(username=username).exists():
+                    messages.error(request, 'Username already exists!')
+                    return redirect('alter_company', company_id=company_id)
+                try:
+                    validate_password(password1)
+                except ValidationError as ve:
+                    for error in ve.messages:
+                        messages.error(request, error)
+                    return redirect('alter_company', company_id=company_id)
+
+                user = User.objects.create_user(
+                    username=username,
+                    password=password1,
+                    email=request.POST.get('email', ''),
+                    first_name=request.POST.get('first_name', ''),
+                    last_name=request.POST.get('last_name', ''),
+                )
+            else:
+                user_id = request.POST.get('user_id')
+                if not user_id:
+                    messages.error(request, 'Select a user to assign as owner.')
+                    return redirect('alter_company', company_id=company_id)
+                user = get_object_or_404(User, pk=user_id)
+                existing = CompanyOwnerProfile.objects.filter(user=user).exclude(company=company).first()
+                if existing:
+                    messages.error(request, f'{user.username} already owns {existing.company.company_name}.')
+                    return redirect('alter_company', company_id=company_id)
+
+            if not owner_id:
+                owner_id = f'OWN-{company.company_id:04d}'
+            if CompanyOwnerProfile.objects.filter(owner_id=owner_id).exclude(company=company).exists():
+                messages.error(request, f'Owner ID "{owner_id}" is already in use.')
+                return redirect('alter_company', company_id=company_id)
+
+            if profile:
+                profile.user = user
+                profile.owner_id = owner_id
+                profile.mobile = mobile or profile.mobile
+                profile.is_active = True
+                profile.save()
+                messages.success(request, f'{user.username} is now the owner of {company.company_name}.')
+            else:
+                CompanyOwnerProfile.objects.create(
+                    user=user, company=company, owner_id=owner_id,
+                    mobile=mobile, created_by=request.user,
+                )
+                messages.success(request, f'{user.username} assigned as owner of {company.company_name}.')
+    except Exception:
+        logger.exception('Failed to assign company owner for company_id=%s', company_id)
+        messages.error(request, 'Could not assign owner. Please check the details and try again.')
+
+    return redirect('alter_company', company_id=company_id)
 
 
 @superadmin_required
