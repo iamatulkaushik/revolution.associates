@@ -67,6 +67,7 @@ ROOT_URLCONF = 'revolution.urls'
 
 CSRF_TRUSTED_ORIGINS = [
     'https://revolutionassociates-production.up.railway.app',
+    'https://*.revolutionassociates-production.up.railway.app',
 ]
 TEMPLATES = [
     {
@@ -89,7 +90,7 @@ WSGI_APPLICATION = 'revolution.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
-DATABASE_ENGINE = os.environ.get('DB_ENGINE', 'django.db.backends.sqlite3')
+DATABASE_ENGINE = os.environ.get('DATABASE_ENGINE', 'django.db.backends.sqlite3')
 
 if DATABASE_ENGINE == 'django.db.backends.sqlite3':
     DATABASES = {
