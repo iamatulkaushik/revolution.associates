@@ -33,7 +33,10 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 def base_home(request):
-    return render(request, 'home.html')
+    from django.conf import settings
+    parent_host = getattr(settings, 'PARENT_HOST', 'localhost:8000')
+    associate_login_url = f'http://aapp.{parent_host}/login/'
+    return render(request, 'home.html', {'associate_login_url': associate_login_url})
 
 
 class loginForm(AuthenticationForm):

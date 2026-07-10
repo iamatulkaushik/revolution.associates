@@ -111,7 +111,7 @@ from Aapp.app.compliance_tracker import (
 
 
 def get_districts(request, state_id):
-    districts = District.objects.filter(state_id=state_id).order_by('name').values('Districtid', 'name')
+    districts = District.objects.filter(state__Stateid=state_id).order_by('name').values('Districtid', 'name')
     return JsonResponse([{'id': d['Districtid'], 'name': d['name']} for d in districts], safe=False)
 
 
@@ -126,8 +126,8 @@ app_name = 'Aapp'
 
 urlpatterns = [
     # ── Auth & Dashboard ─────────────────────────────────────────────────────
-    path('', views.login, name='home'),
-    path('login/', views.associate_login, name='login'),
+    path('', views.associate_base_home, name='home'),
+    path('login/', views.login, name='associate_login'),
     path('logout/', views.logout, name='logout'),
     path('dashboard/', views.dashboard, name='dashboard'),
     path('profile/', views.associate_profile, name='associate_profile'),

@@ -9,6 +9,7 @@
 /* ── Font Faces ─────────────────────────────────────────────────────────── */
 @font-face{font-family:'Infinitude';src:url('../fonts/Infinitude.ttf') format('truetype');font-display:swap}
 @font-face{font-family:'Ubuntu';src:url('../fonts/Ubuntu-R.ttf') format('truetype');font-display:swap}
+@font-face{font-family:'Saber';src:url('../fonts/Saber.ttf') format('truetype');font-display:swap}
 
 /* ── Design Tokens ──────────────────────────────────────────────────────── */
 :root{

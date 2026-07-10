@@ -1,0 +1,519 @@
+{% extends "default.html" %}
+{% block title %}Welcome to Revolution Associates{% endblock %}
+{% load static %}
+{% block additionalcss_js %}
+    <style>
+        /* Base Reset & Variables */
+        :root {
+            --primary: #2563eb;    /* Professional Blue */
+            --dark: #0f172a;       /* Slate Gray */
+            --light: #f8fafc;      /* Soft Background */
+            --white: #ffffff;
+            --text: #334155;
+            --accent-light: #eff6ff; /* Light blue for icons/highlights */
+            --border-color: #e2e8f0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Ubuntu', sans-serif;
+            line-height: 1.6;
+            color: var(--text);
+            background-color: var(--light);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        a {
+            text-decoration: none;
+            color: var(--primary);
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        /* Layout Container */
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Utility Classes */
+        .text-center { text-align: center; }
+        .mb-4 { margin-bottom: 1rem; }
+        .mb-8 { margin-bottom: 2rem; }
+        .mt-8 { margin-top: 2rem; }
+        .py-12 { padding-top: 3rem; padding-bottom: 3rem; }
+        .py-20 { padding-top: 5rem; padding-bottom: 5rem; }
+
+        /* Header */
+        header {
+            background: var(--white);
+            padding: 1.25rem 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--primary);
+            text-transform: uppercase;
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 100px 0 60px;
+            text-align: center;
+            background: var(--white);
+        }
+
+        h1 {
+            font-size: 3rem;
+            color: var(--dark);
+            margin-bottom: 1.2rem;
+            line-height: 1.2;
+            font-weight: 800;
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            max-width: 800px;
+            margin: 0 auto 2rem;
+            color: #64748b;
+        }
+
+        .hero h1 span {
+            color: var(--primary);
+        }
+
+        /* Section Titles */
+        .section-title {
+            text-align: center;
+            margin-bottom: 4rem;
+            color: var(--dark);
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-top: 4rem;
+        }
+
+        /* Features Grid */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-bottom: 4rem;
+        }
+
+        .feature-card {
+            background: var(--white);
+            padding: 2rem;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px -5px rgba(0,0,0,0.08);
+            border-color: var(--primary);
+        }
+
+        .feature-card h3 {
+            color: var(--dark);
+            margin-bottom: 0.8rem;
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        .feature-card p {
+            font-size: 0.95rem;
+            color: #475569;
+        }
+
+        .feature-icon {
+            width: 50px;
+            height: 50px;
+            background: var(--accent-light);
+            border-radius: 50%; /* Circle shape for icons */
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            font-size: 1.8rem; /* Icon size */
+            font-weight: bold;
+            line-height: 1; /* For perfect centering */
+        }
+        /* Custom icons for each feature */
+        .icon-data::before { content: "📊"; } /* Bar Chart - Data */
+        .icon-users::before { content: "👥"; } /* Two People - Users/Multi-company */
+        .icon-code::before { content: "💻"; } /* Laptop - Development */
+
+
+        /* Pricing Table */
+        .pricing-section {
+            background-color: var(--primary);
+            padding: 5rem 0;
+            color: var(--white);
+            margin-bottom: 5rem;
+        }
+
+        .pricing-section .section-title {
+            color: var(--white);
+            margin-bottom: 3rem;
+        }
+
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .price-card {
+            background: var(--white);
+            color: var(--text);
+            padding: 2.5rem;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .price-card.featured {
+            transform: scale(1.05);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            border: 2px solid var(--primary);
+        }
+
+        .price-card h3 {
+            font-size: 1.8rem;
+            color: var(--dark);
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+
+        .price {
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: var(--dark);
+            line-height: 1;
+            margin-bottom: 0.5rem;
+        }
+
+        .price small {
+            font-size: 1.1rem;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        .price-card ul {
+            list-style: none;
+            text-align: left;
+            margin: 2rem 0;
+            flex-grow: 1;
+        }
+
+        .price-card ul li {
+            margin-bottom: 1rem;
+            font-size: 1rem;
+            color: #475569;
+            display: flex;
+            align-items: center;
+        }
+
+        .price-card ul li::before {
+            content: "✅"; /* Checkmark icon */
+            margin-right: 10px;
+            font-size: 1.2em;
+        }
+
+        /* Contact Form */
+        .contact-wrapper {
+            background: var(--white);
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            margin-bottom: 80px;
+        }
+
+        .form-side {
+            padding: 3rem;
+        }
+        .form-side h3 {
+            font-size: 1.8rem;
+            color: var(--dark);
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+
+        .info-side {
+            background: var(--primary);
+            padding: 3rem;
+            color: white;
+        }
+        .info-side h3 {
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 1rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: 'Ubuntu', sans-serif;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px var(--accent-light);
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            padding: 12px 28px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .btn:hover {
+            background: #1d4ed8; /* Darker primary */
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .btn-outline {
+            background: none;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            padding: 10px 25px;
+        }
+
+        .btn-outline:hover {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        /* Footer */
+        footer {
+            background: var(--dark);
+            color: #94a3b8;
+            padding: 4rem 0 2rem;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 40px;
+            border-bottom: 1px solid #334155;
+            padding-bottom: 3rem;
+        }
+
+        .footer-title {
+            color: white;
+            margin-bottom: 1.5rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .footer-grid p {
+            margin-bottom: 0.8rem;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+        .footer-grid p a {
+            color: #94a3b8;
+        }
+        .footer-grid p a:hover {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+
+        @media (max-width: 768px) {
+            .contact-wrapper { grid-template-columns: 1fr; }
+            h1 { font-size: 2.5rem; }
+            .hero p { font-size: 1.1rem; }
+            .section-title { font-size: 1.8rem; }
+            .info-side { order: -1; } /* Puts info side above form on mobile */
+            .grid { grid-template-columns: 1fr; } /* Stack features on mobile */
+            .pricing-grid { grid-template-columns: 1fr; }
+            .price-card.featured { transform: scale(1); } /* Remove scale on mobile */
+        }
+    </style>
+{% endblock %}
+{% block content %}
+
+    <header>
+        <div class="container">
+            <div class="logo">Revolution Associates</div>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="container">
+            <h1>The HRMS Built for <br><span>Private Cloud Ownership.</span></h1>
+            <p>We empower business owners to host their own workforce data. No third-party silos—just professional tools on your own digital space.</p>
+            <a href="#contact" class="btn">Get Started Today</a>
+            <a href="{% url 'login' %}" class="btn">Get Started Today</a>
+        </div>
+    </section>
+
+    <div class="container">
+        <h2 class="section-title">Key Platform Features</h2>
+        
+        <div class="grid">
+            <div class="feature-card">
+                <div class="feature-icon icon-data"></div>
+                <h3>Private Data Vault</h3>
+                <p>Deploy the HRMS on your own local server or private cloud. You retain 100% ownership and access logs of your associate data.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon icon-users"></div>
+                <h3>Multi-Company Sync</h3>
+                <p>Designed for associates working across multiple entities. Manage roles, payroll, and performance via a unified dashboard.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon icon-code"></div>
+                <h3>Custom Development</h3>
+                <p>We don't believe in "one size fits all." We tailor the application logic to match your specific business workflow.</p>
+            </div>
+        </div>
+    </div>
+
+    <section class="pricing-section">
+        <div class="container">
+            <h2 class="section-title">Simple, Transparent Pricing</h2>
+            <p class="text-center mb-8" style="color: #cbd5e1; font-size: 1.1rem;">Choose the plan that best fits your company's needs.</p>
+
+            <div class="pricing-grid">
+                <div class="price-card">
+                    <div>
+                        <h3>Basic</h3>
+                        <div class="price">$99<small>/month</small></div>
+                        <p style="margin-bottom: 2rem; color: #64748b;">Perfect for single-company operations.</p>
+                    </div>
+                    <ul>
+                        <li>Single Company Instance</li>
+                        <li>Up to 5 Users</li>
+                        <li>Standard Support</li>
+                        <li>Core HR Modules</li>
+                    </ul>
+                    <a href="#contact" class="btn btn-outline">Sign Up</a>
+                </div>
+
+                <div class="price-card featured">
+                    <div>
+                        <h3>Professional Plan</h3>
+                        <div class="price">$299<small>/month</small></div>
+                        <p style="margin-bottom: 2rem; color: #64748b;">Ideal for growing businesses with multiple entities.</p>
+                    </div>
+                    <ul>
+                        <li>Multi-Company Management</li>
+                        <li>Up to 50 Users</li>
+                        <li>Customization Options</li>
+                        <li>Priority Support</li>
+                        <li>Advanced Analytics</li>
+                    </ul>
+                    <a href="#contact" class="btn">Sign Up</a>
+                </div>
+
+                <div class="price-card">
+                    <div>
+                        <h3>Enterprise</h3>
+                        <div class="price">Custom<small>/quote</small></div>
+                        <p style="margin-bottom: 2rem; color: #64748b;">Tailored solutions for large-scale operations.</p>
+                    </div>
+                    <ul>
+                        <li>Private Cloud Deployment</li>
+                        <li>Unlimited Users</li>
+                        <li>24/7 Dedicated Support</li>
+                        <li>Full Custom Development</li>
+                        <li>On-site Training</li>
+                    </ul>
+                    <a href="#contact" class="btn btn-outline">Contact Sales</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="container" id="contact">
+        <h2 class="section-title">Get In Touch</h2>
+        <div class="contact-wrapper">
+            <div class="form-side">
+                <h3>Send us a Message</h3>
+                <p style="margin-bottom: 2rem; font-size: 0.9rem;">Interested in a demo or have a project in mind? Fill out the form below and we'll get back to you shortly.</p>
+                <form>
+                    <input type="text" placeholder="Your Name" required>
+                    <input type="email" placeholder="Email Address" required>
+                    <input type="text" placeholder="Company Name (Optional)">
+                    <textarea placeholder="Tell us about your requirements..." rows="5"></textarea>
+                    <button type="submit" class="btn">Send Inquiry</button>
+                </form>
+            </div>
+            <div class="info-side">
+                <h3>Contact Information</h3>
+                <p style="margin: 1.5rem 0; opacity: 0.9;">Revolution Associates specializes in high-security HR development for the modern era, ensuring your data remains yours.</p>
+                <div style="margin-top: 2rem;">
+                    <p><strong>📍 Location</strong><br>Sonipat, Haryana-131001, IN</p><br>
+                    <p><strong>📞 Mobile</strong><br><a href="tel:+919876541230" style="color: white; text-decoration: none;">+91-9876541230</a></p><br>
+                    <p><strong>✉️ Email</strong><br><a href="mailto:associate.google@gmail.com" style="color: white; text-decoration: none;">associate.google@gmail.com</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <div class="footer-grid">
+                <div>
+                    <div class="footer-title">Revolution Associates</div>
+                    <p>Revolutionizing HR management through private data architecture and associate-first design.</p>
+                </div>
+                <div>
+                    <div class="footer-title">Quick Links</div>
+                    <p><a href="#">Our Process</a></p>
+                    <p><a href="#">Privacy Policy</a></p>
+                    <p><a href="#">Support</a></p>
+                </div>
+                <div>
+                    <div class="footer-title">Region</div>
+                    <p>Haryana, India</p>
+                    <p>National Delivery Available</p>
+                </div>
+            </div>
+            <p style="text-align: center; margin-top: 2rem; font-size: 0.8rem;">&copy; 2026 Revolution Associates. Dedicated to Data Sovereignty.</p>
+        </div>
+    </footer>
+{% endblock %}

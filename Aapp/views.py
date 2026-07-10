@@ -25,9 +25,9 @@ class loginForm(AuthenticationForm):
 # Auth views
 # ---------------------------------------------------------------------------
 
-def associate_login(request):
+def associate_base_home(request):
     """Renders the associate login landing page."""
-    return render(request, 'associate_login.html')
+    return render(request, 'associate_base_home.html')
 
 
 def login(request):

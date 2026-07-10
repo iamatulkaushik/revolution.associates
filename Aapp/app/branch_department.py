@@ -85,7 +85,7 @@ def create_branch(request):
             b.created_by = request.user
             b.save()
             messages.success(request, f"Branch '{b.branch_name}' created.")
-            return redirect('Aapp:branch_list')
+            return redirect('branch_list')
     else:
         form = branch_form()
     return render(request, 'Aapp/works/create_branch.html', {'form': form, 'companies': companies})
@@ -107,7 +107,7 @@ def alter_branch(request, branch_id):
             updated.updated_by = request.user
             updated.save()
             messages.success(request, 'Branch updated.')
-            return redirect('Aapp:branch_list')
+            return redirect('branch_list')
     else:
         form = branch_form(instance=b)
     return render(request, 'Aapp/works/alter_branch.html', {'form': form, 'branch': b})
@@ -129,17 +129,28 @@ def delete_branch(request, branch_id):
 
 @login_required
 def create_department(request):
+    company_id = request.session.get('selected_company_id')
+    company = get_object_or_404(Company, company_id=company_id) if company_id else None
+    if not company:
+        messages.warning(request, 'Please select a company first.')
+        return redirect('dashboard')
     if request.method == 'POST':
-        form = department_form(request.POST)
-        if form.is_valid():
-            d = form.save(commit=False)
-            d.created_by = request.user
-            d.save()
-            messages.success(request, f"Department '{d.department_name}' created.")
-            return redirect('Aapp:department_list')
-    else:
-        form = department_form()
-    return render(request, 'Aapp/works/create_department.html', {'form': form})
+        department_name = request.POST.get('department_name')
+        branch_id = request.POST.get('branch')
+        b = get_object_or_404(branch, branchid=branch_id, companyid=company)
+        department.objects.create(
+            department_name=department_name,
+            branch=b,
+            companyid=company,
+            created_by=request.user,
+        )
+        messages.success(request, f"Department '{department_name}' created.")
+        return redirect('department_list')
+    branches = branch.objects.filter(companyid=company)
+    return render(request, 'Aapp/works/create_department.html', {
+        'selected_company': company,
+        'branches': branches,
+    })
 
 
 @login_required

@@ -351,8 +351,8 @@ def alter_company_associate(request, company_id):
         company.account = request.POST.get('account', '')
         company.ifsc = request.POST.get('ifsc', '')
         company.branch_address = request.POST.get('branch_address', '')
-        company.state_id = State.objects.get(id=request.POST.get('state_id'))
-        company.district_id = District.objects.get(id=request.POST.get('district_id'))
+        company.state_id = State.objects.get(Stateid=request.POST.get('stateid'))
+        company.district_id = District.objects.get(Districtid=request.POST.get('DistrictID'))
         company.updated_by = request.user.username
         company.updated_at = date.today()
         company.created_by = company.created_by or request.user.username  # Preserve original created_by
@@ -362,7 +362,14 @@ def alter_company_associate(request, company_id):
         return redirect('list_company_associate')
     
     banks = bank_name.objects.all()
-    return render(request, 'Aapp/company/alter.html', {'company': company, 'banks': banks})
+    states = State.objects.all()
+    districts = District.objects.filter(state=company.state_id)
+    return render(request, 'Aapp/company/alter.html', {
+        'company': company,
+        'banks': banks,
+        'states': states,
+        'districts': districts,
+    })
 
 @login_required
 def mark_inactive_company(request, company_id):
