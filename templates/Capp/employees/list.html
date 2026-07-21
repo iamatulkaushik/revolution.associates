@@ -1,0 +1,79 @@
+{% extends 'Capp/base.html' %}
+{% block title %}Employees{% endblock %}
+{% block content %}
+
+<div class="section-header">
+  <h2>Employees — {{ company.company_name }}</h2>
+  <span class="text-muted text-sm">{{ employees|length }} record{{ employees|length|pluralize }}</span>
+</div>
+
+<div class="readonly-notice">Read-only view. Contact your associate to add or edit employees.</div>
+
+<!-- Search / filter bar -->
+<div class="card" style="margin-bottom:var(--sp-4)">
+  <div class="card-body" style="padding:var(--sp-3) var(--sp-5)">
+    <form method="get" style="display:flex;gap:var(--sp-3);align-items:center;flex-wrap:wrap">
+      <input type="text" name="q" value="{{ q }}" placeholder="Search name or code…"
+             style="max-width:260px">
+      <select name="status">
+        <option value="active"   {% if status == 'active'   %}selected{% endif %}>Active</option>
+        <option value="inactive" {% if status == 'inactive' %}selected{% endif %}>Inactive</option>
+        <option value="all"      {% if status == 'all'      %}selected{% endif %}>All</option>
+      </select>
+      <button type="submit" class="button btn-primary">Filter</button>
+      <a href="{% url 'capp_employee_list' %}" class="button">Reset</a>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  {% if employees %}
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Code</th>
+          <th>Name</th>
+          <th>Designation</th>
+          <th>Department</th>
+          <th>Date of Joining</th>
+          <th>Mobile</th>
+          <th>Status</th>
+          <th>Details</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for emp in employees %}
+        <tr>
+          <td class="text-muted text-sm">{{ forloop.counter }}</td>
+          <td><strong>{{ emp.employeecode }}</strong></td>
+          <td>{{ emp.name }}</td>
+          <td class="text-muted">{{ emp.designation_name|default:"—" }}</td>
+          <td class="text-muted">{{ emp.department_name|default:"—" }}</td>
+          <td class="text-sm">{{ emp.date_of_joining|default:"—" }}</td>
+          <td class="text-sm">{{ emp.mobile|default:"—" }}</td>
+          <td>
+            {% if emp.is_working %}
+              <span class="badge badge-success">Active</span>
+            {% else %}
+              <span class="badge badge-danger">Inactive</span>
+            {% endif %}
+          </td>
+          <td>
+            <a href="{% url 'capp_employee_detail' emp.employeeid %}" class="action-edit">View</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="card-body text-center" style="padding:var(--sp-8)">
+    <div style="font-family:var(--font-head);font-size:48px;color:var(--c-border);margin-bottom:var(--sp-4)">ı</div>
+    <p class="text-muted">No employees found{% if q %} for "{{ q }}"{% endif %}.</p>
+    {% if q %}<a href="{% url 'capp_employee_list' %}" class="button" style="margin-top:var(--sp-4)">Clear search</a>{% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

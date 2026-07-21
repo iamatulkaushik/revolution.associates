@@ -6,8 +6,8 @@
 <title>Revolution HRMS — Payroll & Compliance, Handled</title>
   {% load static %}
 <link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
-<link rel="preload" href="{% static 'fonts/Infinitude.ttf' %}" as="font" type="font/ttf" crossorigin>
-<link rel="preload" href="{% static 'fonts/Ubuntu-R.ttf' %}" as="font" type="font/ttf" crossorigin>
+<link rel="prefetch" href="{% static 'fonts/Infinitude.ttf' %}" as="font" type="font/ttf" crossorigin>
+<link rel="prefetch" href="{% static 'fonts/Ubuntu-R.ttf' %}" as="font" type="font/ttf" crossorigin>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
@@ -293,7 +293,7 @@
         </ul>
       </nav>
       <div class="nav-cta">
-        <a href="#" class="btn btn-ghost">Sign in</a>
+        <a href="{% url 'login' %}" class="btn btn-ghost">Sign in</a>
         <a href="#cta" class="btn btn-primary">Get a demo</a>
       </div>
     </div>

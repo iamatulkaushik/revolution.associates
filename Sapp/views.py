@@ -139,7 +139,12 @@ def alter_company(request, company_id):
     else:
         form = create_company_form_superadmin(instance=company)
         current_owner = CompanyOwnerProfile.objects.filter(company=company).select_related('user').first()
-        eligible_users = User.objects.filter(company_owner_profile__isnull=True).order_by('username')
+        eligible_users = User.objects.filter(
+            company_owner_profile__isnull=True,
+            is_superuser=False,
+            profile__isnull=False,
+            profile__role__in=['owner']
+        ).order_by('username')
     if current_owner:
         eligible_users = (eligible_users | User.objects.filter(pk=current_owner.user_id)).order_by('username')
     return render(request, 'Sapp/company/alter_company.html', {

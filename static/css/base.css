@@ -196,6 +196,7 @@ img{max-width:100%;display:block}
 }
 .card-header .card-actions{display:flex;gap:var(--sp-2);align-items:center;flex-wrap:wrap}
 .card-body{padding:var(--sp-5)}
+.card-width{min-width:21%;margin:0 auto;float:left;display:inline-flexbox;}
 
 /* ═══ STAT CARDS (dashboard) ════════════════════════════════════════════── */
 .stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:var(--sp-5);margin-bottom:var(--sp-6)}

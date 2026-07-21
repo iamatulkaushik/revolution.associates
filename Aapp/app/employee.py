@@ -197,6 +197,25 @@ def create_employee(request):
             messages.error(request, 'Bank account already registered.')
         else:
             try:
+                branch_obj = branch.objects.filter(branchid=p['branchID'], companyid=company).first()
+                dept_obj = department.objects.filter(departmentid=p['departmentID'], companyid=company).first()
+                designation_obj = designation.objects.filter(
+                    designationid=p['designationID'], company=company, is_active=True, is_deleted=False
+                ).first()
+
+                if not branch_obj:
+                    messages.error(request, 'Branch does not belong to the selected company.')
+                    return render(request, 'Aapp/employees/create_employee.html', ctx)
+                if not dept_obj:
+                    messages.error(request, 'Department does not belong to the selected company.')
+                    return render(request, 'Aapp/employees/create_employee.html', ctx)
+                if not designation_obj:
+                    messages.error(request, 'Designation does not belong to the selected company.')
+                    return render(request, 'Aapp/employees/create_employee.html', ctx)
+                if dept_obj.branch_id != branch_obj.branchid:
+                    messages.error(request, 'Selected department does not belong to the selected branch.')
+                    return render(request, 'Aapp/employees/create_employee.html', ctx)
+
                 same = p.get('same_as_permanent') == 'on'
                 employee.objects.create(
                     employeecode   = p['employeecode'],
@@ -242,9 +261,9 @@ def create_employee(request):
                     esic_number    = p.get('esic_number', ''),
                     esic_doj       = p.get('esic_doj') or None,
                     labour_id      = p.get('labour_id', ''),
-                    designationID_id = p['designationID'],
-                    departmentID_id  = p['departmentID'],
-                    branchID_id      = p['branchID'],
+                    designationID_id = designation_obj.designationid,
+                    departmentID_id  = dept_obj.departmentid,
+                    branchID_id      = branch_obj.branchid,
                     CompanyID        = company,
                 )
                 messages.success(request, f"Employee '{p['name']}' created successfully.")
@@ -270,6 +289,25 @@ def alter_employee(request, employee_id):
     if request.method == 'POST':
         p = request.POST
         try:
+            branch_obj = branch.objects.filter(branchid=p.get('branchID'), companyid=company).first()
+            dept_obj = department.objects.filter(departmentid=p.get('departmentID'), companyid=company).first()
+            designation_obj = designation.objects.filter(
+                designationid=p.get('designationID'), company=company, is_active=True, is_deleted=False
+            ).first()
+
+            if not branch_obj:
+                messages.error(request, 'Branch does not belong to the selected company.')
+                return render(request, 'Aapp/employees/alter_employee.html', ctx)
+            if not dept_obj:
+                messages.error(request, 'Department does not belong to the selected company.')
+                return render(request, 'Aapp/employees/alter_employee.html', ctx)
+            if not designation_obj:
+                messages.error(request, 'Designation does not belong to the selected company.')
+                return render(request, 'Aapp/employees/alter_employee.html', ctx)
+            if dept_obj.branch_id != branch_obj.branchid:
+                messages.error(request, 'Selected department does not belong to the selected branch.')
+                return render(request, 'Aapp/employees/alter_employee.html', ctx)
+
             same = p.get('same_as_permanent') == 'on'
             emp.name           = p.get('name', emp.name)
             emp.fathername     = p.get('fathername', emp.fathername)
@@ -303,9 +341,9 @@ def alter_employee(request, employee_id):
             emp.esic_number    = p.get('esic_number', emp.esic_number)
             emp.esic_doj       = p.get('esic_doj') or emp.esic_doj
             emp.labour_id      = p.get('labour_id', emp.labour_id)
-            emp.designationID_id = p.get('designationID', emp.designationID_id)
-            emp.departmentID_id  = p.get('departmentID', emp.departmentID_id)
-            emp.branchID_id      = p.get('branchID', emp.branchID_id)
+            emp.designationID_id = designation_obj.designationid
+            emp.departmentID_id  = dept_obj.departmentid
+            emp.branchID_id      = branch_obj.branchid
             emp.save()
             messages.success(request, f"Employee '{emp.name}' updated successfully.")
             return redirect('list_employee')

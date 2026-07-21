@@ -1,232 +1,459 @@
-import logging
+"""
+Capp/views.py
+=============
+Company Owner portal views.
 
-from django import forms as dj_forms
-from django.contrib import messages
+All views are read-only — owners can VIEW and DOWNLOAD, not create/edit.
+Editing is reserved for the Associate (Aapp) who manages the company.
+"""
+
+import logging
+from functools import wraps
+from datetime import date
+
+from django import forms
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
 from django.contrib.auth.forms import AuthenticationForm
-from django.http import Http404
+from django.contrib import messages
+from django.http import HttpResponse, Http404
 from django.shortcuts import render, redirect, get_object_or_404
-
-from .decorators import owner_required
-from .forms import build_form_class
-from .registry import REGISTRY, REGISTRY_BY_SLUG, CATEGORIES
-from Sapp.app.company import Company, company_statury
+from django.urls import reverse
 
 logger = logging.getLogger(__name__)
 
 
+# ── Auth decorator ────────────────────────────────────────────────────────────
+
+def owner_required(view_func):
+    """Require an active CompanyOwnerProfile. Redirect to Capp login if not."""
+    @wraps(view_func)
+    def _wrapped(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return redirect('capp_login')
+        if not getattr(request, 'owner_profile', None):
+            messages.error(request, 'Your account does not have owner access.')
+            return redirect('capp_login')
+        if not request.owner_profile.can_access_system():
+            messages.error(request, 'Your account is inactive. Contact your associate.')
+            return redirect('capp_login')
+        return view_func(request, *args, **kwargs)
+    return _wrapped
+
+
+def access_required(flag):
+    """Decorator: check a specific access flag from owner_profile."""
+    def decorator(view_func):
+        @wraps(view_func)
+        @owner_required
+        def _wrapped(request, *args, **kwargs):
+            if not getattr(request.owner_profile, f'can_view_{flag}', False):
+                messages.error(request, 'You do not have access to this section.')
+                return redirect('capp_dashboard')
+            return view_func(request, *args, **kwargs)
+        return _wrapped
+    return decorator
+
+
+# ── Login / Logout ────────────────────────────────────────────────────────────
+
 class OwnerLoginForm(AuthenticationForm):
-    username = dj_forms.CharField(label='Owner ID / Username', max_length=255)
-    password = dj_forms.CharField(label='Password', widget=dj_forms.PasswordInput)
+    username = forms.CharField(label='Username', widget=forms.TextInput(attrs={'autofocus': True}))
+    password = forms.CharField(label='Password', widget=forms.PasswordInput)
 
 
-# ---------------------------------------------------------------------------
-# Auth
-# ---------------------------------------------------------------------------
+def capp_login(request):
+    if request.user.is_authenticated and getattr(request, 'owner_profile', None):
+        return redirect('capp_dashboard')
 
-def login_company(request):
     if request.method == 'POST':
         form = OwnerLoginForm(data=request.POST)
         if form.is_valid():
             user = form.get_user()
-            profile = getattr(user, 'company_owner_profile', None)
-            if profile is None:
-                messages.error(request, 'This account is not registered as a Company Owner.')
+            try:
+                from Capp.models import CompanyOwnerProfile
+                profile = CompanyOwnerProfile.objects.get(user=user, is_active=True)
+            except CompanyOwnerProfile.DoesNotExist:
+                messages.error(request, 'No owner account found for these credentials.')
                 return render(request, 'Capp/login.html', {'form': form})
-            if not profile.can_access_system():
-                messages.error(request, 'Your account is suspended or disabled.')
-                return render(request, 'Capp/login.html', {'form': form})
+
             auth_login(request, user)
-            return redirect('company_dashboard')
-        messages.error(request, 'Invalid username or password.')
+            # Record IP
+            ip = request.META.get('HTTP_X_FORWARDED_FOR', request.META.get('REMOTE_ADDR', ''))
+            profile.last_login_ip = ip.split(',')[0].strip() if ip else None
+            profile.save(update_fields=['last_login_ip'])
+            logger.info("Owner login: user='%s' company='%s'", user.username, profile.company.company_name)
+            return redirect('capp_dashboard')
     else:
         form = OwnerLoginForm()
+
     return render(request, 'Capp/login.html', {'form': form})
 
 
-def logout_company(request):
+def capp_logout(request):
+    username = request.user.username if request.user.is_authenticated else 'unknown'
     auth_logout(request)
-    return redirect('login_owner')
+    logger.info("Owner logout: user='%s'", username)
+    return redirect('capp_login')
 
 
-# ---------------------------------------------------------------------------
-# Dashboard & company profile
-# ---------------------------------------------------------------------------
+# ── Dashboard ─────────────────────────────────────────────────────────────────
 
 @owner_required
-def dashboard(request):
+def capp_dashboard(request):
     company = request.owned_company
-    counts = []
-    for cat in CATEGORIES:
-        entries = [e for e in REGISTRY if e.category == cat]
-        cat_count = 0
-        for e in entries:
-            cat_count += e.model.objects.filter(**{e.company_lookup: company}).count()
-        counts.append({'category': cat, 'count': cat_count, 'modules': len(entries)})
-    return render(request, 'Capp/dashboard.html', {
-        'company': company,
-        'owner_profile': request.owner_profile,
-        'counts': counts,
-        'categories': CATEGORIES,
-        'registry': REGISTRY,
+    ctx = {'company': company}
+
+    try:
+        from Aapp.app.employee import employee
+        ctx['total_employees']  = employee.objects.filter(CompanyID=company, is_working=True).count()
+        ctx['total_all_emp']    = employee.objects.filter(CompanyID=company).count()
+    except Exception:
+        ctx['total_employees'] = ctx['total_all_emp'] = 0
+
+    try:
+        from Aapp.app.wages import wages_record
+        today = date.today()
+        ctx['wages_this_month'] = wages_record.objects.filter(
+            company=company, salary_month=today.month, salary_year=today.year
+        ).count()
+    except Exception:
+        ctx['wages_this_month'] = 0
+
+    try:
+        from Aapp.app.compliance_tracker import StatutoryReturnTracker
+        from django.utils import timezone
+        ctx['overdue_count'] = StatutoryReturnTracker.objects.filter(
+            company=company, filing_status='pending', due_date__lt=timezone.now().date()
+        ).count()
+        ctx['pending_count'] = StatutoryReturnTracker.objects.filter(
+            company=company, filing_status='pending'
+        ).count()
+    except Exception:
+        ctx['overdue_count'] = ctx['pending_count'] = 0
+
+    try:
+        from Aapp.app.epf_esi import EpfMonthlyEcr
+        today = date.today()
+        ctx['last_ecr'] = EpfMonthlyEcr.objects.filter(
+            company=company
+        ).order_by('-salary_year', '-salary_month').first()
+    except Exception:
+        ctx['last_ecr'] = None
+
+    return render(request, 'Capp/dashboard.html', ctx)
+
+
+# ── Employee views (read-only) ────────────────────────────────────────────────
+
+@access_required('employees')
+def capp_employee_list(request):
+    from Aapp.app.employee import employee
+    company = request.owned_company
+    employees = employee.objects.filter(CompanyID=company).order_by('employeecode')
+
+    # Optional filters
+    q = request.GET.get('q', '').strip()
+    if q:
+        employees = employees.filter(name__icontains=q) | employees.filter(employeecode__icontains=q)
+
+    status = request.GET.get('status', 'active')
+    if status == 'active':
+        employees = employees.filter(is_working=True)
+    elif status == 'inactive':
+        employees = employees.filter(is_working=False)
+
+    return render(request, 'Capp/employees/list.html', {
+        'employees': employees,
+        'q': q, 'status': status,
+        'company': request.owned_company,
     })
 
 
-@owner_required
-def company_detail(request):
+@access_required('employees')
+def capp_employee_detail(request, pk):
+    from Aapp.app.employee import employee
+    emp = get_object_or_404(employee, employeeid=pk, CompanyID=request.owned_company)
+    return render(request, 'Capp/employees/detail.html', {'emp': emp})
+
+
+# ── Attendance views (read-only) ──────────────────────────────────────────────
+
+@access_required('attendance')
+def capp_attendance_list(request):
+    from Aapp.app.attandance import attendance
     company = request.owned_company
-    statutory = company_statury.objects.filter(company=company).first()
-    return render(request, 'Capp/company/detail.html', {'company': company, 'statutory': statutory})
+    month = int(request.GET.get('month', date.today().month))
+    year  = int(request.GET.get('year',  date.today().year))
+    records = attendance.objects.filter(
+        companyid=company, salary_month=month, salary_year=year
+    ).select_related('employee_id').order_by('employee_id__employeecode')
 
-
-@owner_required
-def company_edit(request):
-    from django.forms import modelform_factory
-
-    company = request.owned_company
-    exclude = ['company_id', 'company_name', 'pan', 'start_date', 'shut_date', 'created_at', 'created_by', 'updated_at', 'updated_by']
-    FormClass = modelform_factory(Company, exclude=exclude)
-
-    if request.method == 'POST':
-        form = FormClass(request.POST, instance=company)
-        if form.is_valid():
-            obj = form.save(commit=False)
-            obj.updated_by = request.user.username
-            obj.save()
-            messages.success(request, 'Company details updated.')
-            return redirect('company_detail')
-    else:
-        form = FormClass(instance=company)
-    return render(request, 'Capp/company/edit.html', {'form': form, 'company': company})
-
-
-@owner_required
-def profile(request):
-    return render(request, 'Capp/profile.html', {'owner_profile': request.owner_profile})
-
-
-# ---------------------------------------------------------------------------
-# Generic CRUD engine — every registry entry gets list/add/edit/delete
-# ---------------------------------------------------------------------------
-
-def _get_entry(slug):
-    entry = REGISTRY_BY_SLUG.get(slug)
-    if entry is None:
-        raise Http404('Unknown module')
-    return entry
-
-
-def _stamp_audit(obj, user, stamp_created=False):
-    """Set created_by/updated_by whether the field is a User FK or a CharField."""
-    fields = (['created_by'] if stamp_created else []) + ['updated_by']
-    for name in fields:
-        try:
-            field = obj._meta.get_field(name)
-        except Exception:
-            continue
-        setattr(obj, name, user if field.is_relation else user.username)
-
-
-def _company_kwargs(entry, company):
-    """Build the create-time kwargs that stamp the record to the owner's company."""
-    root_field = entry.company_lookup.split('__')[0]
-    if '__' in entry.company_lookup:
-        # Indirectly-scoped model (e.g. via attendance/factory/employee FK) —
-        # the parent FK itself is already filtered to the company in the
-        # form's queryset, so nothing extra needs stamping here.
-        return {}
-    return {root_field: company}
-
-
-@owner_required
-def generic_list(request, slug):
-    entry = _get_entry(slug)
-    company = request.owned_company
-    qs = entry.model.objects.filter(**{entry.company_lookup: company})
-    columns = [entry.model._meta.get_field(f).verbose_name.title() for f in entry.list_fields]
-    rows = []
-    for obj in qs:
-        cells = [getattr(obj, f) for f in entry.list_fields]
-        rows.append({
-            'cells': cells,
-            'actions': [
-                {'label': 'Edit', 'url': f'/{entry.slug}/{obj.pk}/edit/', 'css': 'edit'},
-                {'label': 'Delete', 'url': f'/{entry.slug}/{obj.pk}/delete/', 'css': 'delete'},
-            ],
-        })
     return render(request, 'Capp/generic/list.html', {
-        'page_title': entry.label,
-        'columns': columns,
-        'rows': rows,
-        'add_url': f'/{entry.slug}/add/',
-        'company': company,
+        'page_title':    f'Attendance Register — {month}/{year}',
+        'company':       company,
+        'columns':       ['Emp Code', 'Name', 'Working Days', 'OT Hours', 'Leave Days'],
+        'rows': [{
+            'cells': [
+                r.employee_id.employeecode if r.employee_id else r.emp_code,
+                r.employee_id.name if r.employee_id else '—',
+                getattr(r, 'working_days', '—'),
+                getattr(r, 'overtime_hours', '—'),
+                getattr(r, 'leave_days', '—'),
+            ],
+            'actions': [],
+        } for r in records],
+        'empty_message': 'No attendance records for this period.',
+        'extra_links': [
+            {'label': f'← Previous Month', 'url': f'?month={month-1 if month>1 else 12}&year={year if month>1 else year-1}'},
+            {'label': f'Next Month →',      'url': f'?month={month+1 if month<12 else 1}&year={year if month<12 else year+1}'},
+        ],
     })
 
 
-@owner_required
-def generic_create(request, slug):
-    entry = _get_entry(slug)
+@access_required('attendance')
+def capp_overtime_list(request):
+    from Aapp.app.shops_act import overtime_register
     company = request.owned_company
-    FormClass = build_form_class(entry)
-    if request.method == 'POST':
-        form = FormClass(request.POST, company=company)
-        if form.is_valid():
-            obj = form.save(commit=False)
-            for field, value in _company_kwargs(entry, company).items():
-                setattr(obj, field, value)
-            _stamp_audit(obj, request.user, stamp_created=True)
-            obj.save()
-            if hasattr(form, 'save_m2m'):
-                form.save_m2m()
-            messages.success(request, f'{entry.label} added successfully.')
-            return redirect(f'/{entry.slug}/')
-    else:
-        form = FormClass(company=company)
-    return render(request, 'Capp/generic/form.html', {
-        'page_title': f'Add {entry.label}',
-        'form': form,
-        'cancel_url': f'/{entry.slug}/',
-        'company': company,
+    month = int(request.GET.get('month', date.today().month))
+    year  = int(request.GET.get('year',  date.today().year))
+    records = overtime_register.objects.filter(
+        company=company, salary_month=month, salary_year=year
+    ).select_related('employee')
+
+    return render(request, 'Capp/generic/list.html', {
+        'page_title': f'Overtime Register — {month}/{year}',
+        'company':    company,
+        'columns':    ['Employee', 'OT Date', 'OT Hours', 'Reason', 'OT Wages'],
+        'rows': [{
+            'cells': [r.employee.name, r.ot_date, r.ot_hours, r.ot_reason or '—', r.ot_wages],
+            'actions': [],
+        } for r in records],
+        'empty_message': 'No overtime records for this period.',
     })
 
 
-@owner_required
-def generic_update(request, slug, pk):
-    entry = _get_entry(slug)
+# ── Wages views ───────────────────────────────────────────────────────────────
+
+@access_required('wages')
+def capp_wages_list(request):
+    from Aapp.app.wages import wages_record
     company = request.owned_company
-    obj = get_object_or_404(entry.model.objects.filter(**{entry.company_lookup: company}), pk=pk)
-    FormClass = build_form_class(entry)
-    if request.method == 'POST':
-        form = FormClass(request.POST, instance=obj, company=company)
-        if form.is_valid():
-            updated = form.save(commit=False)
-            _stamp_audit(updated, request.user, stamp_created=False)
-            updated.save()
-            messages.success(request, f'{entry.label} updated successfully.')
-            return redirect(f'/{entry.slug}/')
-    else:
-        form = FormClass(instance=obj, company=company)
-    return render(request, 'Capp/generic/form.html', {
-        'page_title': f'Edit {entry.label}',
-        'form': form,
-        'cancel_url': f'/{entry.slug}/',
-        'company': company,
+    month = int(request.GET.get('month', date.today().month))
+    year  = int(request.GET.get('year',  date.today().year))
+    records = wages_record.objects.filter(
+        company=company, salary_month=month, salary_year=year
+    ).select_related('employee').order_by('employee__employeecode')
+
+    total_gross = sum(float(r.gross_wages or 0) for r in records)
+    total_net   = sum(float(r.net_wages   or 0) for r in records)
+
+    return render(request, 'Capp/wages/list.html', {
+        'records':     records,
+        'month':       month,
+        'year':        year,
+        'months':      list(range(1, 13)),
+        'total_gross': total_gross,
+        'total_net':   total_net,
+        'company':     company,
     })
 
 
-@owner_required
-def generic_delete(request, slug, pk):
-    entry = _get_entry(slug)
+@access_required('wages')
+def capp_salary_slip_select(request):
+    """Month/year selector before downloading salary slips."""
+    return render(request, 'Capp/wages/select_period.html', {
+        'action_label': 'Download Salary Slip',
+        'action_name':  'capp_salary_slip_download',
+        'company':      request.owned_company,
+    })
+
+
+@access_required('wages')
+def capp_salary_slip_download(request, wages_id):
+    from Aapp.app.wages import wages_record
+    from Aapp.app.salary_pdf import salary_slip_pdf
+    rec = get_object_or_404(wages_record, wages_id=wages_id, company=request.owned_company)
+    if not request.owner_profile.can_download_pdf:
+        raise Http404('PDF download not permitted.')
+    pdf = salary_slip_pdf(rec)
+    fname = f'Slip_{rec.employee.employeecode}_{rec.salary_month}_{rec.salary_year}.pdf'
+    return HttpResponse(pdf, content_type='application/pdf',
+                        headers={'Content-Disposition': f'attachment; filename="{fname}"'})
+
+
+@access_required('wages')
+def capp_salary_sheet(request):
+    from Aapp.app.salary_pdf import salary_sheet_pdf
     company = request.owned_company
-    obj = get_object_or_404(entry.model.objects.filter(**{entry.company_lookup: company}), pk=pk)
-    if request.method == 'POST':
-        obj.delete()
-        messages.success(request, f'{entry.label} deleted.')
-        return redirect(f'/{entry.slug}/')
-    return render(request, 'Capp/generic/confirm.html', {
-        'page_title': f'Delete {entry.label}',
-        'confirm_message': f'Are you sure you want to delete this {entry.label} record? This cannot be undone.',
-        'cancel_url': f'/{entry.slug}/',
-        'submit_label': 'Delete',
-        'button_css': 'danger',
+    month = int(request.GET.get('month', date.today().month))
+    year  = int(request.GET.get('year',  date.today().year))
+    if not request.owner_profile.can_download_pdf:
+        raise Http404('PDF download not permitted.')
+    pdf   = salary_sheet_pdf(company, month, year)
+    fname = f'SalarySheet_{month}_{year}.pdf'
+    return HttpResponse(pdf, content_type='application/pdf',
+                        headers={'Content-Disposition': f'attachment; filename="{fname}"'})
+
+
+@access_required('wages')
+def capp_salary_abstract(request):
+    from Aapp.app.salary_pdf import salary_abstract_pdf
+    company = request.owned_company
+    month = int(request.GET.get('month', date.today().month))
+    year  = int(request.GET.get('year',  date.today().year))
+    if not request.owner_profile.can_download_pdf:
+        raise Http404('PDF download not permitted.')
+    pdf   = salary_abstract_pdf(company, month, year)
+    fname = f'SalaryAbstract_{month}_{year}.pdf'
+    return HttpResponse(pdf, content_type='application/pdf',
+                        headers={'Content-Disposition': f'attachment; filename="{fname}"'})
+
+
+# ── Statutory views (read-only) ───────────────────────────────────────────────
+
+@access_required('statutory')
+def capp_epf_ecr(request):
+    from Aapp.app.epf_esi import EpfMonthlyEcr
+    records = EpfMonthlyEcr.objects.filter(company=request.owned_company).order_by('-salary_year', '-salary_month')
+    return render(request, 'Capp/generic/list.html', {
+        'page_title': 'EPF Monthly ECR',
+        'company':    request.owned_company,
+        'columns':    ['Month/Year', 'Members', 'EPF Wages', 'Total Contribution', 'TRRN', 'Status'],
+        'rows': [{
+            'cells': [f'{r.salary_month}/{r.salary_year}', r.total_members,
+                      r.total_epf_wages, r.total_contribution,
+                      r.trrn or '—', r.get_filing_status_display()],
+            'actions': [],
+        } for r in records],
+        'empty_message': 'No EPF ECR records found.',
     })
+
+
+@access_required('statutory')
+def capp_esi_returns(request):
+    from Aapp.app.epf_esi import EsiContributionReturn
+    records = EsiContributionReturn.objects.filter(company=request.owned_company).order_by('-year')
+    return render(request, 'Capp/generic/list.html', {
+        'page_title': 'ESI Contribution Returns',
+        'company':    request.owned_company,
+        'columns':    ['Year', 'Period', 'Covered Employees', 'Total Wages', 'Contribution', 'Status'],
+        'rows': [{
+            'cells': [r.year, r.get_contribution_period_display(), r.total_covered_employees,
+                      r.total_wages, r.total_contribution, r.get_filing_status_display()],
+            'actions': [],
+        } for r in records],
+        'empty_message': 'No ESI returns found.',
+    })
+
+
+@access_required('statutory')
+def capp_gratuity(request):
+    from Aapp.app.gratuity import gratuity_record
+    records = gratuity_record.objects.filter(company=request.owned_company).select_related('employee')
+    return render(request, 'Capp/generic/list.html', {
+        'page_title': 'Gratuity Register',
+        'company':    request.owned_company,
+        'columns':    ['Employee', 'Date of Joining', 'Date of Leaving', 'Years', 'Amount', 'Status'],
+        'rows': [{
+            'cells': [r.employee.name, r.date_of_joining, r.date_of_leaving,
+                      r.years_of_service, r.gratuity_amount,
+                      'Paid' if r.is_paid else 'Pending'],
+            'actions': [],
+        } for r in records],
+        'empty_message': 'No gratuity records found.',
+    })
+
+
+@access_required('statutory')
+def capp_bonus(request):
+    from Aapp.app.bonus import bonus_record
+    records = bonus_record.objects.filter(company=request.owned_company).select_related('employee')
+    return render(request, 'Capp/generic/list.html', {
+        'page_title': 'Bonus Register',
+        'company':    request.owned_company,
+        'columns':    ['Employee', 'Month/Year', 'Bonus %', 'Total Bonus', 'Status'],
+        'rows': [{
+            'cells': [r.employee.name, f'{r.salary_month}/{r.salary_year}',
+                      f'{r.bonus_percentage}%', r.total_bonus,
+                      'Paid' if r.is_paid else 'Pending'],
+            'actions': [],
+        } for r in records],
+        'empty_message': 'No bonus records found.',
+    })
+
+
+@access_required('statutory')
+def capp_maternity(request):
+    from Aapp.app.maternity import maternity_record
+    records = maternity_record.objects.filter(company=request.owned_company).select_related('employee')
+    return render(request, 'Capp/generic/list.html', {
+        'page_title': 'Maternity Benefit Register',
+        'company':    request.owned_company,
+        'columns':    ['Employee', 'Expected Delivery', 'Leave Start', 'Leave End', 'Benefit Amount', 'Status'],
+        'rows': [{
+            'cells': [r.employee.name, r.expected_delivery_date,
+                      r.maternity_leave_start, r.maternity_leave_end or '—',
+                      r.maternity_benefit_amount, 'Paid' if r.is_paid else 'Pending'],
+            'actions': [],
+        } for r in records],
+        'empty_message': 'No maternity records found.',
+    })
+
+
+@access_required('statutory')
+def capp_lwf(request):
+    from Aapp.app.labour_welfare import LabourWelfareFundContribution
+    records = LabourWelfareFundContribution.objects.filter(company=request.owned_company).order_by('-year')
+    return render(request, 'Capp/generic/list.html', {
+        'page_title': 'Labour Welfare Fund',
+        'company':    request.owned_company,
+        'columns':    ['Year', 'Period', 'Employees', 'Total Contribution', 'Due Date', 'Status'],
+        'rows': [{
+            'cells': [r.year, r.get_contribution_period_display(), r.total_employees,
+                      r.total_contribution, r.due_date or '—', r.get_filing_status_display()],
+            'actions': [],
+        } for r in records],
+        'empty_message': 'No LWF records found.',
+    })
+
+
+# ── Compliance calendar (read-only) ───────────────────────────────────────────
+
+@access_required('compliance')
+def capp_compliance(request):
+    from Aapp.app.compliance_tracker import StatutoryReturnTracker
+    from django.utils import timezone
+    company = request.owned_company
+    today   = timezone.now().date()
+    all_items = StatutoryReturnTracker.objects.filter(company=company)
+    return render(request, 'Capp/compliance.html', {
+        'overdue':        all_items.filter(filing_status='pending', due_date__lt=today),
+        'upcoming':       all_items.filter(filing_status='pending', due_date__gte=today).order_by('due_date')[:15],
+        'filed':          all_items.filter(filing_status='filed').order_by('-filed_date')[:10],
+        'overdue_count':  all_items.filter(filing_status='pending', due_date__lt=today).count(),
+        'pending_count':  all_items.filter(filing_status='pending').count(),
+        'total_count':    all_items.count(),
+        'company':        company,
+    })
+
+
+# ── Report / PDF downloads ─────────────────────────────────────────────────────
+
+@access_required('reports')
+def capp_company_profile_pdf(request):
+    from Aapp.app.salary_pdf import company_profile_pdf
+    if not request.owner_profile.can_download_pdf:
+        raise Http404('PDF download not permitted.')
+    pdf   = company_profile_pdf(request.owned_company)
+    fname = f'CompanyProfile_{request.owned_company.company_name.replace(" ", "_")}.pdf'
+    return HttpResponse(pdf, content_type='application/pdf',
+                        headers={'Content-Disposition': f'attachment; filename="{fname}"'})
+
+
+@access_required('reports')
+def capp_letterhead(request, doc_type):
+    """Proxy to the Aapp letterhead generator — same function, scoped to owned_company."""
+    from Aapp.app.pdf_views import download_letterhead_doc
+    # Override session company temporarily so pdf_views._company() returns owner's company
+    request.session['selected_company_id'] = request.owned_company.company_id
+    return download_letterhead_doc(request, doc_type)

@@ -1,0 +1,95 @@
+{% extends 'Capp/base.html' %}
+{% comment %}wages/list.html{% endcomment %}
+{% block title %}Wage Register{% endblock %}
+{% block content %}
+
+<div class="section-header">
+  <h2>Wage Register — {{ month }}/{{ year }}</h2>
+  <div class="section-actions">
+    {% if access.wages %}
+    <a href="{% url 'capp_salary_sheet' %}?month={{ month }}&year={{ year }}" class="button btn-primary">Download Sheet PDF</a>
+    <a href="{% url 'capp_salary_abstract' %}?month={{ month }}&year={{ year }}" class="button">Abstract PDF</a>
+    {% endif %}
+  </div>
+</div>
+
+<div class="readonly-notice">Read-only. Wages are managed by your associate.</div>
+
+<!-- Month selector -->
+<div class="card" style="margin-bottom:var(--sp-4)">
+  <div class="card-body" style="padding:var(--sp-3) var(--sp-5)">
+    <form method="get" style="display:flex;gap:var(--sp-3);align-items:center;flex-wrap:wrap">
+      <select name="month">
+        {% for m in months %}
+        <option value="{{ m }}" {% if m == month %}selected{% endif %}>
+          {{ m }}</option>
+        {% endfor %}
+      </select>
+      <input type="number" name="year" value="{{ year }}" style="width:100px">
+      <button type="submit" class="button btn-primary">Go</button>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  {% if records %}
+  <div style="padding:var(--sp-3) var(--sp-5);border-bottom:1px solid var(--c-border);display:flex;gap:var(--sp-6)">
+    <span class="text-muted text-sm">{{ records|length }} employee{{ records|length|pluralize }}</span>
+    <span class="text-sm">Total Gross: <strong>₹{{ total_gross|floatformat:2 }}</strong></span>
+    <span class="text-sm">Total Net: <strong>₹{{ total_net|floatformat:2 }}</strong></span>
+  </div>
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>#</th><th>Code</th><th>Name</th><th>Days</th>
+          <th>Basic</th><th>DA</th><th>HRA</th><th>OT</th><th>Gross</th>
+          <th>EPF</th><th>ESI</th><th>P.Tax</th><th>Deductions</th><th>Net Wages</th>
+          <th>Slip</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in records %}
+        <tr>
+          <td class="text-muted text-sm">{{ forloop.counter }}</td>
+          <td><strong>{{ r.employee.employeecode }}</strong></td>
+          <td>{{ r.employee.name }}</td>
+          <td class="text-muted">{{ r.working_days|default:"—" }}</td>
+          <td style="text-align:right">{{ r.basic_wages|floatformat:2 }}</td>
+          <td style="text-align:right">{{ r.da|floatformat:2 }}</td>
+          <td style="text-align:right">{{ r.hra|floatformat:2 }}</td>
+          <td style="text-align:right">{{ r.overtime_wages|floatformat:2 }}</td>
+          <td style="text-align:right"><strong>{{ r.gross_wages|floatformat:2 }}</strong></td>
+          <td style="text-align:right">{{ r.epf_deduction|floatformat:2 }}</td>
+          <td style="text-align:right">{{ r.esi_deduction|floatformat:2 }}</td>
+          <td style="text-align:right">{{ r.professional_tax|floatformat:2 }}</td>
+          <td style="text-align:right">{{ r.total_deductions|floatformat:2 }}</td>
+          <td style="text-align:right"><strong>{{ r.net_wages|floatformat:2 }}</strong></td>
+          <td>
+            {% if access.wages %}
+            <a href="{% url 'capp_slip_download' r.wages_id %}" class="action-edit">PDF</a>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      <tfoot>
+        <tr style="background:var(--c-sidebar);color:#fff;font-weight:700">
+          <td colspan="4" style="padding:8px 10px;font-size:13px">TOTAL</td>
+          <td colspan="4"></td>
+          <td style="text-align:right;padding:8px 10px">{{ total_gross|floatformat:2 }}</td>
+          <td colspan="4"></td>
+          <td style="text-align:right;padding:8px 10px">{{ total_net|floatformat:2 }}</td>
+          <td></td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+  {% else %}
+  <div class="card-body text-center" style="padding:var(--sp-8)">
+    <div style="font-family:var(--font-head);font-size:48px;color:var(--c-border);margin-bottom:var(--sp-4)">Ɠ</div>
+    <p class="text-muted">No wage records for {{ month }}/{{ year }}.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

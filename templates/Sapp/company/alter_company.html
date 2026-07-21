@@ -205,8 +205,7 @@
       <select name="user_id">
         <option value="">---------</option>
         {% for u in eligible_users %}
-        <option value="{{ u.id }}" {% if current_owner and current_owner.user_id==u.id %}selected{% endif %}>{{
-          u.username }}</option>
+        <option value="{{ u.id }}" {% if current_owner.user_id == u.id %}selected{% endif %}>{{ u.username }}</option>
         {% endfor %}
       </select>
     </div>

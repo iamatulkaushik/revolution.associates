@@ -30,7 +30,7 @@ def associate_base_home(request):
     return render(request, 'associate_base_home.html')
 
 
-def login(request):
+def associate_login(request):
     if request.method == 'POST':
         form = loginForm(data=request.POST)
         if form.is_valid():

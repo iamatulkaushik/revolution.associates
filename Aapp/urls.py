@@ -104,6 +104,12 @@ from Aapp.app.shops_act import (
 from Aapp.app.labour_welfare import list_lwf, add_lwf, alter_lwf, mark_lwf_paid
 
 # Centralised statutory compliance calendar
+from Aapp.app.pdf_views import (
+    download_salary_slip, download_salary_sheet,
+    download_salary_abstract, download_company_profile,
+    download_letterhead_doc, download_all_slips,
+)
+
 from Aapp.app.compliance_tracker import (
     compliance_dashboard, list_compliance_items, add_compliance_item,
     alter_compliance_item, mark_compliance_filed, seed_compliance_calendar,
@@ -111,7 +117,7 @@ from Aapp.app.compliance_tracker import (
 
 
 def get_districts(request, state_id):
-    districts = District.objects.filter(state__Stateid=state_id).order_by('name').values('Districtid', 'name')
+    districts = District.objects.filter(state_id=state_id).order_by('name').values('Districtid', 'name')
     return JsonResponse([{'id': d['Districtid'], 'name': d['name']} for d in districts], safe=False)
 
 
@@ -127,7 +133,7 @@ app_name = 'Aapp'
 urlpatterns = [
     # ── Auth & Dashboard ─────────────────────────────────────────────────────
     path('', views.associate_base_home, name='home'),
-    path('login/', views.login, name='associate_login'),
+    path('login/', views.associate_login, name='login'),
     path('logout/', views.logout, name='logout'),
     path('dashboard/', views.dashboard, name='dashboard'),
     path('profile/', views.associate_profile, name='associate_profile'),

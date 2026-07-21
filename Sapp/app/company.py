@@ -48,8 +48,8 @@ class Company(models.Model):
 
     @property
     def full_address(self):
-        address_parts = [self.address1, self.address2, self.address3, 
-                         f"{self.district_id.district_name}, {self.state_id.state_name}", 
+        address_parts = [self.address1, self.address2, self.address3,
+                         f"{self.district_id.name}, {self.state_id.name}",
                          self.pin]
         return ', '.join(part for part in address_parts if part)
 
@@ -253,6 +253,8 @@ def get_user_companies(request):
     companies = []
     
     if user_type == 'associate':
+        companies = list(profile.get_companies().values('company_id', 'company_name'))
+    elif user_type == 'owner':
         companies = list(profile.get_companies().values('company_id', 'company_name'))
     elif user_type == 'subuser':
         companies = list(profile.get_companies().values('company_id', 'company_name'))

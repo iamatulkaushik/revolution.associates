@@ -1,0 +1,484 @@
+"""
+pdf_engine.py
+=============
+Reusable PDF letterhead engine for Revolution Associates HRMS.
+
+Provides:
+  - `LetterheadCanvas`  — draws company header + footer on every page
+  - `build_pdf()`       — builds any structured document with letterhead
+  - `doc_styles()`      — consistent typography (Ubuntu-flavoured Helvetica)
+  - `INR()`             — Indian currency formatter
+  - Pre-built table styles for salary, report, quotation documents
+
+Usage:
+    from Aapp.app.pdf_engine import build_pdf, doc_styles, INR, table_style
+    from reportlab.platypus import Paragraph, Table, Spacer
+
+    styles = doc_styles()
+    story  = [Paragraph("Hello", styles['Heading1'])]
+    pdf    = build_pdf(story, company=my_company, title="My Report")
+    # pdf is bytes → return as HttpResponse or attach to email
+"""
+
+import io
+from datetime import date
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.units import mm
+from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+from reportlab.lib.enums import TA_LEFT, TA_CENTER, TA_RIGHT, TA_JUSTIFY
+from reportlab.platypus import (
+    SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle,
+    HRFlowable, KeepTogether,
+)
+from reportlab.pdfgen import canvas as rl_canvas
+from reportlab.lib.colors import HexColor
+
+
+# ── Brand colours (matches base.css) ─────────────────────────────────────────
+NAVY   = HexColor('#1D3557')
+STEEL  = HexColor('#457B9D')
+TEAL   = HexColor('#A8DADC')
+CORAL  = HexColor('#FF6F61')
+CREAM  = HexColor('#F0F4F8')
+LIGHT  = HexColor('#DDE5ED')
+WHITE  = colors.white
+BLACK  = colors.black
+MUTED  = HexColor('#6B7C93')
+
+# ── Page margins ──────────────────────────────────────────────────────────────
+LEFT_M   = 18 * mm
+RIGHT_M  = 18 * mm
+TOP_M    = 38 * mm   # space for letterhead header
+BOTTOM_M = 24 * mm  # space for footer
+
+PAGE_W, PAGE_H = A4
+
+
+# ── Indian currency formatter ─────────────────────────────────────────────────
+def INR(amount):
+    """Format number as ₹ with Indian comma grouping. Returns string."""
+    try:
+        amt = float(amount or 0)
+    except (TypeError, ValueError):
+        return '₹ 0.00'
+    if amt < 0:
+        return f'- ₹ {_inr_group(abs(amt))}'
+    return f'₹ {_inr_group(amt)}'
+
+
+def _inr_group(n):
+    """1,23,456.78 Indian grouping."""
+    parts = f'{n:.2f}'.split('.')
+    s = parts[0]
+    if len(s) <= 3:
+        return f'{s}.{parts[1]}'
+    last3 = s[-3:]
+    rest = s[:-3]
+    groups = []
+    while rest:
+        groups.append(rest[-2:] if len(rest) >= 2 else rest)
+        rest = rest[:-2]
+    return ','.join(reversed(groups)) + ',' + last3 + '.' + parts[1]
+
+
+# ── Typography styles ─────────────────────────────────────────────────────────
+# reportlab ships Helvetica which is metrically similar to Ubuntu — no TTF needed.
+# If Ubuntu.ttf is available at FONT_PATH, register it here.
+
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+FONT_PATH = 'static/fonts/Ubuntu-R.ttf'
+pdfmetrics.registerFont(TTFont('Ubuntu', FONT_PATH))
+_basefont = 'Ubuntu'
+
+_BASE = getSampleStyleSheet()
+
+def doc_styles():
+    """Return a dict of named ParagraphStyles for consistent document typography."""
+    return {
+        'Title': ParagraphStyle(
+            'DocTitle', fontName=_basefont, fontSize=16,
+            textColor=NAVY, alignment=TA_CENTER, spaceAfter=6,
+        ),
+        'Subtitle': ParagraphStyle(
+            'DocSubtitle', fontName=_basefont, fontSize=11,
+            textColor=STEEL, alignment=TA_CENTER, spaceAfter=4,
+        ),
+        'Heading1': ParagraphStyle(
+            'H1', fontName=_basefont, fontSize=13,
+            textColor=NAVY, spaceBefore=10, spaceAfter=4,
+        ),
+        'Heading2': ParagraphStyle(
+            'H2', fontName=_basefont, fontSize=11,
+            textColor=STEEL, spaceBefore=8, spaceAfter=3,
+        ),
+        'Normal': ParagraphStyle(
+            'Normal', fontName=_basefont, fontSize=10,
+            textColor=BLACK, alignment=TA_JUSTIFY, leading=14, spaceAfter=3,
+        ),
+        'Small': ParagraphStyle(
+            'Small', fontName=_basefont, fontSize=8,
+            textColor=MUTED, leading=11,
+        ),
+        'TableHeader': ParagraphStyle(
+            'TH', fontName=_basefont, fontSize=9,
+            textColor=WHITE, alignment=TA_CENTER,
+        ),
+        'TableCell': ParagraphStyle(
+            'TC', fontName=_basefont, fontSize=9,
+            textColor=BLACK, leading=12,
+        ),
+        'TableCellRight': ParagraphStyle(
+            'TCR', fontName=_basefont, fontSize=9,
+            textColor=BLACK, alignment=TA_RIGHT, leading=12,
+        ),
+        'TableCellBold': ParagraphStyle(
+            'TCB', fontName=_basefont, fontSize=9,
+            textColor=NAVY, leading=12,
+        ),
+        'Label': ParagraphStyle(
+            'Label', fontName=_basefont, fontSize=9,
+            textColor=MUTED, spaceAfter=1,
+        ),
+        'Value': ParagraphStyle(
+            'Value', fontName=_basefont, fontSize=10,
+            textColor=BLACK, spaceAfter=4,
+        ),
+        'Footer': ParagraphStyle(
+            'Footer', fontName=_basefont, fontSize=8,
+            textColor=MUTED, alignment=TA_CENTER,
+        ),
+        'AmountTotal': ParagraphStyle(
+            'AmtTotal', fontName=_basefont, fontSize=11,
+            textColor=NAVY, alignment=TA_RIGHT,
+        ),
+    }
+
+
+# ── Reusable table styles ─────────────────────────────────────────────────────
+
+def table_style(header_bg=NAVY, alt_row=True):
+    """Standard data table style — navy header, optional alternating rows."""
+    cmds = [
+        ('BACKGROUND',   (0, 0), (-1, 0), header_bg),
+        ('TEXTCOLOR',    (0, 0), (-1, 0), WHITE),
+        ('FONTNAME',     (0, 0), (-1, 0), _basefont),
+        ('FONTSIZE',     (0, 0), (-1, 0), 9),
+        ('ALIGN',        (0, 0), (-1, 0), 'CENTER'),
+        ('VALIGN',       (0, 0), (-1, -1), 'MIDDLE'),
+        ('FONTNAME',     (0, 1), (-1, -1), _basefont),
+        ('FONTSIZE',     (0, 1), (-1, -1), 9),
+        ('ROWBACKGROUND', (0, 1), (-1, -1), [WHITE, CREAM]) if alt_row else ('BACKGROUND', (0, 1), (-1, -1), WHITE),
+        ('GRID',         (0, 0), (-1, -1), 0.4, LIGHT),
+        ('LINEBELOW',    (0, 0), (-1, 0), 1.2, NAVY),
+        ('TOPPADDING',   (0, 0), (-1, -1), 4),
+        ('BOTTOMPADDING',(0, 0), (-1, -1), 4),
+        ('LEFTPADDING',  (0, 0), (-1, -1), 6),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 6),
+    ]
+    return TableStyle(cmds)
+
+
+def total_row_style():
+    """Style for a totals/summary row appended to a data table."""
+    return [
+        ('BACKGROUND',   (0, -1), (-1, -1), NAVY),
+        ('TEXTCOLOR',    (0, -1), (-1, -1), WHITE),
+        ('FONTNAME',     (0, -1), (-1, -1), _basefont),
+        ('LINEABOVE',    (0, -1), (-1, -1), 1.5, CORAL),
+    ]
+
+
+def section_divider(width=None):
+    """Thin navy rule used to separate sections."""
+    return HRFlowable(
+        width=width or '100%', thickness=0.8,
+        color=NAVY, spaceAfter=6, spaceBefore=6,
+    )
+
+
+# ── Letterhead canvas — draws header + footer on every page ──────────────────
+
+class LetterheadCanvas:
+    """
+    Wraps reportlab canvas to draw company letterhead on every page.
+
+    company is a dict with keys:
+      company_name  (str)
+      tagline       (str, optional)
+      address       (str, optional)
+      mobile        (str, optional)
+      email         (str, optional)
+      pan           (str, optional)
+      gstin         (str, optional)
+      cin           (str, optional)
+      logo_path     (str, optional)  — absolute path to PNG/JPG logo
+      registration_no (str, optional) — e.g. factory / shops-act reg no
+
+    doc_meta is a dict:
+      title         (str)
+      doc_number    (str, optional)
+      doc_date      (date, optional)
+      ref           (str, optional)
+    """
+
+    def __init__(self, filename, company, doc_meta=None, **kwargs):
+        pagesize = kwargs.pop('pagesize', A4)
+        self.canvas = rl_canvas.Canvas(filename, pagesize=pagesize, **kwargs)
+        self.company = company or {}
+        self.doc_meta = doc_meta or {}
+        self._saved_page_states = []
+
+    def __getattr__(self, name):
+        return getattr(self.canvas, name)
+
+    def showPage(self):
+        self._saved_page_states.append(dict(self.canvas.__dict__))
+        self._draw_letterhead(self.canvas._pageNumber)
+        self.canvas.showPage()
+
+    def save(self):
+        self._draw_letterhead(self.canvas._pageNumber)  # last page
+        self.canvas.save()
+
+    def _draw_letterhead(self, page_num):
+        c = self.canvas
+        w, h = PAGE_W, PAGE_H
+
+        # ── Header bar (navy gradient simulation) ──────────────────────────────
+        c.setFillColor(NAVY)
+        c.rect(0, h - 28 * mm, w, 28 * mm, fill=1, stroke=0)
+
+        # Logo (if supplied)
+        logo = self.company.get('logo_path')
+        logo_right = LEFT_M
+        if logo:
+            try:
+                logo_h = 20 * mm
+                logo_w = logo_h  # assume square; adjust if needed
+                c.drawImage(logo, LEFT_M, h - 25 * mm, width=logo_w, height=logo_h,
+                            mask='auto', preserveAspectRatio=True)
+                logo_right = LEFT_M + logo_w + 4 * mm
+            except Exception:
+                pass  # logo file missing — skip silently
+
+        # Company name
+        c.setFillColor(WHITE)
+        c.setFont(_basefont, 15)
+        c.drawString(logo_right, h - 11 * mm, self.company.get('company_name', 'Company Name'))
+
+        # Tagline
+        tagline = self.company.get('tagline1', '')
+        if tagline:
+            c.setFont(_basefont, 8.5)
+            c.setFillColor(TEAL)
+            c.drawString(logo_right, h - 17 * mm, tagline)
+
+        # Right side of header — contact info
+        c.setFont(_basefont, 7.5)
+        c.setFillColor(CREAM)
+        right_x = w - RIGHT_M
+        y_line = h - 9 * mm
+        for text in [
+            self.company.get('email', ''),
+            self.company.get('mobile', ''),
+            self.company.get('address1', '') or self.company.get('address2', '') or self.company.get('address3', ''),
+        ]:
+            if text:
+                c.drawRightString(right_x, y_line, str(text)[:55])
+                y_line -= 5 * mm
+
+        # ── Coral accent stripe ─────────────────────────────────────────────────
+        c.setFillColor(CORAL)
+        c.rect(0, h - 29.5 * mm, w, 1.5 * mm, fill=1, stroke=0)
+
+        # ── Document meta bar (below header) ───────────────────────────────────
+        doc_title = self.doc_meta.get('title', '')
+        doc_num   = self.doc_meta.get('doc_number', '')
+        doc_date  = self.doc_meta.get('doc_date', date.today())
+        doc_ref   = self.doc_meta.get('ref', '')
+
+        meta_y = h - 35 * mm
+        c.setFillColor(NAVY)
+        c.setFont(_basefont, 11)
+        c.drawString(LEFT_M, meta_y, doc_title)
+
+        c.setFont(_basefont, 8.5)
+        c.setFillColor(MUTED)
+        meta_right_parts = []
+        if doc_num:
+            meta_right_parts.append(f'No: {doc_num}')
+        meta_right_parts.append(f'Date: {doc_date}')
+        if doc_ref:
+            meta_right_parts.append(f'Ref: {doc_ref}')
+        c.drawRightString(right_x, meta_y, '   |   '.join(meta_right_parts))
+
+        # Light rule under meta bar
+        c.setStrokeColor(LIGHT)
+        c.setLineWidth(0.5)
+        c.line(LEFT_M, meta_y - 2 * mm, right_x, meta_y - 2 * mm)
+
+        # ── Footer ──────────────────────────────────────────────────────────────
+        footer_y = 12 * mm
+        c.setStrokeColor(CORAL)
+        c.setLineWidth(0.8)
+        c.line(LEFT_M, footer_y + 5 * mm, right_x, footer_y + 5 * mm)
+
+        # Registration numbers
+        reg_parts = []
+        if self.company.get('pan'):     reg_parts.append(f'PAN: {self.company["pan"]}')
+        if self.company.get('gstin'):   reg_parts.append(f'GSTIN: {self.company["gstin"]}')
+        if self.company.get('cin'):     reg_parts.append(f'CIN: {self.company["cin"]}')
+        if self.company.get('registration_no'):
+            reg_parts.append(f'Reg: {self.company["registration_no"]}')
+
+        c.setFont(_basefont, 7)
+        c.setFillColor(MUTED)
+        c.drawString(LEFT_M, footer_y + 2 * mm, '   |   '.join(reg_parts))
+        c.drawRightString(right_x, footer_y + 2 * mm, f'Page {page_num}')
+
+        c.setFont(_basefont, 7)
+        c.drawCentredString(w / 2, footer_y - 1 * mm,
+            'Generated by Revolution Associates HRMS · revolution-associates.in')
+
+
+# ── Main builder ─────────────────────────────────────────────────────────────
+
+def build_pdf(story, company, doc_meta=None, filename=None):
+    """
+    Build a PDF with company letterhead and return bytes.
+
+    Args:
+        story    : list of reportlab Flowable objects (Paragraphs, Tables, etc.)
+        company  : dict with company fields (see LetterheadCanvas docstring)
+                   OR a Company model instance (fields extracted automatically)
+        doc_meta : dict with title, doc_number, doc_date, ref
+        filename : internal PDF filename string (not saved to disk)
+
+    Returns:
+        bytes — ready for HttpResponse or email attachment
+
+    Example:
+        styles = doc_styles()
+        story = [
+            Paragraph("Employee List", styles['Title']),
+            Spacer(1, 4 * mm),
+            Table(data, colWidths=[...]),
+        ]
+        pdf_bytes = build_pdf(story, company=my_company_obj,
+                              doc_meta={'title': 'Employee List'})
+        response = HttpResponse(pdf_bytes, content_type='application/pdf')
+        response['Content-Disposition'] = 'attachment; filename="employees.pdf"'
+        return response
+    """
+    # Normalise company to dict
+    if not isinstance(company, dict):
+        company = _model_to_dict(company)
+
+    doc_meta = doc_meta or {}
+    buf = io.BytesIO()
+
+    doc = SimpleDocTemplate(
+        buf,
+        pagesize=A4,
+        leftMargin=LEFT_M,
+        rightMargin=RIGHT_M,
+        topMargin=TOP_M,
+        bottomMargin=BOTTOM_M,
+        title=doc_meta.get('title', 'HRMS Document'),
+        author='Revolution Associates HRMS',
+    )
+
+    # Inject letterhead via canvas maker
+    def canvas_maker(filename, **kwargs):
+        return LetterheadCanvas(filename, company=company, doc_meta=doc_meta, **kwargs)
+
+    doc.build(story, canvasmaker=canvas_maker)
+    buf.seek(0)
+    return buf.read()
+
+
+def _model_to_dict(company):
+    """Extract standard fields from a Company model instance."""
+    def g(field, default=''):
+        return getattr(company, field, None) or default
+    return {
+        'company_name':    g('company_name'),
+        'tagline':         g('tagline1') or g('company_tagline'),
+        'address':         f"{g('address1') or ''} {g('address2') or ''} {g('address3') or ''} {g('district_id') or ''}-{g('pin') or ''},{g('state_id') or ''}".strip(', '),
+        'mobile':          g('mobile') or g('phone'),
+        'email':           g('email1') or g('email'),
+        'pan':             g('pan'),
+        'gstin':           g('gstin') or g('gst_no'),
+        'cin':             g('cin'),
+        'registration_no': g('registration_number') or g('factory_license_no'),
+        'logo_path':       g('logo_path') or g('logo'),
+    }
+
+
+# ── Convenience: two-column key-value table (for slips, profiles) ────────────
+
+def kv_table(pairs, col_widths=None, label_color=NAVY):
+    """
+    Build a two-column label:value table.
+    pairs = [('Label', 'Value'), ...]
+    """
+    avail = PAGE_W - LEFT_M - RIGHT_M
+    col_widths = col_widths or [avail * 0.38, avail * 0.62]
+    styles = doc_styles()
+    data = [
+        [Paragraph(f'<b>{k}</b>', styles['Label']),
+         Paragraph(str(v or '—'), styles['Value'])]
+        for k, v in pairs
+    ]
+    ts = TableStyle([
+        ('VALIGN',       (0, 0), (-1, -1), 'TOP'),
+        ('TOPPADDING',   (0, 0), (-1, -1), 3),
+        ('BOTTOMPADDING',(0, 0), (-1, -1), 3),
+        ('LEFTPADDING',  (0, 0), (-1, -1), 0),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 6),
+        ('LINEBELOW',    (0, 0), (-1, -1), 0.3, LIGHT),
+    ])
+    return Table(data, colWidths=col_widths, style=ts)
+
+
+# ── Convenience: amount words (Indian) ───────────────────────────────────────
+
+_ONES = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine',
+         'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen',
+         'Seventeen', 'Eighteen', 'Nineteen']
+_TENS = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety']
+
+
+def _below_hundred(n):
+    if n < 20:
+        return _ONES[n]
+    return (_TENS[n // 10] + (' ' + _ONES[n % 10] if n % 10 else '')).strip()
+
+
+def amount_in_words(amount):
+    """Convert rupee amount to words. E.g. 12345.50 → 'Rupees Twelve Thousand Three Hundred Forty Five and Fifty Paise Only'"""
+    try:
+        amount = round(float(amount or 0), 2)
+    except (TypeError, ValueError):
+        return 'Rupees Zero Only'
+
+    rupees = int(amount)
+    paise  = round((amount - rupees) * 100)
+
+    def _convert(n):
+        if n == 0:   return ''
+        if n < 100:  return _below_hundred(n)
+        if n < 1000: return _ones[n // 100] + ' Hundred' + (' ' + _convert(n % 100) if n % 100 else '')
+        if n < 1_00_000:   return _convert(n // 1000) + ' Thousand' + (' ' + _convert(n % 1000) if n % 1000 else '')
+        if n < 1_00_00_000: return _convert(n // 1_00_000) + ' Lakh' + (' ' + _convert(n % 1_00_000) if n % 1_00_000 else '')
+        return _convert(n // 1_00_00_000) + ' Crore' + (' ' + _convert(n % 1_00_00_000) if n % 1_00_00_000 else '')
+
+    _ones = _ONES  # local ref
+    r_words = _convert(rupees) or 'Zero'
+    p_words = _convert(paise)
+    result = f'Rupees {r_words}'
+    if paise:
+        result += f' and {p_words} Paise'
+    return result + ' Only'
