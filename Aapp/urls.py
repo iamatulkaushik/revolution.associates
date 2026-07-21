@@ -104,6 +104,12 @@ from Aapp.app.shops_act import (
 from Aapp.app.labour_welfare import list_lwf, add_lwf, alter_lwf, mark_lwf_paid
 
 # Centralised statutory compliance calendar
+from Aapp.app.pdf_views import (
+    download_salary_slip, download_salary_sheet,
+    download_salary_abstract, download_company_profile,
+    download_letterhead_doc, download_all_slips,
+)
+
 from Aapp.app.compliance_tracker import (
     compliance_dashboard, list_compliance_items, add_compliance_item,
     alter_compliance_item, mark_compliance_filed, seed_compliance_calendar,
@@ -126,7 +132,7 @@ app_name = 'Aapp'
 
 urlpatterns = [
     # ── Auth & Dashboard ─────────────────────────────────────────────────────
-    path('', views.login, name='home'),
+    path('', views.associate_base_home, name='home'),
     path('login/', views.associate_login, name='login'),
     path('logout/', views.logout, name='logout'),
     path('dashboard/', views.dashboard, name='dashboard'),

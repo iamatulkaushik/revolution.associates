@@ -4,5 +4,7 @@ host_patterns = patterns(
     '',
     host(r'www', 'revolution.urls', name='www'),
     host(r'', 'revolution.urls', name='default'),
+    host(r'sapp', 'Sapp.urls', name='sapp'),
     host(r'aapp', 'Aapp.urls', name='aapp'),
+    host(r'capp', 'Capp.urls', name='capp'),
 )

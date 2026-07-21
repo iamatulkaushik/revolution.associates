@@ -1,0 +1,48 @@
+{% extends 'Capp/base.html' %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block content %}
+
+<div class="section-header">
+  <h2>{{ page_title }}</h2>
+  <div class="section-actions">
+    {% for link in extra_links %}
+    <a href="{{ link.url }}" class="button">{{ link.label }}</a>
+    {% endfor %}
+  </div>
+</div>
+
+<div class="readonly-notice">Read-only view. Contact your associate to make changes.</div>
+
+<div class="card">
+  {% if rows %}
+  <div style="padding:var(--sp-3) var(--sp-5);border-bottom:1px solid var(--c-border);display:flex;align-items:center;justify-content:space-between">
+    <span class="text-muted text-sm">{{ rows|length }} record{{ rows|length|pluralize }}</span>
+  </div>
+  <div class="table-wrap">
+    <table class="data-table" role="table">
+      <thead>
+        <tr>
+          <th>#</th>
+          {% for col in columns %}<th>{{ col }}</th>{% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+        <tr>
+          <td class="text-muted text-sm">{{ forloop.counter }}</td>
+          {% for cell in row.cells %}
+          <td>{% if cell is not None %}{{ cell }}{% else %}<span class="text-muted">—</span>{% endif %}</td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="card-body text-center" style="padding:var(--sp-8)">
+    <div style="font-family:var(--font-head);font-size:48px;color:var(--c-border);margin-bottom:var(--sp-4)">Ē</div>
+    <p class="text-muted">{{ empty_message|default:"No records found." }}</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

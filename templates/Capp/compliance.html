@@ -1,0 +1,99 @@
+{% extends 'Capp/base.html' %}
+{% block title %}Compliance Calendar{% endblock %}
+{% block content %}
+
+<div class="section-header">
+  <h2>Statutory Compliance Calendar</h2>
+  <span class="text-muted text-sm">{{ company.company_name }}</span>
+</div>
+
+<div class="readonly-notice">
+  Read-only view. Your associate manages filings and updates the compliance calendar.
+</div>
+
+<div class="compliance-grid">
+  <div class="compliance-stat cs-danger">
+    <span class="stat-num">{{ overdue_count }}</span>
+    <span class="stat-lbl">Overdue</span>
+  </div>
+  <div class="compliance-stat cs-warn">
+    <span class="stat-num">{{ pending_count }}</span>
+    <span class="stat-lbl">Pending</span>
+  </div>
+  <div class="compliance-stat cs-success">
+    <span class="stat-num">{{ total_count }}</span>
+    <span class="stat-lbl">Total Tracked</span>
+  </div>
+</div>
+
+{% if overdue %}
+<div class="card" style="margin-bottom:var(--sp-5)">
+  <div class="card-header" style="background:linear-gradient(135deg,#e63946,#c1121f)">
+    <h3>⚠ Overdue — {{ overdue_count }} item{{ overdue_count|pluralize }}</h3>
+  </div>
+  <div class="table-wrap">
+    <table class="compliance-table">
+      <thead><tr><th>Act</th><th>Form</th><th>Description</th><th>Due Date</th><th>Penalty</th></tr></thead>
+      <tbody>
+        {% for item in overdue %}
+        <tr>
+          <td><strong>{{ item.act_name }}</strong></td>
+          <td><span class="badge badge-danger">{{ item.form_number }}</span></td>
+          <td>{{ item.return_description }}</td>
+          <td><span class="badge badge-danger">{{ item.due_date }}</span></td>
+          <td class="text-muted text-sm">{{ item.penalty_if_late|default:"—" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+<div class="card" style="margin-bottom:var(--sp-5)">
+  <div class="card-header"><h3>Upcoming Returns</h3></div>
+  {% if upcoming %}
+  <div class="table-wrap">
+    <table class="compliance-table">
+      <thead><tr><th>Act</th><th>Form</th><th>Description</th><th>Due Date</th><th>Frequency</th></tr></thead>
+      <tbody>
+        {% for item in upcoming %}
+        <tr>
+          <td><strong>{{ item.act_name }}</strong></td>
+          <td><span class="badge badge-warn">{{ item.form_number }}</span></td>
+          <td>{{ item.return_description }}</td>
+          <td><span class="badge badge-info">{{ item.due_date }}</span></td>
+          <td class="text-muted text-sm">{{ item.get_frequency_display }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="card-body text-center text-muted" style="padding:var(--sp-6)">No upcoming items tracked.</div>
+  {% endif %}
+</div>
+
+<div class="card">
+  <div class="card-header"><h3>Recently Filed</h3></div>
+  {% if filed %}
+  <div class="table-wrap">
+    <table class="compliance-table">
+      <thead><tr><th>Act</th><th>Form</th><th>Filed Date</th><th>Acknowledgement No.</th></tr></thead>
+      <tbody>
+        {% for item in filed %}
+        <tr>
+          <td><strong>{{ item.act_name }}</strong></td>
+          <td><span class="badge badge-success">{{ item.form_number }}</span></td>
+          <td><span class="badge badge-success">{{ item.filed_date }}</span></td>
+          <td class="text-muted text-sm">{{ item.acknowledgement_no|default:"—" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="card-body text-center text-muted" style="padding:var(--sp-6)">No filings recorded yet.</div>
+  {% endif %}
+</div>
+{% endblock %}

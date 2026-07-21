@@ -1,0 +1,69 @@
+{% extends 'Capp/base.html' %}
+{% block title %}{{ emp.name }}{% endblock %}
+{% block content %}
+
+<div class="section-header">
+  <h2>{{ emp.name }}</h2>
+  <div class="section-actions">
+    <a href="{% url 'capp_employee_list' %}" class="button">← All Employees</a>
+    {% if access.wages %}
+    <a href="{% url 'capp_wages_list' %}?emp={{ emp.employeeid }}" class="button">View Wages</a>
+    {% endif %}
+  </div>
+</div>
+
+<div class="readonly-notice">Read-only view. Contact your associate to update employee records.</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-5)">
+
+  <!-- Personal Info -->
+  <div class="card">
+    <div class="card-header"><h3>Personal Information</h3></div>
+    <div class="card-body">
+      <table class="data-table">
+        <tbody>
+          <tr><th style="width:140px;background:var(--c-bg);font-size:11px;color:var(--c-muted);text-transform:uppercase">Employee Code</th><td><strong>{{ emp.employeecode }}</strong></td></tr>
+          <tr><th>Full Name</th><td>{{ emp.name }}</td></tr>
+          <tr><th>Father's Name</th><td>{{ emp.father_name|default:"—" }}</td></tr>
+          <tr><th>Date of Birth</th><td>{{ emp.date_of_birth|default:"—" }}</td></tr>
+          <tr><th>Gender</th><td>{{ emp.gender|default:"—" }}</td></tr>
+          <tr><th>Mobile</th><td>{{ emp.mobile|default:"—" }}</td></tr>
+          <tr><th>Email</th><td>{{ emp.email|default:"—" }}</td></tr>
+          <tr><th>Address</th><td>{{ emp.address|default:"—" }}</td></tr>
+          <tr><th>Aadhaar</th><td>{{ emp.aadhar_number|default:"—" }}</td></tr>
+          <tr><th>PAN</th><td>{{ emp.pan_number|default:"—" }}</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Employment Info -->
+  <div class="card">
+    <div class="card-header"><h3>Employment Details</h3></div>
+    <div class="card-body">
+      <table class="data-table">
+        <tbody>
+          <tr><th style="width:140px;background:var(--c-bg);font-size:11px;color:var(--c-muted);text-transform:uppercase">Designation</th><td>{{ emp.designation_name|default:"—" }}</td></tr>
+          <tr><th>Department</th><td>{{ emp.department_name|default:"—" }}</td></tr>
+          <tr><th>Branch</th><td>{{ emp.branch_name|default:"—" }}</td></tr>
+          <tr><th>Date of Joining</th><td>{{ emp.date_of_joining|default:"—" }}</td></tr>
+          <tr><th>Employment Type</th><td>{{ emp.employment_type|default:"—" }}</td></tr>
+          <tr><th>Status</th><td>
+            {% if emp.is_working %}
+              <span class="badge badge-success">Active</span>
+            {% else %}
+              <span class="badge badge-danger">Inactive</span>
+            {% endif %}
+          </td></tr>
+          <tr><th>UAN (EPF)</th><td>{{ emp.uan_number|default:"—" }}</td></tr>
+          <tr><th>EPF Member ID</th><td>{{ emp.epf_memberID|default:"—" }}</td></tr>
+          <tr><th>ESIC No.</th><td>{{ emp.esic_number|default:"—" }}</td></tr>
+          <tr><th>Bank Account</th><td>{{ emp.bank_account|default:"—" }}</td></tr>
+          <tr><th>Bank IFSC</th><td>{{ emp.bank_ifsc|default:"—" }}</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

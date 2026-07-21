@@ -1,0 +1,85 @@
+{% extends 'Capp/base.html' %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+
+<div class="section-header">
+  <h2>{{ owned_company.company_name }}</h2>
+  <div class="section-actions">
+    {% if access.reports %}
+    <a href="{% url 'capp_company_profile_pdf' %}" class="button btn-primary">Company Profile PDF</a>
+    {% endif %}
+    {% if access.wages %}
+    <a href="{% url 'capp_salary_sheet' %}?month={{ today.month }}&year={{ today.year }}" class="button">Salary Sheet PDF</a>
+    {% endif %}
+  </div>
+</div>
+
+<div class="readonly-notice">
+  This is a <strong>view-only</strong> portal. To make changes to any records, contact your assigned associate.
+</div>
+
+<div class="stat-grid">
+  <div class="stat-card">
+    <div class="stat-icon">ı</div>
+    <div class="stat-value">{{ total_employees }}</div>
+    <div class="stat-label">Active Employees</div>
+    <div class="stat-note">{{ total_all_emp }} total &nbsp;·&nbsp; <a href="{% url 'capp_employee_list' %}">View all</a></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon">Ɠ</div>
+    <div class="stat-value">{{ wages_this_month }}</div>
+    <div class="stat-label">Wage Records This Month</div>
+    <div class="stat-note"><a href="{% url 'capp_wages_list' %}">View wages</a></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon">Ē</div>
+    <div class="stat-value">{{ overdue_count }}</div>
+    <div class="stat-label">Overdue Compliance Items</div>
+    <div class="stat-note">{{ pending_count }} pending &nbsp;·&nbsp; <a href="{% url 'capp_compliance' %}">View</a></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon">П</div>
+    <div class="stat-value">{{ owned_company.pan|default:"—" }}</div>
+    <div class="stat-label">Company PAN</div>
+    <div class="stat-note">GSTIN: {{ owned_company.gstin|default:"—" }}</div>
+  </div>
+</div>
+
+<!-- Company info strip -->
+<div class="card" style="margin-bottom:var(--sp-5)">
+  <div class="card-header"><h3>Company Information</h3></div>
+  <div class="card-body">
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:var(--sp-4)">
+      <div><span class="text-muted text-sm">Address</span><p>{{ owned_company.address1|default:"—" }} {{ owned_company.address2|default:"—" }} {{ owned_company.address3|default:"—" }} {{ owned_company.district_id|default:"—" }}-{{ owned_company.pin|default:"—" }},{{ owned_company.state_id|default:"—" }}</p></div>
+      <div><span class="text-muted text-sm">Mobile</span><p>{{ owned_company.mobile|default:"—" }}</p></div>
+      <div><span class="text-muted text-sm">Email</span><p>{{ owned_company.email1|default:"—" }}</p></div>
+      <div><span class="text-muted text-sm">Factory Licence</span><p>{{ owned_company.factory_license_no|default:"—" }}</p></div>
+      <div><span class="text-muted text-sm">EPF Code</span><p>{{ owned_company.pf_code|default:"—" }}</p></div>
+      <div><span class="text-muted text-sm">ESIC Code</span><p>{{ owned_company.esic_code|default:"—" }}</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- Quick actions -->
+<div class="card">
+  <div class="card-header"><h3>Quick Downloads</h3></div>
+  <div class="card-body">
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:var(--sp-3)">
+      {% if access.wages %}
+      <a href="{% url 'capp_salary_sheet' %}" class="button">Salary Sheet PDF</a>
+      <a href="{% url 'capp_salary_abstract' %}" class="button">Salary Abstract PDF</a>
+      <a href="{% url 'capp_salary_slip' %}" class="button">Employee Salary Slips</a>
+      {% endif %}
+      {% if access.reports %}
+      <a href="{% url 'capp_company_profile_pdf' %}" class="button">Company Profile PDF</a>
+      <a href="{% url 'capp_letterhead' doc_type='quotation' %}" class="button">Quotation PDF</a>
+      <a href="{% url 'capp_letterhead' doc_type='notice' %}" class="button">Office Notice PDF</a>
+      {% endif %}
+      {% if access.compliance %}
+      <a href="{% url 'capp_compliance' %}" class="button btn-primary">Compliance Calendar</a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{% endblock %}

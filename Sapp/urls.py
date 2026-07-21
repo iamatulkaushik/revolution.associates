@@ -8,6 +8,7 @@ urlpatterns = [
     path('company/create/', views.create_company, name="create_company"),
     path('company/quick/', views.quick_company, name="quick_company"),
     path('company/alter/<int:company_id>/', views.alter_company, name="alter_company"),
+    path('company/<int:company_id>/assign-owner/', views.assign_company_owner, name="assign_company_owner"),
     path('company/shut/<int:company_id>/', views.shut_company, name="shut_company"),
     path('get_districts/<int:state_id>/', views.get_districts, name="get_districts"),
     

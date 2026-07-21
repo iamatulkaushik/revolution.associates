@@ -26,11 +26,9 @@ if _env_file.exists():
 
 
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-fallback-dev-key-replace-in-production')
-
 DEBUG = os.environ.get('DJANGO_DEBUG', 'True') == 'True'
-
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'aapp.localhost', 'www.localhost', 'admin.localhost'] + \
-    [h.strip() for h in os.environ.get('DJANGO_ALLOWED_HOSTS', '').split(',') if h.strip()]
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'aapp.localhost', 'capp.localhost', 'www.localhost', 'admin.localhost'] + \
+    [h.strip() for h in os.environ.get('ALLOWED_HOSTS', '').split(',') if h.strip()]
 DEFAULT_HOST = 'www'
 ROOT_HOSTCONF = 'revolution.hosts'
 PARENT_HOST = os.environ.get('DJANGO_PARENT_HOST', 'localhost:8000')
@@ -41,6 +39,7 @@ INSTALLED_APPS = [
     'django_hosts',
     'Sapp',
     'Aapp',
+    'Capp',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -58,13 +57,19 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'Aapp.middleware.CompanyMiddleware',
+    'Capp.middleware.CompanyOwnerMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django_hosts.middleware.HostsResponseMiddleware',
 ]
 
 ROOT_URLCONF = 'revolution.urls'
+# settings.py
 
+CSRF_TRUSTED_ORIGINS = [
+    'https://revolutionassociates-production.up.railway.app',
+    'https://*.revolutionassociates-production.up.railway.app',
+]
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -76,6 +81,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'Aapp.context_processors.company_context',
+                'Capp.context_processors.owner_context',
             ],
         },
     },
@@ -86,7 +92,7 @@ WSGI_APPLICATION = 'revolution.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
-DATABASE_ENGINE = os.environ.get('DB_ENGINE', 'django.db.backends.sqlite3')
+DATABASE_ENGINE = os.environ.get('DATABASE_ENGINE', 'django.db.backends.sqlite3')
 
 if DATABASE_ENGINE == 'django.db.backends.sqlite3':
     DATABASES = {
@@ -99,11 +105,11 @@ else:
     DATABASES = {
         'default': {
             'ENGINE': DATABASE_ENGINE,
-            'NAME': os.environ.get('DB_NAME', 'revolution_db'),
-            'USER': os.environ.get('DB_USER', ''),
-            'PASSWORD': os.environ.get('DB_PASSWORD', ''),
-            'HOST': os.environ.get('DB_HOST', 'localhost'),
-            'PORT': os.environ.get('DB_PORT', '5432'),
+            'NAME': os.environ.get('PGDATABASE'),
+            'USER': os.environ.get('PGUSER'),
+            'PASSWORD': os.environ.get('PGPASSWORD'),
+            'HOST': os.environ.get('PGHOST'),
+            'PORT': os.environ.get('PGPORT'),
             'OPTIONS': {
                 'connect_timeout': 10,
             },

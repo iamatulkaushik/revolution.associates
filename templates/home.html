@@ -1,519 +1,560 @@
-{% extends "default.html" %}
-{% block title %}Welcome to Revolution Associates{% endblock %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Revolution HRMS — Payroll & Compliance, Handled</title>
+  {% load static %}
+<link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
+<link rel="prefetch" href="{% static 'fonts/Infinitude.ttf' %}" as="font" type="font/ttf" crossorigin>
+<link rel="prefetch" href="{% static 'fonts/Ubuntu-R.ttf' %}" as="font" type="font/ttf" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
 {% load static %}
-{% block additionalcss_js %}
-    <style>
-        /* Base Reset & Variables */
-        :root {
-            --primary: #2563eb;    /* Professional Blue */
-            --dark: #0f172a;       /* Slate Gray */
-            --light: #f8fafc;      /* Soft Background */
-            --white: #ffffff;
-            --text: #334155;
-            --accent-light: #eff6ff; /* Light blue for icons/highlights */
-            --border-color: #e2e8f0;
-        }
+<style>
+  @font-face{font-family:'Ubuntu';src:url('../fonts/Ubuntu-R.ttf') format('truetype');font-display:swap}
+  :root{
+    --bg-0:#080c17;
+    --bg-1:#0d1426;
+    --bg-2:#131b34;
+    --glass:rgba(255,255,255,0.06);
+    --glass-brd:rgba(255,255,255,0.14);
+    --glass-hi:rgba(255,255,255,0.10);
+    --ink-0:#f5f7ff;
+    --ink-1:#b7c0dd;
+    --ink-2:#7c86a8;
+    --teal:#2dd9c4;
+    --indigo:#6f7bff;
+    --gold:#e9a23b;
+    --grad-brand: linear-gradient(135deg, var(--teal), var(--indigo));
+    --radius-lg: 28px;
+    --radius-md: 18px;
+    --radius-sm: 12px;
+    --ease: cubic-bezier(.22,.9,.32,1);
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:
+      radial-gradient(1200px 600px at 82% -10%, rgba(111,123,255,.35), transparent 60%),
+      radial-gradient(900px 500px at 8% 8%, rgba(45,217,196,.22), transparent 55%),
+      radial-gradient(700px 500px at 50% 100%, rgba(233,162,59,.14), transparent 60%),
+      linear-gradient(180deg, var(--bg-0), var(--bg-1) 40%, var(--bg-2));
+    color:var(--ink-0);
+    font-family:'Ubuntu', system-ui, sans-serif;
+    line-height:1.5;
+    min-height:100vh;
+    overflow-x:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3, .display{ font-family:'Sora', 'Inter', sans-serif; letter-spacing:-0.02em; }
+  .mono{ font-family:'JetBrains Mono', monospace; }
+  a{ color:inherit; text-decoration:none; }
+  img,svg{ display:block; max-width:100%; }
+  button{ font:inherit; }
+  ::selection{ background:var(--teal); color:#04211d; }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+  a:focus-visible, button:focus-visible{
+    outline:2px solid var(--teal);
+    outline-offset:3px;
+    border-radius:8px;
+  }
+  .skip-link{
+    position:absolute; left:-999px; top:0; background:var(--teal); color:#04211d;
+    padding:10px 16px; border-radius:0 0 10px 0; z-index:999; font-weight:600;
+  }
+  .skip-link:focus{ left:0; }
 
-        body {
-            font-family: 'Ubuntu', sans-serif;
-            line-height: 1.6;
-            color: var(--text);
-            background-color: var(--light);
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-        }
+  .wrap{ max-width:1240px; margin:0 auto; padding:0 24px; }
 
-        a {
-            text-decoration: none;
-            color: var(--primary);
-        }
+  /* ── Ambient orbs ─────────────────────────────────────── */
+  .orb{ position:fixed; border-radius:50%; filter:blur(70px); pointer-events:none; z-index:0; opacity:.55; }
+  .orb-a{ width:420px; height:420px; top:-120px; right:-100px; background:radial-gradient(circle, rgba(111,123,255,.55), transparent 70%); }
+  .orb-b{ width:360px; height:360px; bottom:5%; left:-140px; background:radial-gradient(circle, rgba(45,217,196,.4), transparent 70%); }
 
-        a:hover {
-            text-decoration: underline;
-        }
+  /* ── Glass utility ────────────────────────────────────── */
+  .glass{
+    background:var(--glass);
+    border:1px solid var(--glass-brd);
+    backdrop-filter: blur(22px) saturate(140%);
+    -webkit-backdrop-filter: blur(22px) saturate(140%);
+    box-shadow: 0 1px 0 rgba(255,255,255,.08) inset, 0 20px 60px -25px rgba(0,0,0,.6);
+  }
 
-        /* Layout Container */
-        .container {
-            max-width: 1100px;
-            margin: 0 auto;
-            padding: 0 20px;
-        }
+  /* ── Nav ──────────────────────────────────────────────── */
+  header{ position:sticky; top:0; z-index:50; padding:18px 0; }
+  .nav-inner{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:12px 20px; border-radius:100px;
+  }
+  .brand{ display:flex; align-items:center; gap:10px; font-weight:700; font-size:17px; }
+  .brand-mark{
+    width:34px; height:34px; border-radius:10px; background:var(--grad-brand);
+    display:grid; place-items:center; font-family:'Sora'; font-weight:800; color:#04211d; font-size:16px;
+    box-shadow:0 6px 18px -6px rgba(111,123,255,.7);
+  }
+  nav ul{ display:flex; gap:28px; list-style:none; }
+  nav a{ font-size:14.5px; color:var(--ink-1); font-weight:500; transition:color .2s var(--ease); }
+  nav a:hover{ color:var(--ink-0); }
+  .nav-cta{ display:flex; align-items:center; gap:12px; }
+  @media (max-width:860px){ nav ul{ display:none; } }
 
-        /* Utility Classes */
-        .text-center { text-align: center; }
-        .mb-4 { margin-bottom: 1rem; }
-        .mb-8 { margin-bottom: 2rem; }
-        .mt-8 { margin-top: 2rem; }
-        .py-12 { padding-top: 3rem; padding-bottom: 3rem; }
-        .py-20 { padding-top: 5rem; padding-bottom: 5rem; }
+  .btn{
+    display:inline-flex; align-items:center; gap:8px;
+    padding:12px 22px; border-radius:100px; font-weight:600; font-size:14.5px;
+    cursor:pointer; border:1px solid transparent; transition:transform .2s var(--ease), box-shadow .2s var(--ease), background .2s var(--ease);
+    min-height:44px;
+  }
+  .btn:hover{ transform:translateY(-2px); }
+  .btn-primary{ background:var(--grad-brand); color:#04211d; box-shadow:0 10px 30px -10px rgba(111,123,255,.65); }
+  .btn-primary:hover{ box-shadow:0 16px 36px -10px rgba(111,123,255,.8); }
+  .btn-ghost{ background:var(--glass); border-color:var(--glass-brd); color:var(--ink-0); }
+  .btn-ghost:hover{ background:var(--glass-hi); }
 
-        /* Header */
-        header {
-            background: var(--white);
-            padding: 1.25rem 0;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
+  /* ── Hero ─────────────────────────────────────────────── */
+  .hero{
+    position:relative; z-index:1;
+    display:grid; grid-template-columns:1.05fr 0.95fr; gap:40px; align-items:center;
+    padding:56px 0 40px;
+  }
+  @media (max-width:960px){ .hero{ grid-template-columns:1fr; padding-top:24px; } }
 
-        .logo {
-            font-size: 1.4rem;
-            font-weight: 800;
-            color: var(--primary);
-            text-transform: uppercase;
-        }
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:8px;
+    padding:7px 14px; border-radius:100px; font-size:12.5px; font-weight:600; color:var(--teal);
+    margin-bottom:22px;
+  }
+  .eyebrow .dot{ width:6px; height:6px; border-radius:50%; background:var(--teal); box-shadow:0 0 10px var(--teal); }
 
-        /* Hero Section */
-        .hero {
-            padding: 100px 0 60px;
-            text-align: center;
-            background: var(--white);
-        }
+  .hero h1{
+    font-size:clamp(34px, 5vw, 58px); font-weight:800; line-height:1.06; color:var(--ink-0);
+  }
+  .hero h1 .accent{
+    background:var(--grad-brand); -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .hero p.lede{
+    margin-top:20px; max-width:480px; font-size:16.5px; color:var(--ink-1);
+  }
+  .hero-actions{ display:flex; align-items:center; gap:16px; margin-top:32px; flex-wrap:wrap; }
+  .trust-line{ margin-top:28px; display:flex; align-items:center; gap:14px; color:var(--ink-2); font-size:13px; }
+  .avatar-stack{ display:flex; }
+  .avatar-stack span{
+    width:28px; height:28px; border-radius:50%; border:2px solid var(--bg-1);
+    background:linear-gradient(135deg,var(--indigo),var(--teal)); margin-left:-8px;
+  }
+  .avatar-stack span:first-child{ margin-left:0; }
 
-        h1 {
-            font-size: 3rem;
-            color: var(--dark);
-            margin-bottom: 1.2rem;
-            line-height: 1.2;
-            font-weight: 800;
-        }
+  /* ── 3D mascot ────────────────────────────────────────── */
+  .mascot-stage{
+    position:relative; height:460px; display:grid; place-items:center;
+  }
+  .mascot-halo{
+    position:absolute; width:340px; height:340px; border-radius:50%;
+    background:radial-gradient(circle, rgba(111,123,255,.35), rgba(45,217,196,.12) 55%, transparent 72%);
+    filter:blur(6px);
+    animation: pulse 5s ease-in-out infinite;
+  }
+  .mascot{
+    position:relative; width:300px; animation: float 6s ease-in-out infinite;
+    filter:drop-shadow(0 30px 40px rgba(5,8,20,.55));
+  }
+  .badge-orbit{ position:absolute; inset:0; animation: spin 22s linear infinite; }
+  .badge{
+    position:absolute; width:56px; height:56px; border-radius:16px;
+    display:grid; place-items:center; animation: counterspin 22s linear infinite;
+  }
+  .badge svg{ width:24px; height:24px; }
+  .badge-1{ top:-6px; left:50%; transform:translateX(-50%); }
+  .badge-2{ top:38%; right:-24px; }
+  .badge-3{ bottom:0; left:-18px; }
 
-        .hero p {
-            font-size: 1.25rem;
-            max-width: 800px;
-            margin: 0 auto 2rem;
-            color: #64748b;
-        }
+  @keyframes float{ 0%,100%{ transform:translateY(0px);} 50%{ transform:translateY(-16px);} }
+  @keyframes pulse{ 0%,100%{ opacity:.7; transform:scale(1);} 50%{ opacity:1; transform:scale(1.06);} }
+  @keyframes spin{ from{ transform:rotate(0deg);} to{ transform:rotate(360deg);} }
+  @keyframes counterspin{ from{ transform:rotate(0deg);} to{ transform:rotate(-360deg);} }
 
-        .hero h1 span {
-            color: var(--primary);
-        }
+  @media (prefers-reduced-motion: reduce){
+    .mascot, .mascot-halo, .badge-orbit, .badge{ animation:none !important; }
+    *{ scroll-behavior:auto !important; }
+  }
 
-        /* Section Titles */
-        .section-title {
-            text-align: center;
-            margin-bottom: 4rem;
-            color: var(--dark);
-            font-size: 2.2rem;
-            font-weight: 700;
-            margin-top: 4rem;
-        }
+  /* ── Stat strip ───────────────────────────────────────── */
+  .stat-strip{
+    position:relative; z-index:1;
+    display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin:20px 0 80px;
+    border-radius:var(--radius-lg); padding:26px 10px;
+  }
+  .stat{ text-align:center; padding:6px 12px; }
+  .stat .num{ font-size:clamp(22px,3vw,32px); font-weight:700; font-family:'Sora'; }
+  .stat .label{ font-size:12.5px; color:var(--ink-2); margin-top:4px; }
+  @media (max-width:760px){ .stat-strip{ grid-template-columns:repeat(2,1fr); } }
 
-        /* Features Grid */
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 2rem;
-            margin-bottom: 4rem;
-        }
+  /* ── Section shared ───────────────────────────────────── */
+  section{ position:relative; z-index:1; padding:70px 0; }
+  .section-head{ max-width:600px; margin:0 auto 44px; text-align:center; }
+  .section-head .eyebrow{ display:inline-flex; }
+  .section-head h2{ font-size:clamp(26px,3.4vw,38px); font-weight:800; margin-top:12px; }
+  .section-head p{ color:var(--ink-1); margin-top:12px; font-size:15.5px; }
 
-        .feature-card {
-            background: var(--white);
-            padding: 2rem;
-            border-radius: 12px;
-            border: 1px solid var(--border-color);
-            transition: all 0.3s ease;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-        }
+  /* ── Feature bento ────────────────────────────────────── */
+  .bento{ display:grid; grid-template-columns:repeat(3,1fr); gap:20px; }
+  @media (max-width:900px){ .bento{ grid-template-columns:repeat(2,1fr); } }
+  @media (max-width:600px){ .bento{ grid-template-columns:1fr; } }
 
-        .feature-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 30px -5px rgba(0,0,0,0.08);
-            border-color: var(--primary);
-        }
+  .feature-card{
+    border-radius:var(--radius-md); padding:26px; transition:transform .25s var(--ease), border-color .25s var(--ease);
+  }
+  .feature-card:hover{ transform:translateY(-6px); border-color:rgba(255,255,255,.28); }
+  .feature-icon{
+    width:46px; height:46px; border-radius:13px; display:grid; place-items:center; margin-bottom:16px;
+    background:linear-gradient(135deg, rgba(45,217,196,.22), rgba(111,123,255,.22));
+    border:1px solid var(--glass-brd);
+  }
+  .feature-icon svg{ width:22px; height:22px; stroke:var(--teal); }
+  .feature-card h3{ font-size:17px; font-weight:700; margin-bottom:8px; }
+  .feature-card p{ font-size:14px; color:var(--ink-1); }
 
-        .feature-card h3 {
-            color: var(--dark);
-            margin-bottom: 0.8rem;
-            font-size: 1.3rem;
-            font-weight: 600;
-        }
+  /* ── Compliance strip ─────────────────────────────────── */
+  .chips{ display:flex; flex-wrap:wrap; gap:12px; justify-content:center; }
+  .chip{
+    display:flex; align-items:center; gap:8px; padding:10px 18px; border-radius:100px; font-size:13.5px; font-weight:600;
+  }
+  .chip .sw{ width:8px; height:8px; border-radius:50%; }
 
-        .feature-card p {
-            font-size: 0.95rem;
-            color: #475569;
-        }
+  /* ── Showcase (product glass panel) ───────────────────── */
+  .showcase{
+    border-radius:var(--radius-lg); padding:clamp(24px,4vw,52px); display:grid; grid-template-columns:1fr 1fr; gap:40px; align-items:center;
+  }
+  @media (max-width:900px){ .showcase{ grid-template-columns:1fr; } }
+  .showcase h2{ font-size:clamp(24px,3vw,34px); font-weight:800; }
+  .showcase p{ color:var(--ink-1); margin-top:14px; font-size:15.5px; }
+  .check-list{ margin-top:22px; display:flex; flex-direction:column; gap:12px; }
+  .check-list li{ list-style:none; display:flex; gap:10px; align-items:flex-start; font-size:14.5px; color:var(--ink-1); }
+  .check-list svg{ width:18px; height:18px; flex:none; margin-top:2px; stroke:var(--teal); }
 
-        .feature-icon {
-            width: 50px;
-            height: 50px;
-            background: var(--accent-light);
-            border-radius: 50%; /* Circle shape for icons */
-            margin-bottom: 1.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--primary);
-            font-size: 1.8rem; /* Icon size */
-            font-weight: bold;
-            line-height: 1; /* For perfect centering */
-        }
-        /* Custom icons for each feature */
-        .icon-data::before { content: "📊"; } /* Bar Chart - Data */
-        .icon-users::before { content: "👥"; } /* Two People - Users/Multi-company */
-        .icon-code::before { content: "💻"; } /* Laptop - Development */
+  .payslip-card{
+    border-radius:var(--radius-md); padding:22px; position:relative;
+  }
+  .payslip-row{ display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px dashed rgba(255,255,255,.12); font-size:13.5px; }
+  .payslip-row:last-child{ border-bottom:none; }
+  .payslip-row .v{ color:var(--ink-0); font-weight:600; }
+  .payslip-total{ margin-top:14px; display:flex; justify-content:space-between; align-items:center; padding-top:14px; border-top:1px solid var(--glass-brd); }
+  .payslip-total .amt{ font-size:22px; font-weight:800; font-family:'Sora'; background:var(--grad-brand); -webkit-background-clip:text; background-clip:text; color:transparent; }
 
+  /* ── Testimonial ──────────────────────────────────────── */
+  .quote-card{
+    max-width:760px; margin:0 auto; text-align:center; border-radius:var(--radius-lg); padding:clamp(28px,4vw,50px);
+  }
+  .quote-card p{ font-size:clamp(17px,2vw,21px); color:var(--ink-0); font-weight:500; line-height:1.5; }
+  .quote-who{ margin-top:22px; display:flex; align-items:center; justify-content:center; gap:12px; }
+  .quote-who .qa{ width:42px; height:42px; border-radius:50%; background:var(--grad-brand); }
+  .quote-who .name{ font-weight:700; font-size:14px; }
+  .quote-who .role{ font-size:12.5px; color:var(--ink-2); }
 
-        /* Pricing Table */
-        .pricing-section {
-            background-color: var(--primary);
-            padding: 5rem 0;
-            color: var(--white);
-            margin-bottom: 5rem;
-        }
+  /* ── Final CTA ────────────────────────────────────────── */
+  .cta-panel{
+    border-radius:var(--radius-lg); padding:clamp(32px,5vw,60px); text-align:center;
+    background: linear-gradient(135deg, rgba(45,217,196,.14), rgba(111,123,255,.14));
+  }
+  .cta-panel h2{ font-size:clamp(26px,3.6vw,40px); font-weight:800; }
+  .cta-panel p{ margin-top:12px; color:var(--ink-1); font-size:15.5px; }
+  .cta-actions{ margin-top:28px; display:flex; gap:14px; justify-content:center; flex-wrap:wrap; }
 
-        .pricing-section .section-title {
-            color: var(--white);
-            margin-bottom: 3rem;
-        }
+  footer{ position:relative; z-index:1; padding:40px 0 60px; }
+  .foot-inner{ display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; color:var(--ink-2); font-size:13px; }
+  .foot-links{ display:flex; gap:20px; }
+  .foot-links a:hover{ color:var(--ink-0); }
 
-        .pricing-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-        }
+  /* Reveal on scroll */
+  .reveal{ opacity:0; transform:translateY(18px); transition:opacity .6s var(--ease), transform .6s var(--ease); }
+  .reveal.in{ opacity:1; transform:translateY(0); }
+</style>
+</head>
+<body>
+<a href="#main" class="skip-link">Skip to main content</a>
 
-        .price-card {
-            background: var(--white);
-            color: var(--text);
-            padding: 2.5rem;
-            border-radius: 12px;
-            text-align: center;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
+<div class="orb orb-a" aria-hidden="true"></div>
+<div class="orb orb-b" aria-hidden="true"></div>
 
-        .price-card.featured {
-            transform: scale(1.05);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-            border: 2px solid var(--primary);
-        }
+<header>
+  <div class="wrap">
+    <div class="nav-inner glass">
+      <div class="brand">
+        <span class="brand-mark">R</span>
+        Revolution HRMS
+      </div>
+      <nav aria-label="Primary">
+        <ul>
+          <li><a href="#features">Features</a></li>
+          <li><a href="#compliance">Compliance</a></li>
+          <li><a href="#payroll">Payroll</a></li>
+          <li><a href="#reviews">Reviews</a></li>
+        </ul>
+      </nav>
+      <div class="nav-cta">
+        <a href="{% url 'login' %}" class="btn btn-ghost">Sign in</a>
+        <a href="#cta" class="btn btn-primary">Get a demo</a>
+      </div>
+    </div>
+  </div>
+</header>
 
-        .price-card h3 {
-            font-size: 1.8rem;
-            color: var(--dark);
-            margin-bottom: 1rem;
-            font-weight: 700;
-        }
+<main id="main">
+  <div class="wrap">
 
-        .price {
-            font-size: 3.5rem;
-            font-weight: 800;
-            color: var(--dark);
-            line-height: 1;
-            margin-bottom: 0.5rem;
-        }
-
-        .price small {
-            font-size: 1.1rem;
-            color: #64748b;
-            font-weight: 500;
-        }
-
-        .price-card ul {
-            list-style: none;
-            text-align: left;
-            margin: 2rem 0;
-            flex-grow: 1;
-        }
-
-        .price-card ul li {
-            margin-bottom: 1rem;
-            font-size: 1rem;
-            color: #475569;
-            display: flex;
-            align-items: center;
-        }
-
-        .price-card ul li::before {
-            content: "✅"; /* Checkmark icon */
-            margin-right: 10px;
-            font-size: 1.2em;
-        }
-
-        /* Contact Form */
-        .contact-wrapper {
-            background: var(--white);
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-            margin-bottom: 80px;
-        }
-
-        .form-side {
-            padding: 3rem;
-        }
-        .form-side h3 {
-            font-size: 1.8rem;
-            color: var(--dark);
-            margin-bottom: 1rem;
-            font-weight: 700;
-        }
-
-        .info-side {
-            background: var(--primary);
-            padding: 3rem;
-            color: white;
-        }
-        .info-side h3 {
-            font-size: 1.8rem;
-            margin-bottom: 1rem;
-            font-weight: 700;
-        }
-
-        input, textarea {
-            width: 100%;
-            padding: 12px;
-            margin-bottom: 1rem;
-            border: 1px solid #cbd5e1;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-family: 'Ubuntu', sans-serif;
-        }
-
-        input:focus, textarea:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 2px var(--accent-light);
-        }
-
-        /* Buttons */
-        .btn {
-            display: inline-block;
-            background: var(--primary);
-            color: white;
-            padding: 12px 28px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            border: none;
-            cursor: pointer;
-            font-size: 1rem;
-        }
-
-        .btn:hover {
-            background: #1d4ed8; /* Darker primary */
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-
-        .btn-outline {
-            background: none;
-            border: 1px solid var(--primary);
-            color: var(--primary);
-            padding: 10px 25px;
-        }
-
-        .btn-outline:hover {
-            background: var(--primary);
-            color: white;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-
-        /* Footer */
-        footer {
-            background: var(--dark);
-            color: #94a3b8;
-            padding: 4rem 0 2rem;
-        }
-
-        .footer-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 40px;
-            border-bottom: 1px solid #334155;
-            padding-bottom: 3rem;
-        }
-
-        .footer-title {
-            color: white;
-            margin-bottom: 1.5rem;
-            font-size: 1.1rem;
-            font-weight: 600;
-        }
-
-        .footer-grid p {
-            margin-bottom: 0.8rem;
-            font-size: 0.95rem;
-            line-height: 1.5;
-        }
-        .footer-grid p a {
-            color: #94a3b8;
-        }
-        .footer-grid p a:hover {
-            color: var(--primary);
-            text-decoration: none;
-        }
-
-
-        @media (max-width: 768px) {
-            .contact-wrapper { grid-template-columns: 1fr; }
-            h1 { font-size: 2.5rem; }
-            .hero p { font-size: 1.1rem; }
-            .section-title { font-size: 1.8rem; }
-            .info-side { order: -1; } /* Puts info side above form on mobile */
-            .grid { grid-template-columns: 1fr; } /* Stack features on mobile */
-            .pricing-grid { grid-template-columns: 1fr; }
-            .price-card.featured { transform: scale(1); } /* Remove scale on mobile */
-        }
-    </style>
-{% endblock %}
-{% block content %}
-
-    <header>
-        <div class="container">
-            <div class="logo">Revolution Associates</div>
+    <!-- ── HERO ─────────────────────────────────────────── -->
+    <section class="hero" style="padding-top:0;">
+      <div>
+        <span class="eyebrow glass"><span class="dot" aria-hidden="true"></span> Built for Indian factories &amp; companies</span>
+        <h1>Payroll, ESI, EPF and <span class="accent">compliance</span> — finally in one place.</h1>
+        <p class="lede">Revolution HRMS runs attendance, payroll and every statutory register — ESI, EPF, Gratuity, Factory Act — for associates, companies and employees, without three separate spreadsheets.</p>
+        <div class="hero-actions">
+          <a href="#cta" class="btn btn-primary">
+            Start free trial
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </a>
+          <a href="#payroll" class="btn btn-ghost">See how payroll works</a>
         </div>
-    </header>
-
-    <section class="hero">
-        <div class="container">
-            <h1>The HRMS Built for <br><span>Private Cloud Ownership.</span></h1>
-            <p>We empower business owners to host their own workforce data. No third-party silos—just professional tools on your own digital space.</p>
-            <a href="#contact" class="btn">Get Started Today</a>
-            <a href="{% url 'login' %}" class="btn">Get Started Today</a>
+        <div class="trust-line">
+          <div class="avatar-stack" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+          Trusted by HR teams running payroll for 12,000+ employees
         </div>
+      </div>
+
+      <div class="mascot-stage">
+        <div class="mascot-halo" aria-hidden="true"></div>
+        <div class="badge-orbit" aria-hidden="true">
+          <div class="badge glass badge-1"><svg viewBox="0 0 24 24" fill="none" stroke="#2dd9c4" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
+          <div class="badge glass badge-2"><svg viewBox="0 0 24 24" fill="none" stroke="#e9a23b" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12l4 6-10 12L2 9Z"/><path d="M2 9h20M12 3v18"/></svg></div>
+          <div class="badge glass badge-3"><svg viewBox="0 0 24 24" fill="none" stroke="#6f7bff" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 4v5"/></svg></div>
+        </div>
+
+        <!-- 3D-style isometric HR mascot, built entirely from gradient SVG shapes -->
+        <svg class="mascot" viewBox="0 0 300 340" role="img" aria-label="3D illustration of a friendly HR assistant character holding a compliance checklist">
+          <defs>
+            <linearGradient id="bodyGrad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#7d8bff"/>
+              <stop offset="1" stop-color="#4c56c9"/>
+            </linearGradient>
+            <linearGradient id="bodyShade" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#3d47ad"/>
+              <stop offset="1" stop-color="#2a3182"/>
+            </linearGradient>
+            <linearGradient id="headGrad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#3af0d6"/>
+              <stop offset="1" stop-color="#1fae9b"/>
+            </linearGradient>
+            <linearGradient id="visorGrad" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0" stop-color="#0c1830"/>
+              <stop offset="1" stop-color="#182b52"/>
+            </linearGradient>
+            <linearGradient id="cardGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#ffffff"/>
+              <stop offset="1" stop-color="#dfe4ff"/>
+            </linearGradient>
+          </defs>
+
+          <!-- floor shadow -->
+          <ellipse cx="150" cy="322" rx="82" ry="14" fill="#000816" opacity=".45"/>
+
+          <!-- legs / base -->
+          <rect x="112" y="248" width="30" height="62" rx="12" fill="url(#bodyShade)"/>
+          <rect x="158" y="248" width="30" height="62" rx="12" fill="url(#bodyGrad)"/>
+          <ellipse cx="127" cy="312" rx="22" ry="10" fill="#20265f"/>
+          <ellipse cx="173" cy="312" rx="22" ry="10" fill="#262c6e"/>
+
+          <!-- torso -->
+          <path d="M92 150c0-26 26-42 58-42s58 16 58 42v62c0 26-26 40-58 40s-58-14-58-40Z" fill="url(#bodyGrad)"/>
+          <path d="M92 150c0-26 26-42 58-42v144c-32 0-58-14-58-40Z" fill="url(#bodyShade)" opacity=".55"/>
+
+          <!-- chest badge -->
+          <rect x="132" y="150" width="36" height="26" rx="6" fill="url(#cardGrad)"/>
+          <rect x="138" y="157" width="24" height="4" rx="2" fill="#6f7bff"/>
+          <rect x="138" y="165" width="16" height="4" rx="2" fill="#2dd9c4"/>
+
+          <!-- left arm holding clipboard -->
+          <path d="M96 158c-20 4-34 20-34 40 0 16 10 26 24 30" fill="none" stroke="url(#bodyGrad)" stroke-width="20" stroke-linecap="round"/>
+          <g transform="translate(50 190) rotate(-8)">
+            <rect x="0" y="0" width="46" height="60" rx="8" fill="url(#cardGrad)"/>
+            <rect x="14" y="-6" width="18" height="12" rx="4" fill="#b9c2f0"/>
+            <rect x="8" y="14" width="30" height="4" rx="2" fill="#4c56c9"/>
+            <rect x="8" y="24" width="30" height="4" rx="2" fill="#9aa4e8"/>
+            <rect x="8" y="34" width="20" height="4" rx="2" fill="#9aa4e8"/>
+            <path d="M10 46 15 51 26 40" fill="none" stroke="#1fae9b" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
+          </g>
+
+          <!-- right arm -->
+          <path d="M204 158c20 4 34 20 34 38 0 14-8 24-20 29" fill="none" stroke="url(#bodyShade)" stroke-width="20" stroke-linecap="round"/>
+
+          <!-- neck -->
+          <rect x="138" y="98" width="24" height="24" rx="8" fill="#1fae9b"/>
+
+          <!-- head -->
+          <rect x="104" y="34" width="92" height="76" rx="30" fill="url(#headGrad)"/>
+          <rect x="118" y="58" width="64" height="30" rx="15" fill="url(#visorGrad)"/>
+          <circle cx="140" cy="73" r="6" fill="#7dfff0"/>
+          <circle cx="164" cy="73" r="6" fill="#7dfff0"/>
+          <rect x="128" y="24" width="44" height="14" rx="7" fill="#17c9b2"/>
+
+          <!-- floating currency chip -->
+          <g transform="translate(214 118)">
+            <circle cx="0" cy="0" r="20" fill="#e9a23b"/>
+            <text x="0" y="6" text-anchor="middle" font-family="Sora, sans-serif" font-weight="700" font-size="18" fill="#3a2205">₹</text>
+          </g>
+        </svg>
+      </div>
     </section>
 
-    <div class="container">
-        <h2 class="section-title">Key Platform Features</h2>
-        
-        <div class="grid">
-            <div class="feature-card">
-                <div class="feature-icon icon-data"></div>
-                <h3>Private Data Vault</h3>
-                <p>Deploy the HRMS on your own local server or private cloud. You retain 100% ownership and access logs of your associate data.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon icon-users"></div>
-                <h3>Multi-Company Sync</h3>
-                <p>Designed for associates working across multiple entities. Manage roles, payroll, and performance via a unified dashboard.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon icon-code"></div>
-                <h3>Custom Development</h3>
-                <p>We don't believe in "one size fits all." We tailor the application logic to match your specific business workflow.</p>
-            </div>
-        </div>
+    <!-- ── STAT STRIP ───────────────────────────────────── -->
+    <div class="stat-strip glass reveal">
+      <div class="stat"><div class="num mono">30+</div><div class="label">Statutory registers automated</div></div>
+      <div class="stat"><div class="num mono">₹0</div><div class="label">Late-filing penalties, avoided</div></div>
+      <div class="stat"><div class="num mono">3</div><div class="label">Portals — Associate, Company, Employee</div></div>
+      <div class="stat"><div class="num mono">99.9%</div><div class="label">Payroll run-time accuracy</div></div>
     </div>
 
-    <section class="pricing-section">
-        <div class="container">
-            <h2 class="section-title">Simple, Transparent Pricing</h2>
-            <p class="text-center mb-8" style="color: #cbd5e1; font-size: 1.1rem;">Choose the plan that best fits your company's needs.</p>
+    <!-- ── FEATURES ─────────────────────────────────────── -->
+    <section id="features">
+      <div class="section-head reveal">
+        <span class="eyebrow glass"><span class="dot" aria-hidden="true"></span> Everything HR needs</span>
+        <h2>One system, every statutory register</h2>
+        <p>From daily attendance to annual returns, each module keeps company data scoped, audited and export-ready.</p>
+      </div>
 
-            <div class="pricing-grid">
-                <div class="price-card">
-                    <div>
-                        <h3>Basic</h3>
-                        <div class="price">$99<small>/month</small></div>
-                        <p style="margin-bottom: 2rem; color: #64748b;">Perfect for single-company operations.</p>
-                    </div>
-                    <ul>
-                        <li>Single Company Instance</li>
-                        <li>Up to 5 Users</li>
-                        <li>Standard Support</li>
-                        <li>Core HR Modules</li>
-                    </ul>
-                    <a href="#contact" class="btn btn-outline">Sign Up</a>
-                </div>
-
-                <div class="price-card featured">
-                    <div>
-                        <h3>Professional Plan</h3>
-                        <div class="price">$299<small>/month</small></div>
-                        <p style="margin-bottom: 2rem; color: #64748b;">Ideal for growing businesses with multiple entities.</p>
-                    </div>
-                    <ul>
-                        <li>Multi-Company Management</li>
-                        <li>Up to 50 Users</li>
-                        <li>Customization Options</li>
-                        <li>Priority Support</li>
-                        <li>Advanced Analytics</li>
-                    </ul>
-                    <a href="#contact" class="btn">Sign Up</a>
-                </div>
-
-                <div class="price-card">
-                    <div>
-                        <h3>Enterprise</h3>
-                        <div class="price">Custom<small>/quote</small></div>
-                        <p style="margin-bottom: 2rem; color: #64748b;">Tailored solutions for large-scale operations.</p>
-                    </div>
-                    <ul>
-                        <li>Private Cloud Deployment</li>
-                        <li>Unlimited Users</li>
-                        <li>24/7 Dedicated Support</li>
-                        <li>Full Custom Development</li>
-                        <li>On-site Training</li>
-                    </ul>
-                    <a href="#contact" class="btn btn-outline">Contact Sales</a>
-                </div>
-            </div>
+      <div class="bento">
+        <div class="feature-card glass reveal">
+          <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></div>
+          <h3>Attendance &amp; leave</h3>
+          <p>Half-day, full-day and overtime capture, with leave balances that flow straight into payroll.</p>
         </div>
+        <div class="feature-card glass reveal">
+          <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 2 7l10 5 10-5-10-5Z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div>
+          <h3>EPF &amp; ESI</h3>
+          <p>Nominations, monthly ECR and contribution returns generated in the formats your filings expect.</p>
+        </div>
+        <div class="feature-card glass reveal">
+          <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11Z"/></svg></div>
+          <h3>Factory Act registers</h3>
+          <p>Whitewash, vessel examination, accident and annual returns — kept current, not chased in March.</p>
+        </div>
+        <div class="feature-card glass reveal">
+          <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+          <h3>Gratuity &amp; bonus</h3>
+          <p>Eligibility, notices and payment tracking calculated automatically as service years accrue.</p>
+        </div>
+        <div class="feature-card glass reveal">
+          <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg></div>
+          <h3>Contract labour</h3>
+          <p>Contractor registration, worker payments and half-yearly returns, scoped per company.</p>
+        </div>
+        <div class="feature-card glass reveal">
+          <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11 3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
+          <h3>Compliance tracker</h3>
+          <p>A single calendar of every statutory due date, per company, with status at a glance.</p>
+        </div>
+      </div>
     </section>
 
-    <div class="container" id="contact">
-        <h2 class="section-title">Get In Touch</h2>
-        <div class="contact-wrapper">
-            <div class="form-side">
-                <h3>Send us a Message</h3>
-                <p style="margin-bottom: 2rem; font-size: 0.9rem;">Interested in a demo or have a project in mind? Fill out the form below and we'll get back to you shortly.</p>
-                <form>
-                    <input type="text" placeholder="Your Name" required>
-                    <input type="email" placeholder="Email Address" required>
-                    <input type="text" placeholder="Company Name (Optional)">
-                    <textarea placeholder="Tell us about your requirements..." rows="5"></textarea>
-                    <button type="submit" class="btn">Send Inquiry</button>
-                </form>
-            </div>
-            <div class="info-side">
-                <h3>Contact Information</h3>
-                <p style="margin: 1.5rem 0; opacity: 0.9;">Revolution Associates specializes in high-security HR development for the modern era, ensuring your data remains yours.</p>
-                <div style="margin-top: 2rem;">
-                    <p><strong>📍 Location</strong><br>Sonipat, Haryana-131001, IN</p><br>
-                    <p><strong>📞 Mobile</strong><br><a href="tel:+919876541230" style="color: white; text-decoration: none;">+91-9876541230</a></p><br>
-                    <p><strong>✉️ Email</strong><br><a href="mailto:associate.google@gmail.com" style="color: white; text-decoration: none;">associate.google@gmail.com</a></p>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- ── COMPLIANCE CHIPS ─────────────────────────────── -->
+    <section id="compliance">
+      <div class="section-head reveal">
+        <span class="eyebrow glass"><span class="dot" aria-hidden="true"></span> Covered out of the box</span>
+        <h2>Built against the Acts you're actually audited on</h2>
+      </div>
+      <div class="chips reveal">
+        <span class="chip glass"><span class="sw" style="background:#2dd9c4"></span> ESI Act</span>
+        <span class="chip glass"><span class="sw" style="background:#6f7bff"></span> EPF &amp; MP Act</span>
+        <span class="chip glass"><span class="sw" style="background:#e9a23b"></span> Factory Act, 1948</span>
+        <span class="chip glass"><span class="sw" style="background:#2dd9c4"></span> Payment of Gratuity Act</span>
+        <span class="chip glass"><span class="sw" style="background:#6f7bff"></span> Maternity Benefit Act</span>
+        <span class="chip glass"><span class="sw" style="background:#e9a23b"></span> Payment of Bonus Act</span>
+        <span class="chip glass"><span class="sw" style="background:#2dd9c4"></span> Shops &amp; Establishment Act</span>
+        <span class="chip glass"><span class="sw" style="background:#6f7bff"></span> Labour Welfare Fund</span>
+      </div>
+    </section>
 
-    <footer>
-        <div class="container">
-            <div class="footer-grid">
-                <div>
-                    <div class="footer-title">Revolution Associates</div>
-                    <p>Revolutionizing HR management through private data architecture and associate-first design.</p>
-                </div>
-                <div>
-                    <div class="footer-title">Quick Links</div>
-                    <p><a href="#">Our Process</a></p>
-                    <p><a href="#">Privacy Policy</a></p>
-                    <p><a href="#">Support</a></p>
-                </div>
-                <div>
-                    <div class="footer-title">Region</div>
-                    <p>Haryana, India</p>
-                    <p>National Delivery Available</p>
-                </div>
-            </div>
-            <p style="text-align: center; margin-top: 2rem; font-size: 0.8rem;">&copy; 2026 Revolution Associates. Dedicated to Data Sovereignty.</p>
+    <!-- ── PAYROLL SHOWCASE ─────────────────────────────── -->
+    <section id="payroll">
+      <div class="showcase glass reveal">
+        <div>
+          <span class="eyebrow glass"><span class="dot" aria-hidden="true"></span> Payroll</span>
+          <h2>Payslips that already know your compliance rules</h2>
+          <p>Every run applies ESI and EPF slabs, factory overtime rates and gratuity accruals automatically — in Indian Rupees, formatted the way your accountant expects.</p>
+          <ul class="check-list">
+            <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Auto-computed ESI &amp; EPF deductions</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Overtime and half-day rules built in</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Exportable to PDF, Excel and text formats</li>
+          </ul>
         </div>
-    </footer>
-{% endblock %}
+        <div class="payslip-card glass">
+          <div class="payslip-row"><span>Employee</span><span class="v">R. Sharma · EMP-0142</span></div>
+          <div class="payslip-row"><span>Basic + DA</span><span class="v mono">₹38,000.00</span></div>
+          <div class="payslip-row"><span>EPF (12%)</span><span class="v mono">−₹4,560.00</span></div>
+          <div class="payslip-row"><span>ESI (0.75%)</span><span class="v mono">−₹285.00</span></div>
+          <div class="payslip-row"><span>Overtime (6 hrs)</span><span class="v mono">+₹1,650.00</span></div>
+          <div class="payslip-total">
+            <span style="color:var(--ink-1); font-size:13.5px;">Net payable</span>
+            <span class="amt">₹34,805.00</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── TESTIMONIAL ──────────────────────────────────── -->
+    <section id="reviews">
+      <div class="quote-card glass reveal">
+        <p>"We used to chase three spreadsheets every filing month. Revolution HRMS turned that into a checklist we clear before lunch."</p>
+        <div class="quote-who">
+          <div class="qa" aria-hidden="true"></div>
+          <div>
+            <div class="name">Priya Nair</div>
+            <div class="role">HR Manager, textile manufacturer, Panipat</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── FINAL CTA ────────────────────────────────────── -->
+    <section id="cta">
+      <div class="cta-panel glass reveal">
+        <h2>Bring your next filing month back under control</h2>
+        <p>Set up your first company in minutes. No spreadsheets, no card required.</p>
+        <div class="cta-actions">
+          <a href="#" class="btn btn-primary">
+            Start free trial
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </a>
+          <a href="#" class="btn btn-ghost">Talk to sales</a>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-inner">
+      <div class="brand" style="font-size:14px;"><span class="brand-mark" style="width:26px;height:26px;font-size:13px;">R</span> Revolution HRMS</div>
+      <div class="foot-links">
+        <a href="#features">Features</a>
+        <a href="#compliance">Compliance</a>
+        <a href="#payroll">Payroll</a>
+        <a href="#reviews">Reviews</a>
+        <a href="{% url 'login' %}">Superadmin</a>
+        <a href="{{ associate_login_url }}">Associate</a>
+      </div>
+      <div>© 2026 Revolution Associates. All rights reserved.</div>
+    </div>
+  </div>
+</footer>
+
+<script>
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+</script>
+</body>
+</html>

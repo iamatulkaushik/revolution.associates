@@ -18,23 +18,32 @@
         <h2>Companies</h2>
         <a href="{% url 'create_company' %}" class="button btn-primary">+ New Company</a>
     </div>
-    <div class="grid">
+<table class="data-table">
+    <thead>
+        <tr>
+            <th>Company Name</th>
+            <th>PAN</th>
+            <th>Mobile</th>
+            <th>Email</th>
+            <th>Start Date</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
         {% for company in companies %}
-        <div class="card" style="height:auto;width: Auto;">
-            <h3>{{company.company_name}}</h3>
-            <p><strong>PAN:</strong> {{company.pan}}</p>
-            <p><strong>Mobile:</strong> {{company.mobile}}</p>
-            <p><strong>Email:</strong> {{company.email1}}</p>
-            <p><strong>Start Date:</strong> {{company.start_date}}</p>
-            {% if company.shut_date %}<p><strong>Shut Date:</strong> {{company.shut_date}}</p>{% endif %}
-            <div class="card-actions">
-                <a href="{% url 'alter_company' company.company_id %}" class="action-edit">Edit</a>
-                <a href="{% url 'shut_company' company.company_id %}" class="action-delete">Shut</a>
-            </div>
-        </div>
-        {% empty %}
-        <p>No companies found.</p>
+        <tr>
+            <td>{{ company.company_name }}</td>
+            <td>{{ company.pan }}</td>
+            <td>{{ company.mobile }}</td>
+            <td>{{ company.email1 }}</td>
+            <td>{{ company.start_date }}</td>
+            <td>
+                <a href="{% url 'alter_company' company.company_id %}" title="Company Basics Update" class="button edit"></a>
+                <a href="{% url 'shut_company' company.company_id %}" title="Mark Inactive" class="button inactive"></a>
+            </td>
+        </tr>
         {% endfor %}
-    </div>
+    </tbody>
+</table>
 </div>
 {% endblock %}

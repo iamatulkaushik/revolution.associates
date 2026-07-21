@@ -9,6 +9,8 @@
 !.env.example
 
 raw_data.text
+readme.md
+whole_project.md
 
 # Python bytecode
 __pycache__/
@@ -40,6 +42,8 @@ venv/
 .venv/
 env/
 ENV/
+.claude/
+.amazonq/
 
 # IDE / editor
 .vscode/
@@ -58,3 +62,6 @@ htmlcov/
 dist/
 build/
 *.egg-info/
+.env
+.gitignore
+PRODUCTION_READINESS_REPORT.md

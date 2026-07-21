@@ -197,6 +197,25 @@ def create_employee(request):
             messages.error(request, 'Bank account already registered.')
         else:
             try:
+                branch_obj = branch.objects.filter(branchid=p['branchID'], companyid=company).first()
+                dept_obj = department.objects.filter(departmentid=p['departmentID'], companyid=company).first()
+                designation_obj = designation.objects.filter(
+                    designationid=p['designationID'], company=company, is_active=True, is_deleted=False
+                ).first()
+
+                if not branch_obj:
+                    messages.error(request, 'Branch does not belong to the selected company.')
+                    return render(request, 'Aapp/employees/create_employee.html', ctx)
+                if not dept_obj:
+                    messages.error(request, 'Department does not belong to the selected company.')
+                    return render(request, 'Aapp/employees/create_employee.html', ctx)
+                if not designation_obj:
+                    messages.error(request, 'Designation does not belong to the selected company.')
+                    return render(request, 'Aapp/employees/create_employee.html', ctx)
+                if dept_obj.branch_id != branch_obj.branchid:
+                    messages.error(request, 'Selected department does not belong to the selected branch.')
+                    return render(request, 'Aapp/employees/create_employee.html', ctx)
+
                 same = p.get('same_as_permanent') == 'on'
                 employee.objects.create(
                     employeecode   = p['employeecode'],
@@ -242,13 +261,13 @@ def create_employee(request):
                     esic_number    = p.get('esic_number', ''),
                     esic_doj       = p.get('esic_doj') or None,
                     labour_id      = p.get('labour_id', ''),
-                    designationID_id = p['designationID'],
-                    departmentID_id  = p['departmentID'],
-                    branchID_id      = p['branchID'],
+                    designationID_id = designation_obj.designationid,
+                    departmentID_id  = dept_obj.departmentid,
+                    branchID_id      = branch_obj.branchid,
                     CompanyID        = company,
                 )
                 messages.success(request, f"Employee '{p['name']}' created successfully.")
-                return redirect('Aapp:list_employee')
+                return redirect('list_employee')
             except Exception as e:
                 messages.error(request, f'Error: {e}')
 
@@ -270,6 +289,25 @@ def alter_employee(request, employee_id):
     if request.method == 'POST':
         p = request.POST
         try:
+            branch_obj = branch.objects.filter(branchid=p.get('branchID'), companyid=company).first()
+            dept_obj = department.objects.filter(departmentid=p.get('departmentID'), companyid=company).first()
+            designation_obj = designation.objects.filter(
+                designationid=p.get('designationID'), company=company, is_active=True, is_deleted=False
+            ).first()
+
+            if not branch_obj:
+                messages.error(request, 'Branch does not belong to the selected company.')
+                return render(request, 'Aapp/employees/alter_employee.html', ctx)
+            if not dept_obj:
+                messages.error(request, 'Department does not belong to the selected company.')
+                return render(request, 'Aapp/employees/alter_employee.html', ctx)
+            if not designation_obj:
+                messages.error(request, 'Designation does not belong to the selected company.')
+                return render(request, 'Aapp/employees/alter_employee.html', ctx)
+            if dept_obj.branch_id != branch_obj.branchid:
+                messages.error(request, 'Selected department does not belong to the selected branch.')
+                return render(request, 'Aapp/employees/alter_employee.html', ctx)
+
             same = p.get('same_as_permanent') == 'on'
             emp.name           = p.get('name', emp.name)
             emp.fathername     = p.get('fathername', emp.fathername)
@@ -303,12 +341,12 @@ def alter_employee(request, employee_id):
             emp.esic_number    = p.get('esic_number', emp.esic_number)
             emp.esic_doj       = p.get('esic_doj') or emp.esic_doj
             emp.labour_id      = p.get('labour_id', emp.labour_id)
-            emp.designationID_id = p.get('designationID', emp.designationID_id)
-            emp.departmentID_id  = p.get('departmentID', emp.departmentID_id)
-            emp.branchID_id      = p.get('branchID', emp.branchID_id)
+            emp.designationID_id = designation_obj.designationid
+            emp.departmentID_id  = dept_obj.departmentid
+            emp.branchID_id      = branch_obj.branchid
             emp.save()
             messages.success(request, f"Employee '{emp.name}' updated successfully.")
-            return redirect('Aapp:list_employee')
+            return redirect('list_employee')
         except Exception as e:
             messages.error(request, f'Error: {e}')
 
@@ -337,7 +375,7 @@ def disable_employee(request, employee_id):
             emp.leaving_reason = ''
             emp.save()
             messages.success(request, f"Employee '{emp.name}' re-enabled.")
-        return redirect('Aapp:list_employee')
+        return redirect('list_employee')
 
     return render(request, 'Aapp/employees/disable_employee.html', {'emp': emp})
 
@@ -359,7 +397,7 @@ def retire_employee(request, employee_id):
         emp.is_working       = False
         emp.save()
         messages.success(request, f"Employee '{emp.name}' retired/separated.")
-        return redirect('Aapp:list_employee')
+        return redirect('list_employee')
 
     return render(request, 'Aapp/employees/retire_employee.html', {'emp': emp})
 
@@ -378,7 +416,7 @@ def delete_employee(request, employee_id):
         name = emp.name
         emp.delete()
         messages.success(request, f"Employee '{name}' deleted permanently.")
-        return redirect('Aapp:list_employee')
+        return redirect('list_employee')
 
     return render(request, 'Aapp/employees/delete_employee.html', {'emp': emp})
 
@@ -436,7 +474,7 @@ def download_employee_template(request):
         ('branch_name*',       'Required. Must exist in system.'),
         ('temporaryaddress*',  'Required. Current address.'),
         ('temp_state_name*',   'Required. State name.'),
-        ('temp_district_name*','Required. District name.'),
+        ('temp_district_name*','Required. District name.Use (131001) for district code if name not found.'),
         ('temp_pincode*',      'Required. 6-digit pincode.'),
         ('employment_type',    'Optional. Permanent/Contract/Intern.'),
     ]
@@ -456,12 +494,14 @@ def download_employee_template(request):
     ws3.cell(row=1, column=2, value='Departments').font = Font(bold=True)
     ws3.cell(row=1, column=3, value='Branches').font = Font(bold=True)
     ws3.cell(row=1, column=4, value='States').font = Font(bold=True)
-    ws3.cell(row=1, column=5, value='Banks').font = Font(bold=True)
+    ws3.cell(row=1, column=5, value='Districts').font = Font(bold=True)
+    ws3.cell(row=1, column=6, value='Banks').font = Font(bold=True)
     
     designations = designation.objects.filter(company=company, is_active=True, is_deleted=False)
     departments = department.objects.filter(companyid=company)
     branches = branch.objects.filter(companyid=company)
     states = State.objects.all()
+    Districts = District.objects.all()
     banks = bank_name.objects.all().order_by('name')
     
     for r, d in enumerate(designations, 2):
@@ -472,8 +512,10 @@ def download_employee_template(request):
         ws3.cell(row=r, column=3, value=b.branch_name)
     for r, s in enumerate(states, 2):
         ws3.cell(row=r, column=4, value=s.name)
+    for r, d in enumerate(Districts, 2):
+        ws3.cell(row=r, column=5, value=d.name)
     for r, b in enumerate(banks, 2):
-        ws3.cell(row=r, column=5, value=b.name)
+        ws3.cell(row=r, column=6, value=b.name)
 
     buf = BytesIO()
     wb.save(buf)
@@ -498,7 +540,7 @@ def bulk_excel_upload_Employees(request):
         if not xl:
             from django.contrib import messages
             messages.error(request, 'No file uploaded.')
-            return redirect('Aapp:bulk_excel_upload')
+            return redirect('bulk_excel_upload')
 
         try:
             wb = openpyxl.load_workbook(xl, data_only=True)
@@ -506,7 +548,7 @@ def bulk_excel_upload_Employees(request):
         except Exception:
             from django.contrib import messages
             messages.error(request, 'Invalid Excel file.')
-            return redirect('Aapp:bulk_excel_upload')
+            return redirect('bulk_excel_upload')
 
         # Build lookup maps
         designation_map = {d.designationname: d for d in designation.objects.filter(company=company, is_active=True, is_deleted=False)}
@@ -696,6 +738,6 @@ def bulk_excel_upload_Employees(request):
             for err in error_rows[:10]:  # show max 10 errors
                 messages.error(request, err)
 
-        return redirect('Aapp:list_employee')
+        return redirect('list_employee')
 
     return render(request, 'Aapp/employees/bulk_excel_upload.html', {'company': company})

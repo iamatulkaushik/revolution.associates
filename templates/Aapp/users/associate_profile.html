@@ -11,40 +11,35 @@
             </div>
             {% endfor %}
         {% endif %}
-        <div class="profile-card">
-            <div class="profile-image">{{ associate.user.first_name|make_list|first|upper }}</div>
-            <div class="profile-content">
-                <h2>{{ associate.user.get_full_name|default:associate.user.username }}</h2> <span class="status">{{ associate.get_status_display }}</span>
-                <p>ID: {{ associate.associate_id }} | Username: {{ associate.user.username }}</p>
-                <p>Email: {{ associate.user.email }} | Mobile: {{ associate.mobile }}</p>
-                <p>Created: {{ associate.created_at|date:"M d, Y" }} | Last Updated: {{ associate.updated_at|date:"M d, Y H:i" }}</p>
-                <p>{% if associate.is_suspended %}
+        <div class="stat-grid">
+  <div class="stat-card" style="--accent-color:#457b9d">
+    <div class="stat-icon">{{ associate.user.first_name|make_list|first|upper }}</div>
+    <div class="stat-value">{{ associate.user.username }}</div>
+    <div class="stat-label">{{ associate.user.get_full_name|default:associate.user.username }} . {{ associate.get_status_display }}</div>
+    <div class="stat-label"><p>Created: {{ associate.created_at|date:"M d, Y" }} <br/> Last Updated: {{ associate.updated_at|date:"M d, Y H:i" }}</p></div>
+    <div class="stat-note">                <p>{% if associate.is_suspended %}
                     Suspension Ends: {{ associate.suspension_end_time|date:"M d, Y H:i" }}
-                            {% endif %}</p>
-            </div>
-        </div>
-        <div class="l-container">
-            <div class="card">
-                <div class="icon" id="icon">Ī</div>
-                <div class="data">{{ subusers_count }}</div>
-                <div class="title">Total Sub Users</div>
-                <div class="comments">Active: {{ active_subusers }}</div>
-            </div>
-
-            <div class="card">
-                <div class="icon" id="icon">Ŀ</div>
-                <div class="data">{{ licenses.count }}</div>
-                <div class="title">Active Licenses</div>
-                <div class="comments">Total Licenses</div>
-            </div>
-
-            <div class="card">
-                <div class="icon" id="icon">Ĉ</div>
-                <div class="data">{{ companies.count }}</div>
-                <div class="title">Companies</div>
-                <div class="comments">Assigned Companies</div>
-            </div>
-        </div>
+                            {% endif %}</p></div>
+  </div>
+  <div class="stat-card" style="--accent-color:#2a9d8f">
+    <div class="stat-icon">ı</div>
+    <div class="stat-value" id="stat-employees">{{ subusers_count }}</div>
+    <div class="stat-label">Sub Users</div>
+    <div class="stat-note"><a href="{% url 'list_subusers' %}">View all</a></div>
+  </div>
+  <div class="stat-card" style="--accent-color:#e63946" id="compliance-card">
+    <div class="stat-icon">Ē</div>
+    <div class="stat-value" id="stat-overdue">—</div>
+    <div class="stat-label">Overdue Returns</div>
+    <div class="stat-note"><a href="{% url 'compliance_dashboard' %}">View compliance</a></div>
+  </div>
+  <div class="stat-card" style="--accent-color:#f4a261">
+    <div class="stat-icon">П</div>
+    <div class="stat-value" id="stat-companies">{{ companies.count }}</div>
+    <div class="stat-label">My Companies</div>
+    <div class="stat-note"><a href="{% url 'list_company_associate' %}">Manage</a></div>
+  </div>
+</div>
         <div class="quickupdate">
             <h2>Quick Profile Update</h2><hr>
             <form method="post">

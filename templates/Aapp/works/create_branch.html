@@ -14,6 +14,7 @@
 
 <form method="post">
     {% csrf_token %}
+    <input type="hidden" id="companyid" name="companyid">
     <table class="data-table">
         <tr>
             <td><label for="branch_name">Branch Name:</label></td>
@@ -54,6 +55,7 @@ function checkSelectedCompany() {
                 window.location.href = '{% url "dashboard" %}';
             } else {
                 document.getElementById('company-name').textContent = data.company_name;
+                document.getElementById('companyid').value = data.company_id;
             }
         });
 }

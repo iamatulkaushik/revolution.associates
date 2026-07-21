@@ -45,13 +45,13 @@
                         <td><input type="checkbox" name="employee_ids" value="{{ emp.employeeid }}" class="emp-chk"></td>
                         <td>{{ emp.employeecode }}</td>
                         <td>{{ emp.name }}</td>
-                        <td><input type="number" name="working_days_{{ emp.employeeid }}" value="0" min="0" step="0.5" style="width:55px;"></td>
-                        <td><input type="number" name="holidays_{{ emp.employeeid }}" value="0" min="0" step="0.5" style="width:45px;"></td>
-                        <td><input type="number" name="casual_leaves_{{ emp.employeeid }}" value="0" min="0" step="0.5" style="width:45px;"></td>
-                        <td><input type="number" name="earned_leaves_{{ emp.employeeid }}" value="0" min="0" step="0.5" style="width:45px;"></td>
-                        <td><input type="number" name="sick_leaves_{{ emp.employeeid }}" value="0" min="0" step="0.5" style="width:45px;"></td>
-                        <td><input type="number" name="comp_leaves_{{ emp.employeeid }}" value="0" min="0" step="0.5" style="width:45px;"></td>
-                        <td><input type="number" name="work_pay_{{ emp.employeeid }}" value="0" min="0" step="0.5" style="width:55px;"></td>
+                        <td><input type="number" name="working_days_{{ emp.employeeid }}" value="0" min="0" max="31" step="0.5" style="width:65px;"></td>
+                        <td><input type="number" name="holidays_{{ emp.employeeid }}" value="0" min="0" max="31" step="0.5" style="width:55px;"></td>
+                        <td><input type="number" name="casual_leaves_{{ emp.employeeid }}" value="0" min="0" max="31" step="0.5" style="width:55px;"></td>
+                        <td><input type="number" name="earned_leaves_{{ emp.employeeid }}" value="0" min="0" max="31" step="0.5" style="width:55px;"></td>
+                        <td><input type="number" name="sick_leaves_{{ emp.employeeid }}" value="0" min="0" max="31" step="0.5" style="width:55px;"></td>
+                        <td><input type="number" name="comp_leaves_{{ emp.employeeid }}" value="0" min="0" max="31" step="0.5" style="width:55px;"></td>
+                        <td><input type="number" name="work_pay_{{ emp.employeeid }}" value="0" min="0" max="31" step="0.5" style="width:55px;"></td>
                     </tr>
                     {% endfor %}
                 </tbody>

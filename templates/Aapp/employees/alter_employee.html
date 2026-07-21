@@ -115,12 +115,12 @@
                 <label>Branch</label>
                 <select class="sml" name="branchID" required>
                     <option value="">-- Select --</option>
-                    {% for b in branches %}<option value="{{ b.BranchID }}" {% if emp.branch_id == b.BranchID %}selected{% endif %}>{{ b.branch_name }}</option>{% endfor %}
+                    {% for b in branches %}<option value="{{ b.branchid }}" {% if emp.branchID_id == b.branchid %}selected{% endif %}>{{ b.branch_name }}</option>{% endfor %}
                 </select>
                 <label>Department</label>
                 <select class="sml" name="departmentID" required>
                     <option value="">-- Select --</option>
-                    {% for d in departments %}<option value="{{ d.DepartmentID }}" {% if emp.department_id == d.DepartmentID %}selected{% endif %}>{{ d.department_name }}</option>{% endfor %}
+                    {% for d in departments %}<option value="{{ d.departmentid }}" {% if emp.departmentID_id == d.departmentid %}selected{% endif %}>{{ d.department_name }}</option>{% endfor %}
                 </select><br/>
                 <label>UAN Number</label>
                 <input class="sml" type="text" name="uan_number" value="{{ emp.uan_number }}">
@@ -141,7 +141,7 @@
                                 <label>Designation</label>
                 <select class="sml" name="designationID" required>
                     <option value="">-- Select --</option>
-                    {% for d in designations %}<option value="{{ d.DesignationID }}" {% if emp.designation_id == d.DesignationID %}selected{% endif %}>{{ d.designationname }}</option>{% endfor %}
+                    {% for d in designations %}<option value="{{ d.designationid }}" {% if emp.designationID_id == d.designationid %}selected{% endif %}>{{ d.designationname }}</option>{% endfor %}
                 </select><br/>
 
                 <label>Basic Salary</label>

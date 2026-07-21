@@ -35,6 +35,14 @@
             <td><input type="text" id="address2" name="address2" value="{{ company.address2 }}"></td>
             <td><input type="text" id="address3" name="address3" value="{{ company.address3 }}"></td>
             <td><input type="text" id="pin" name="pin" value="{{ company.pin }}" maxlength="6"></td>
+            <td><select name="stateid" id="stateid" required onchange="loadDistricts('stateid','DistrictID')">
+                <option value="">-- State --</option>
+                {% for s in states %}<option value="{{ s.Stateid }}" {% if s.Stateid == company.state_id_id %}selected{% endif %}>{{ s.name }}</option>{% endfor %}
+            </select></td>
+            <td><select name="DistrictID" id="DistrictID">
+                <option value="">-- District --</option>
+                {% for d in districts %}<option value="{{ d.Districtid }}" {% if d.Districtid == company.district_id_id %}selected{% endif %}>{{ d.name }}</option>{% endfor %}
+            </select></td>
         </tr>
         <tr>
             <td><label for="phone">Phone:</label></td>
@@ -88,6 +96,19 @@
 </form></div>
 
 <script>
+function loadDistricts(stateSelectId, districtSelectId) {
+    const stateId = document.getElementById(stateSelectId).value;
+    const distSel = document.getElementById(districtSelectId);
+    distSel.innerHTML = '<option value="">-- District --</option>';
+    if (!stateId) return;
+    fetch(`{% url 'get_districts' 0 %}`.replace('/0/', `/${stateId}/`))
+        .then(r => r.json())
+        .then(data => data.forEach(d => {
+            const o = document.createElement('option');
+            o.value = d.id; o.textContent = d.name;
+            distSel.appendChild(o);
+        }));
+}
 document.addEventListener('DOMContentLoaded', function() {
     var bankSelect = document.getElementById('bank_id');
     var selectedBankId = '{{ company.bank_id.id|default:"" }}';

@@ -17,5 +17,6 @@ from Aapp.app import epf_esi
 from Aapp.app import wage_compliance
 from Aapp.app import labour_welfare
 from Aapp.app import compliance_tracker
+#from Aapp.app import salary_processing
 
 # Create your models here.
