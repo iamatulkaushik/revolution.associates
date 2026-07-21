@@ -25,7 +25,7 @@ from Aapp.models import (
     employee
 )
 from Sapp.app import company
-from Capp.models import associateuser
+#from Capp.models import associateuser
 from Capp.registry import (
     _get_company_from_session, _associate_owns_company, _log_user_activity
 )
