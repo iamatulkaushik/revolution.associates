@@ -1,9 +1,14 @@
 from django.urls import path
 from . import views
 urlpatterns = [
-    path('signin/', views.login, name="login"),
-    path('logout/', views.logout, name="logout"),
-    path('dashboard/', views.dashboard, name="dashboard"),
+    # Renamed to sapp_* — 'login'/'logout'/'dashboard' collided with the
+    # same names in Aapp.urls. Since both apps are include()'d without a
+    # namespace in revolution/urls.py, redirect('dashboard') was resolving
+    # to whichever app's URL was registered last, sending Associates into
+    # this superadmin-only dashboard and triggering a 403 on every login.
+    path('signin/', views.login, name="sapp_login"),
+    path('logout/', views.logout, name="sapp_logout"),
+    path('dashboard/', views.dashboard, name="sapp_dashboard"),
     path('company/list/', views.list_company, name="list_company"),
     path('company/create/', views.create_company, name="create_company"),
     path('company/quick/', views.quick_company, name="quick_company"),
@@ -20,12 +25,17 @@ urlpatterns = [
     path('users/associate/reset-password/<int:associate_id>/', views.reset_associate_password, name="reset_associate_password"),
     
     # Sub User URLs
+    # alter_subuser / list_subusers / reset_subuser_password renamed to
+    # sapp_* — same cross-app collision issue as login/dashboard/logout
+    # above: Aapp.urls registers its own associate-scoped versions of
+    # these names, and without a namespace the two were shadowing each
+    # other depending on include() order.
     path('users/subuser/create/', views.create_subuser, name="create_subuser"),
     path('users/subuser/create/<int:associate_id>/', views.create_subuser, name="create_subuser_for_associate"),
-    path('users/subuser/alter/<int:subuser_id>/', views.alter_subuser, name="alter_subuser"),
+    path('users/subuser/alter/<int:subuser_id>/', views.alter_subuser, name="sapp_alter_subuser"),
     path('users/subuser/disable/<int:subuser_id>/', views.disable_suspend_subuser, name="disable_suspend_subuser"),
-    path('users/subuser/list/', views.list_subusers, name="list_subusers"),
-    path('users/subuser/reset-password/<int:subuser_id>/', views.reset_subuser_password, name="reset_subuser_password"),
+    path('users/subuser/list/', views.list_subusers, name="sapp_list_subusers"),
+    path('users/subuser/reset-password/<int:subuser_id>/', views.reset_subuser_password, name="sapp_reset_subuser_password"),
     path('users/subuser/delete/<int:subuser_id>/', views.delete_subuser_account, name="delete_subuser"),
     
     # AJAX URLs

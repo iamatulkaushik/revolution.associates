@@ -25,7 +25,7 @@ def superadmin_required(view_func):
     @wraps(view_func)
     def _wrapped_view(request, *args, **kwargs):
         if not request.user.is_authenticated:
-            return redirect('login')
+            return redirect('sapp_login')
         if not request.user.is_superuser:
             logger.warning(
                 "Unauthorised admin panel access attempt by user '%s' (id=%s) for %s",

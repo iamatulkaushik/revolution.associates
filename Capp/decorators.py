@@ -17,7 +17,7 @@ def owner_required(view_func):
     @wraps(view_func)
     def _wrapped_view(request, *args, **kwargs):
         if not request.user.is_authenticated:
-            return redirect('login')
+            return redirect('capp_login')
         profile = getattr(request, 'owner_profile', None)
         if profile is None:
             logger.warning(
@@ -27,6 +27,6 @@ def owner_required(view_func):
             return HttpResponseForbidden("You do not have access to the Company Owner portal.")
         if not profile.can_access_system():
             messages.error(request, 'Your account is suspended or disabled. Contact your associate.')
-            return redirect('login')
+            return redirect('capp_login')
         return view_func(request, *args, **kwargs)
     return _wrapped_view

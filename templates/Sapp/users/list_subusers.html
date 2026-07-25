@@ -53,7 +53,7 @@
                 <td>{{subuser.created_at|date:"M d, Y"}}</td>
                 <td>
                     <div class="actions">
-                        <a href="{% url 'alter_subuser' subuser.id %}" class="button">Edit</a>
+                        <a href="{% url 'sapp_alter_subuser' subuser.id %}" class="button">Edit</a>
                         <a href="{% url 'disable_suspend_subuser' subuser.id %}"
                             class="button">Manage</a>
                         <a href = "{% url 'delete_subuser' subuser.id %}" class="button">Delete</a>

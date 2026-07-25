@@ -63,7 +63,7 @@ def login(request):
             auth_login(request, user)
             logger.info("Superadmin login: user='%s'", user.username)
             messages.success(request, 'Logged in successfully.')
-            return redirect('dashboard')
+            return redirect('sapp_dashboard')
     else:
         form = loginForm()
     return render(request, 'login.html', {'form': form})
@@ -517,7 +517,7 @@ def create_subuser(request, associate_id=None):
                     companies=company_objects,
                 )
             messages.success(request, f'Sub user created successfully under {associate_obj.associate_id}!')
-            return redirect('list_subusers')
+            return redirect('sapp_list_subusers')
         except Exception as e:
             logger.exception("Error creating sub user: %s", e)
             messages.error(request, f'Error creating sub user: {e}')
@@ -561,7 +561,7 @@ def alter_subuser(request, subuser_id):
                     subuser.companyid.set(company_objects)
 
             messages.success(request, 'Sub user updated successfully!')
-            return redirect('list_subusers')
+            return redirect('sapp_list_subusers')
         except Exception as e:
             logger.exception("Error updating sub user id=%s: %s", subuser_id, e)
             messages.error(request, f'Error updating sub user: {e}')
@@ -591,7 +591,7 @@ def disable_suspend_subuser(request, subuser_id):
             elif action == 'enable':
                 subuser.enable_user(reason)
                 messages.success(request, 'Sub user enabled successfully.')
-            return redirect('list_subusers')
+            return redirect('sapp_list_subusers')
         except Exception as e:
             logger.exception("Subuser action error: %s", e)
             messages.error(request, f'Error: {e}')
@@ -611,7 +611,7 @@ def delete_subuser_account(request, subuser_id):
         except Exception as e:
             logger.exception("Error deleting sub user: %s", e)
             messages.error(request, f'Error deleting sub user: {e}')
-        return redirect('list_subusers')
+        return redirect('sapp_list_subusers')
     return render(request, 'Sapp/users/delete_subuser.html', {'subuser': subuser})
 
 
@@ -638,7 +638,7 @@ def reset_subuser_password(request, subuser_id):
                 subuser.user.set_password(new_password)
                 subuser.user.save()
                 messages.success(request, f'Password reset successfully for {subuser.user.username}!')
-                return redirect('alter_subuser', subuser_id=subuser_id)
+                return redirect('sapp_alter_subuser', subuser_id=subuser_id)
             except ValidationError as ve:
                 for error in ve.messages:
                     messages.error(request, error)

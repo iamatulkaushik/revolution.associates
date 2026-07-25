@@ -46,7 +46,7 @@
       <ul>
 
         <li class="nav-item">
-          <a href="{% url 'dashboard' %}" class="nav-link dashboard">
+          <a href="{% url 'sapp_dashboard' %}" class="nav-link dashboard">
             <span class="nav-label">Dashboard</span>
           </a>
         </li>
@@ -80,7 +80,7 @@
             <span class="nav-chevron">&#9658;</span>
           </button>
           <ul class="nav-sub">
-            <li><a href="{% url 'list_subusers' %}" class="nav-link">All Sub Users</a></li>
+            <li><a href="{% url 'sapp_list_subusers' %}" class="nav-link">All Sub Users</a></li>
             <li><a href="{% url 'create_subuser' %}" class="nav-link">Create Sub User</a></li>
           </ul>
         </li>
@@ -100,7 +100,7 @@
     </nav>
 
     <div class="sidebar-footer">
-      <a href="{% url 'logout' %}" class="nav-link logout">
+      <a href="{% url 'sapp_logout' %}" class="nav-link logout">
         <span class="nav-label">Logout</span>
       </a>
     </div>
@@ -120,7 +120,7 @@
           <div class="user-avatar" style="background:#e63946" aria-hidden="true">ţ</div>
           <span class="user-name">{{ user.username }}</span>
         </div>
-        <a href="{% url 'logout' %}" class="btn-logout logout" aria-label="Logout">Logout</a>
+        <a href="{% url 'sapp_logout' %}" class="btn-logout logout" aria-label="Logout">Logout</a>
       </div>
     </header>
 
