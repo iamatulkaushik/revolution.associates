@@ -4,8 +4,8 @@
 <div class="section-header">
   <h2>Dashboard</h2>
   <div class="section-actions">
-    <a href="{% url 'compliance_dashboard' %}" class="button btn-primary">Compliance Calendar</a>
-    <a href="{% url 'create_employee' %}" class="button">+ Add Employee</a>
+    <a href="{% url 'Aapp:compliance_dashboard' %}" class="button btn-primary">Compliance Calendar</a>
+    <a href="{% url 'Aapp:create_employee' %}" class="button">+ Add Employee</a>
   </div>
 </div>
 
@@ -14,25 +14,25 @@
     <div class="stat-icon">У</div>
     <div class="stat-value">{{ departments_count|default:"0" }} / {{ branches_count|default:"0" }}</div>
     <div class="stat-label">Departments / Branches</div>
-    <div class="stat-note"><a href="{% url 'department_list' %}">Departments</a> · <a href="{% url 'branch_list' %}">Branches</a></div>
+    <div class="stat-note"><a href="{% url 'Aapp:department_list' %}">Departments</a> · <a href="{% url 'Aapp:branch_list' %}">Branches</a></div>
   </div>
   <div class="stat-card" style="--accent-color:#2a9d8f">
     <div class="stat-icon">ı</div>
     <div class="stat-value" id="stat-employees">—</div>
     <div class="stat-label">Active Employees</div>
-    <div class="stat-note"><a href="{% url 'list_employee' %}">View all</a></div>
+    <div class="stat-note"><a href="{% url 'Aapp:list_employee' %}">View all</a></div>
   </div>
   <div class="stat-card" style="--accent-color:#e63946" id="compliance-card">
     <div class="stat-icon">Ē</div>
     <div class="stat-value" id="stat-overdue">—</div>
     <div class="stat-label">Overdue Returns</div>
-    <div class="stat-note"><a href="{% url 'compliance_dashboard' %}">View compliance</a></div>
+    <div class="stat-note"><a href="{% url 'Aapp:compliance_dashboard' %}">View compliance</a></div>
   </div>
   <div class="stat-card" style="--accent-color:#f4a261">
     <div class="stat-icon">П</div>
     <div class="stat-value" id="stat-companies">—</div>
     <div class="stat-label">My Companies</div>
-    <div class="stat-note"><a href="{% url 'list_company_associate' %}">Manage</a></div>
+    <div class="stat-note"><a href="{% url 'Aapp:list_company_associate' %}">Manage</a></div>
   </div>
 </div>
 
@@ -42,12 +42,12 @@
   </div>
   <div class="card-body">
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:var(--sp-3)">
-      <a href="{% url 'generate_wages' %}" class="button">Generate Wages</a>
-      <a href="{% url 'add_attendance' %}" class="button">Add Attendance</a>
-      <a href="{% url 'add_epf_ecr' %}" class="button">EPF ECR</a>
-      <a href="{% url 'add_esi_return' %}" class="button">ESI Return</a>
-      <a href="{% url 'add_lwf' %}" class="button">LWF Contribution</a>
-      <a href="{% url 'seed_compliance_calendar' %}" class="button btn-primary">Seed Compliance</a>
+      <a href="{% url 'Aapp:generate_wages' %}" class="button">Generate Wages</a>
+      <a href="{% url 'Aapp:add_attendance' %}" class="button">Add Attendance</a>
+      <a href="{% url 'Aapp:add_epf_ecr' %}" class="button">EPF ECR</a>
+      <a href="{% url 'Aapp:add_esi_return' %}" class="button">ESI Return</a>
+      <a href="{% url 'Aapp:add_lwf' %}" class="button">LWF Contribution</a>
+      <a href="{% url 'Aapp:seed_compliance_calendar' %}" class="button btn-primary">Seed Compliance</a>
     </div>
   </div>
 </div>
