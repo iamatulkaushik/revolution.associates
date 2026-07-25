@@ -49,7 +49,7 @@ def associate_login(request):
             auth_login(request, user)
             logger.info("Associate login: user='%s'", user.username)
             messages.success(request, 'Logged in successfully.')
-            return redirect('dashboard')
+            return redirect('aapp_dashboard')
     else:
         form = loginForm()
     return render(request, 'associate_login.html', {'form': form})
