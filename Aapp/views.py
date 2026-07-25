@@ -49,7 +49,7 @@ def associate_login(request):
             auth_login(request, user)
             logger.info("Associate login: user='%s'", user.username)
             messages.success(request, 'Logged in successfully.')
-            return redirect('aapp_dashboard')
+            return redirect('dashboard')
     else:
         form = loginForm()
     return render(request, 'associate_login.html', {'form': form})
@@ -68,7 +68,7 @@ def logout(request):
 # ---------------------------------------------------------------------------
 
 @login_required
-def aapp_dashboard(request):
+def dashboard(request):
     selected_company_id = request.session.get('selected_company_id')
     branches_count = 0
     departments_count = 0
