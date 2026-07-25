@@ -146,7 +146,7 @@ urlpatterns = [
     path('', views.associate_base_home, name='home'),
     path('login/', views.associate_login, name='login'),
     path('logout/', views.logout, name='logout'),
-    path('dashboard/', views.associate_dashboard, name='associate_dashboard'),
+    path('dashboard/', views.associate_dashboard, name='aapp_dashboard'),
     path('profile/', views.associate_profile, name='associate_profile'),
 
     # ── Branch & Department ──────────────────────────────────────────────────
