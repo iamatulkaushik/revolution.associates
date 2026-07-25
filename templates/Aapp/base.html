@@ -89,6 +89,20 @@
           </ul>
         </li>
 
+        <li class="nav-item" id="nav-salary">
+          <button class="nav-link statuary" onclick="toggleNav('nav-salary')" aria-expanded="false">
+            <span class="nav-label">Salary Processing</span>
+            <span class="nav-chevron">&#9658;</span>
+          </button>
+          <ul class="nav-sub">
+            <li><a href="{% url 'salary_dashboard' %}" class="nav-link">Dashboard</a></li>
+            <li><a href="{% url 'create_salary_batch' %}" class="nav-link">Process Salary</a></li>
+            <li><a href="{% url 'list_salary_structures' %}" class="nav-link">Salary Structures</a></li>
+            <li><a href="{% url 'pf_report' %}" class="nav-link">PF Report</a></li>
+            <li><a href="{% url 'esi_report' %}" class="nav-link">ESI Report</a></li>
+          </ul>
+        </li>
+
         <li class="nav-item" id="nav-statutory">
           <button class="nav-link statuary" onclick="toggleNav('nav-statutory')" aria-expanded="false">
             <span class="nav-label">Statutory</span>

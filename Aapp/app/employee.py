@@ -741,3 +741,119 @@ def bulk_excel_upload_Employees(request):
         return redirect('list_employee')
 
     return render(request, 'Aapp/employees/bulk_excel_upload.html', {'company': company})
+
+
+# ── bulk statutory fields update (UAN/EPF, ESIC, PAN, Labour ID) ─────────────
+def bulk_update_statutory_fields(request):
+    """
+    Show every active employee missing UAN/EPF Member ID, ESIC Number,
+    PAN Number, or Labour ID in an editable table, and save all entered
+    values in a single submit. Only employees with at least one of these
+    four fields blank are listed; fields left blank in the form keep
+    their existing value (no accidental clearing).
+    """
+    from django.contrib import messages
+    company = _company_ctx(request)
+    if not company:
+        messages.warning(request, 'Please select a company first.')
+        return redirect('dashboard')
+
+    if request.method == 'POST':
+        emp_ids = request.POST.getlist('employee_id')
+        updated = 0
+        errors = 0
+        error_rows = []
+
+        # Guard against two rows in the same submit claiming the same PAN
+        submitted_pans = {}
+
+        with_transaction = True
+        from django.db import transaction as _txn
+        try:
+            with _txn.atomic():
+                for emp_id in emp_ids:
+                    emp = employee.objects.filter(
+                        employeeid=emp_id, CompanyID=company
+                    ).first()
+                    if not emp:
+                        continue
+
+                    uan_number = request.POST.get(f'uan_number_{emp_id}', '').strip()
+                    epf_memberID = request.POST.get(f'epf_memberID_{emp_id}', '').strip()
+                    esic_number = request.POST.get(f'esic_number_{emp_id}', '').strip()
+                    pan_number = request.POST.get(f'pan_number_{emp_id}', '').strip().upper()
+                    labour_id = request.POST.get(f'labour_id_{emp_id}', '').strip()
+
+                    # Nothing entered for this row — skip silently
+                    if not any([uan_number, epf_memberID, esic_number, pan_number, labour_id]):
+                        continue
+
+                    try:
+                        if pan_number:
+                            if pan_number in submitted_pans:
+                                error_rows.append(
+                                    f"{emp.employeecode} - {emp.name}: PAN '{pan_number}' "
+                                    f"was also entered for {submitted_pans[pan_number]} in this batch."
+                                )
+                                errors += 1
+                                continue
+                            existing_pan = employee.objects.filter(
+                                pan_number=pan_number
+                            ).exclude(employeeid=emp.employeeid).first()
+                            if existing_pan:
+                                error_rows.append(
+                                    f"{emp.employeecode} - {emp.name}: PAN '{pan_number}' "
+                                    f"already registered to {existing_pan.employeecode} - {existing_pan.name}."
+                                )
+                                errors += 1
+                                continue
+                            submitted_pans[pan_number] = f"{emp.employeecode} - {emp.name}"
+                            emp.pan_number = pan_number
+                            if not emp.pan_name:
+                                emp.pan_name = emp.name
+
+                        if uan_number:
+                            emp.uan_number = uan_number
+                        if epf_memberID:
+                            emp.epf_memberID = epf_memberID
+                        if esic_number:
+                            emp.esic_number = esic_number
+                        if labour_id:
+                            emp.labour_id = labour_id
+
+                        emp.save()
+                        updated += 1
+
+                    except Exception as e:
+                        error_rows.append(f"{emp.employeecode} - {emp.name}: {e}")
+                        errors += 1
+
+        except Exception as e:
+            messages.error(request, f'Error saving updates: {e}')
+            return redirect('bulk_update_statutory_fields')
+
+        if updated:
+            messages.success(request, f"{updated} employee record(s) updated, {errors} error(s).")
+        else:
+            messages.warning(request, f"No records updated. {errors} error(s).")
+
+        if error_rows:
+            for err in error_rows[:10]:
+                messages.error(request, err)
+
+        return redirect('bulk_update_statutory_fields')
+
+    # GET — list employees missing at least one of the four fields
+    incomplete = employee.objects.filter(
+        CompanyID=company, is_working=True
+    ).filter(
+        models.Q(uan_number='') | models.Q(epf_memberID='') |
+        models.Q(esic_number='') | models.Q(pan_number__isnull=True) |
+        models.Q(pan_number='') | models.Q(labour_id='')
+    ).select_related('designationID', 'branchID').order_by('employeecode')
+
+    context = {
+        'company': company,
+        'employees': incomplete,
+    }
+    return render(request, 'Aapp/employees/bulk_update_statutory.html', context)

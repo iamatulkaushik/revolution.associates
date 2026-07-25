@@ -1,0 +1,74 @@
+{% extends 'Aapp/base.html' %}
+{% block title %}Salary Structures{% endblock %}
+{% block content %}
+
+<div class="section-header">
+  <h2>Salary Structures (by Designation) — {{ company.company_name }}</h2>
+  <div class="section-actions">
+    <a href="{% url 'create_designation' %}" class="button btn-primary">+ Add Designation</a>
+    <a href="{% url 'list_designation' %}" class="button">Manage Designations</a>
+  </div>
+</div>
+
+{% if messages %}
+<div class="messages-container">
+  {% for message in messages %}
+  <div class="message-alert {% if message.tags == 'error' %}message-error{% elif message.tags == 'warning' %}message-warning{% elif message.tags == 'info' %}message-info{% else %}message-success{% endif %}" role="alert">{{ message }}</div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<div class="message-alert message-info" style="margin-bottom:var(--sp-5)">
+  Pay scales are set per designation, not per employee. Every employee assigned to a designation shares its pay structure and statutory rates — edit the designation to change pay for everyone in that role at once.
+</div>
+
+<div class="card">
+  {% if designations %}
+  <div style="padding:var(--sp-3) var(--sp-5);border-bottom:1px solid var(--c-border);display:flex;align-items:center;justify-content:space-between">
+    <span class="text-muted text-sm">{{ designations|length }} designation{{ designations|length|pluralize }}</span>
+  </div>
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Designation</th><th>Type</th><th>Basic / Daily Wage</th>
+          <th>HRA</th><th>DA</th><th>Employees</th><th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for d in designations %}
+        <tr>
+          <td><strong>{{ d.designationname }}</strong></td>
+          <td>{% if d.is_dailywage %}<span class="badge badge-info">Daily Wage</span>{% else %}<span class="badge badge-muted">Monthly</span>{% endif %}</td>
+          <td>
+            {% if d.is_dailywage %}₹{{ d.dailywage }} / day{% else %}₹{{ d.basicpay }} / month{% endif %}
+          </td>
+          <td>₹{{ d.hra }}</td>
+          <td>₹{{ d.da }}</td>
+          <td>{{ d.employee_count }}</td>
+          <td>
+            <a href="{% url 'view_salary_structure' d.designationid %}" class="action-edit">View</a>
+            | <a href="{% url 'alter_designation' d.designationid %}" class="action-edit">Edit</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="card-body text-center" style="padding:var(--sp-8)">
+    <p class="text-muted" style="font-size:15px">No designations set up yet for {{ company.company_name }}.</p>
+    <a href="{% url 'create_designation' %}" class="button btn-primary" style="margin-top:var(--sp-4)">Add First Designation</a>
+  </div>
+  {% endif %}
+</div>
+
+<script>
+fetch('{% url "get_selected_company" %}').then(r=>r.json()).then(d=>{
+  if(!d.company_id){
+    const b=document.querySelector('.message-alert');
+    if(b)b.insertAdjacentHTML('beforebegin','<div class="message-alert message-warning" role="alert">No company selected. <a href="{% url "dashboard" %}">Go to Dashboard</a> to select one.</div>');
+  }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,39 @@
+{% extends 'Aapp/base.html' %}
+{% block title %}Delete Salary Batch{% endblock %}
+{% block content %}
+
+<div class="section-header">
+  <h2>Delete Salary Batch</h2>
+  <a href="{% url 'view_salary_batch' batch.id %}" class="button">← Back</a>
+</div>
+
+{% if messages %}
+<div class="messages-container">
+  {% for message in messages %}
+  <div class="message-alert {% if message.tags == 'error' %}message-error{% else %}message-success{% endif %}" role="alert">{{ message }}</div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<div class="card" style="max-width:560px">
+  <div class="card-header" style="background:linear-gradient(135deg,var(--c-danger),#c1121f)">
+    <h3>Confirm Deletion</h3>
+  </div>
+  <div class="card-body">
+
+    <div class="message-alert message-warning" role="alert" style="margin-bottom:var(--sp-5)">
+      This will permanently delete the salary batch for <strong>{{ month_name }} {{ batch.year }}</strong>
+      ({{ batch.total_employees }} employee slip{{ batch.total_employees|pluralize }}) at {{ company.company_name }}. This cannot be undone.
+    </div>
+
+    <form method="post">
+      {% csrf_token %}
+      <div class="form-actions">
+        <button type="submit" class="button btn-danger">Delete Batch</button>
+        <a href="{% url 'view_salary_batch' batch.id %}" class="button">Cancel</a>
+      </div>
+    </form>
+
+  </div>
+</div>
+{% endblock %}

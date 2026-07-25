@@ -18,7 +18,7 @@ from Aapp.app.subuser import (
 from Aapp.app.employee import (
     list_employee, create_employee, alter_employee, disable_employee, retire_employee,
     delete_employee, bulk_excel_upload_Employees as employee_bulk_excel_upload,
-    download_employee_template,
+    download_employee_template, bulk_update_statutory_fields,
 )
 from Aapp.app.attandance import (
     list_attendance, add_attendance, update_attendance, bulk_attendance, delete_attendance,
@@ -57,6 +57,17 @@ from Aapp.app.wages import (
     list_wages, generate_wages, update_wages, finalize_wages, delete_wages,
     list_fines, add_fine, delete_fine,
     list_deductions, add_deduction, delete_deduction,
+)
+
+# Salary Processing — PF/ESI/PT engine, batch payroll workflow
+from Aapp.app.salary_processing import (
+    salary_dashboard, create_salary_batch, process_salary_batch,
+    view_salary_batch, view_salary_slip, edit_salary_slip,
+    approve_salary_batch, delete_salary_batch,
+    list_salary_structures, create_salary_structure, view_salary_structure,
+    export_salary_register, export_bank_advice,
+    download_salary_template, import_salary_structures,
+    pf_report, esi_report,
 )
 
 # Minimum Wages Form V / Payment of Wages Form IV — annual returns
@@ -182,6 +193,7 @@ urlpatterns = [
     path('employees/delete/<int:employee_id>/', delete_employee, name='delete_employee'),
     path('employees/excel-upload/', employee_bulk_excel_upload, name='bulk_excel_upload_employees'),
     path('employees/download-template/', download_employee_template, name='download_employee_template'),
+    path('employees/statutory-update/', bulk_update_statutory_fields, name='bulk_update_statutory_fields'),
 
     # ── Attendance ────────────────────────────────────────────────────────────
     path('attendance/', list_attendance, name='list_attendance'),
@@ -282,6 +294,31 @@ urlpatterns = [
     path('wages/payment-of-wages-returns/', list_pow_returns, name='list_pow_returns'),
     path('wages/payment-of-wages-returns/add/', add_pow_return, name='add_pow_return'),
     path('wages/payment-of-wages-returns/alter/<int:return_id>/', alter_pow_return, name='alter_pow_return'),
+
+    # ════════════════════════════════════════════════════════════════════════
+    # SALARY PROCESSING — PF/ESI/PT engine, monthly batch payroll workflow
+    # ════════════════════════════════════════════════════════════════════════
+    path('salary/', salary_dashboard, name='salary_dashboard'),
+
+    path('salary/batch/create/', create_salary_batch, name='create_salary_batch'),
+    path('salary/batch/<int:batch_id>/process/', process_salary_batch, name='process_salary_batch'),
+    path('salary/batch/<int:batch_id>/', view_salary_batch, name='view_salary_batch'),
+    path('salary/batch/<int:batch_id>/approve/', approve_salary_batch, name='approve_salary_batch'),
+    path('salary/batch/<int:batch_id>/delete/', delete_salary_batch, name='delete_salary_batch'),
+    path('salary/batch/<int:batch_id>/export/', export_salary_register, name='export_salary_register'),
+    path('salary/batch/<int:batch_id>/bank-advice/', export_bank_advice, name='export_bank_advice'),
+
+    path('salary/slip/<int:slip_id>/', view_salary_slip, name='view_salary_slip'),
+    path('salary/slip/<int:slip_id>/edit/', edit_salary_slip, name='edit_salary_slip'),
+
+    path('salary/structures/', list_salary_structures, name='list_salary_structures'),
+    path('salary/structures/create/', create_salary_structure, name='create_salary_structure'),
+    path('salary/structures/<int:structure_id>/', view_salary_structure, name='view_salary_structure'),
+    path('salary/structures/template/', download_salary_template, name='download_salary_template'),
+    path('salary/structures/import/', import_salary_structures, name='import_salary_structures'),
+
+    path('salary/reports/pf/', pf_report, name='pf_report'),
+    path('salary/reports/esi/', esi_report, name='esi_report'),
 
     # ════════════════════════════════════════════════════════════════════════
     # EPF & MP ACT 1952 — Form 2 (Nomination), Monthly ECR

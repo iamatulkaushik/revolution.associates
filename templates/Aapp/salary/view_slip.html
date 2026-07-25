@@ -1,0 +1,104 @@
+{% extends 'Aapp/base.html' %}
+{% block title %}Salary Slip — {{ slip.employee_id.name }}{% endblock %}
+{% block content %}
+
+<div class="section-header">
+  <h2>Salary Slip — {{ month_name }} {{ batch.year }}</h2>
+  <div class="section-actions">
+    {% if batch.status != 'APPROVED' %}
+    <a href="{% url 'edit_salary_slip' slip.id %}" class="button">Edit Adjustments</a>
+    {% endif %}
+    <a href="{% url 'view_salary_batch' batch.id %}" class="button">← Back to Batch</a>
+  </div>
+</div>
+
+{% if messages %}
+<div class="messages-container">
+  {% for message in messages %}
+  <div class="message-alert {% if message.tags == 'error' %}message-error{% else %}message-success{% endif %}" role="alert">{{ message }}</div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<div class="card" style="margin-bottom:var(--sp-5)">
+  <div class="card-header">
+    <h3>{{ slip.employee_id.name }} ({{ slip.employee_id.employeecode }})</h3>
+    <span style="color:rgba(255,255,255,.7);font-size:13px">
+      {% if batch.status == 'APPROVED' %}<span class="badge badge-success">Approved</span>
+      {% else %}<span class="badge badge-info">Processed</span>{% endif %}
+    </span>
+  </div>
+  <div class="card-body">
+    <div class="form-grid">
+      <div class="form-group"><label>Designation</label><span>{{ slip.employee_id.designationID }}</span></div>
+      <div class="form-group"><label>Working Days</label><span>{{ slip.working_days }}</span></div>
+      <div class="form-group"><label>Paid Days</label><span>{{ slip.paid_days }}</span></div>
+      <div class="form-group"><label>Leave Days</label><span>{{ slip.leave_days }}</span></div>
+      <div class="form-group"><label>Overtime Hours</label><span>{{ slip.overtime_hours }}</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="form-grid" style="align-items:start">
+
+  <div class="card">
+    <div class="card-header" style="background:linear-gradient(135deg,var(--c-success),#238577)"><h3>Earnings</h3></div>
+    <div class="table-wrap">
+      <table class="data-table">
+        <tbody>
+          <tr><td>Basic</td><td class="text-right">₹{{ slip.basic_earned }}</td></tr>
+          <tr><td>HRA</td><td class="text-right">₹{{ slip.hra_earned }}</td></tr>
+          <tr><td>DA</td><td class="text-right">₹{{ slip.da_earned }}</td></tr>
+          <tr><td>Conveyance</td><td class="text-right">₹{{ slip.conveyance_earned }}</td></tr>
+          <tr><td>Medical Allowance</td><td class="text-right">₹{{ slip.medical_allowance_earned }}</td></tr>
+          <tr><td>Lunch Allowance</td><td class="text-right">₹{{ slip.lunch_allowance_earned }}</td></tr>
+          <tr><td>CCA</td><td class="text-right">₹{{ slip.cca_earned }}</td></tr>
+          <tr><td>Special Allowance</td><td class="text-right">₹{{ slip.special_allowance_earned }}</td></tr>
+          <tr><td>Travel Allowance</td><td class="text-right">₹{{ slip.travel_allowance_earned }}</td></tr>
+          <tr><td>Washing Allowance</td><td class="text-right">₹{{ slip.washing_allowance_earned }}</td></tr>
+          <tr><td>Cycle Allowance</td><td class="text-right">₹{{ slip.cycle_allowance_earned }}</td></tr>
+          <tr><td>Other Allowance</td><td class="text-right">₹{{ slip.other_allowance_earned }}</td></tr>
+          <tr><td>Overtime</td><td class="text-right">₹{{ slip.overtime_amount }}</td></tr>
+          <tr><td>Bonus</td><td class="text-right">₹{{ slip.bonus_amount }}</td></tr>
+          <tr style="font-weight:700;background:var(--c-bg)"><td>Gross Earnings</td><td class="text-right">₹{{ slip.gross_earnings }}</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header" style="background:linear-gradient(135deg,var(--c-danger),#c1121f)"><h3>Deductions</h3></div>
+    <div class="table-wrap">
+      <table class="data-table">
+        <tbody>
+          <tr><td>PF (Employee)</td><td class="text-right">₹{{ slip.pf_deduction }}</td></tr>
+          <tr><td>ESI (Employee)</td><td class="text-right">₹{{ slip.esi_deduction }}</td></tr>
+          <tr><td>Labour Welfare Fund</td><td class="text-right">₹{{ slip.labour_welfare_deduction }}</td></tr>
+          <tr><td>Professional Tax</td><td class="text-right">₹{{ slip.professional_tax }}</td></tr>
+          <tr><td>Income Tax</td><td class="text-right">₹{{ slip.income_tax }}</td></tr>
+          <tr><td>Loan Deduction</td><td class="text-right">₹{{ slip.loan_deduction }}</td></tr>
+          <tr><td>Advance Deduction</td><td class="text-right">₹{{ slip.advance_deduction }}</td></tr>
+          <tr><td>Late Fine</td><td class="text-right">₹{{ slip.late_fine }}</td></tr>
+          <tr><td>Other Deduction</td><td class="text-right">₹{{ slip.other_deduction }}</td></tr>
+          <tr style="font-weight:700;background:var(--c-bg)"><td>Total Deductions</td><td class="text-right">₹{{ slip.total_deductions }}</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<div class="card" style="margin-top:var(--sp-5)">
+  <div class="card-body" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:var(--sp-4)">
+    <div>
+      <span class="text-muted text-sm">Employer Cost (incl. PF/ESI employer share)</span><br>
+      <strong style="font-size:18px">₹{{ slip.employer_total_cost }}</strong>
+    </div>
+    <div style="text-align:right">
+      <span class="text-muted text-sm">Net Pay</span><br>
+      <strong style="font-size:26px;color:var(--c-success)">₹{{ slip.net_pay }}</strong>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
