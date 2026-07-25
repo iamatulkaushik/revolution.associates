@@ -68,7 +68,8 @@ ROOT_URLCONF = 'revolution.urls'
 
 CSRF_TRUSTED_ORIGINS = [
     'https://revolutionassociates-production.up.railway.app',
-    'https://reas-hrms-production.up.railway.app/'
+    'https://reas-hrms-production.up.railway.app'
+    'https://*.reas-hrms-production.up.railway.app'
 ]
 TEMPLATES = [
     {
