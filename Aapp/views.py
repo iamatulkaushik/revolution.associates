@@ -68,7 +68,7 @@ def logout(request):
 # ---------------------------------------------------------------------------
 
 @login_required
-def dashboard(request):
+def aapp_dashboard(request):
     selected_company_id = request.session.get('selected_company_id')
     branches_count = 0
     departments_count = 0
