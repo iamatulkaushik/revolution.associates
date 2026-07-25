@@ -158,7 +158,7 @@ def list_employee(request):
     company = _company_ctx(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
     employees = employee.objects.filter(CompanyID=company).select_related(
         'designationID', 'branchID', 'departmentID')
     return render(request, 'Aapp/employees/list_employee.html',
@@ -171,7 +171,7 @@ def create_employee(request):
     company = _company_ctx(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     ctx = _form_ctx(company)
     ctx['company'] = company
@@ -280,7 +280,7 @@ def alter_employee(request, employee_id):
     company = _company_ctx(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     emp = get_object_or_404(employee, employeeid=employee_id, CompanyID=company)
     ctx = _form_ctx(company)
@@ -359,7 +359,7 @@ def disable_employee(request, employee_id):
     company = _company_ctx(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     emp = get_object_or_404(employee, employeeid=employee_id, CompanyID=company)
 
@@ -386,7 +386,7 @@ def retire_employee(request, employee_id):
     company = _company_ctx(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     emp = get_object_or_404(employee, employeeid=employee_id, CompanyID=company)
 
@@ -408,7 +408,7 @@ def delete_employee(request, employee_id):
     company = _company_ctx(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     emp = get_object_or_404(employee, employeeid=employee_id, CompanyID=company)
 
@@ -429,7 +429,7 @@ def download_employee_template(request):
     if not company:
         from django.contrib import messages
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     wb = openpyxl.Workbook()
     ws = wb.active
@@ -533,7 +533,7 @@ def bulk_excel_upload_Employees(request):
     if not company:
         from django.contrib import messages
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     if request.method == 'POST':
         xl = request.FILES.get('excel_file')
@@ -756,7 +756,7 @@ def bulk_update_statutory_fields(request):
     company = _company_ctx(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     if request.method == 'POST':
         emp_ids = request.POST.getlist('employee_id')

@@ -57,7 +57,7 @@ function checkSelectedCompany() {
         .then(data => {
             if (!data.company_id) {
                 alert('Please select a company first.');
-                window.location.href = '{% url "dashboard" %}';
+                window.location.href = '{% url 'aapp_dashboard' %}';
             }
         });
 }

@@ -215,7 +215,7 @@ def list_cl_registration(request):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
     registrations = ContractLabourRegistration.objects.filter(company=company)
     rows = [{
         'cells': [r.registration_cert_no or '—', r.establishment_name, r.registration_date,
@@ -236,7 +236,7 @@ def create_cl_registration(request):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     if request.method == 'POST':
         form = ContractLabourRegistrationForm(request.POST)
@@ -262,7 +262,7 @@ def alter_cl_registration(request, reg_id):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     reg = get_object_or_404(ContractLabourRegistration, reg_id=reg_id, company=company)
 
@@ -289,7 +289,7 @@ def list_employment_cards(request, contractor_id):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     con = get_object_or_404(contractor, contractor_id=contractor_id, company=company)
     cards = ContractEmploymentCard.objects.filter(contractor=con).select_related('employee')
@@ -311,7 +311,7 @@ def create_employment_card(request, contractor_id):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     con = get_object_or_404(contractor, contractor_id=contractor_id, company=company)
 
@@ -343,7 +343,7 @@ def list_service_certificates(request, contractor_id):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     con = get_object_or_404(contractor, contractor_id=contractor_id, company=company)
     certs = ContractServiceCertificate.objects.filter(contractor=con).select_related('employee')
@@ -366,7 +366,7 @@ def create_service_certificate(request, contractor_id):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     con = get_object_or_404(contractor, contractor_id=contractor_id, company=company)
 
@@ -398,7 +398,7 @@ def list_cl_returns(request, contractor_id):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     con = get_object_or_404(contractor, contractor_id=contractor_id, company=company)
     returns = ContractLabourHalfYearlyReturn.objects.filter(contractor=con)
@@ -421,7 +421,7 @@ def create_cl_return(request, contractor_id):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     con = get_object_or_404(contractor, contractor_id=contractor_id, company=company)
 
@@ -450,7 +450,7 @@ def alter_cl_return(request, return_id):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     ret = get_object_or_404(ContractLabourHalfYearlyReturn, return_id=return_id, company=company)
 

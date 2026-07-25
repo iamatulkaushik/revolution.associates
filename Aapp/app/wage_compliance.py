@@ -141,7 +141,7 @@ def list_minwages_returns(request):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
     returns = MinimumWagesAnnualReturn.objects.filter(company=company)
     rows = [{
         'cells': [r.year, r.category_of_work, r.total_employees_male, r.total_employees_female,
@@ -162,7 +162,7 @@ def add_minwages_return(request):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     if request.method == 'POST':
         form = MinimumWagesAnnualReturnForm(request.POST)
@@ -188,7 +188,7 @@ def alter_minwages_return(request, return_id):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     ret = get_object_or_404(MinimumWagesAnnualReturn, return_id=return_id, company=company)
 
@@ -215,7 +215,7 @@ def list_pow_returns(request):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
     returns = PaymentOfWagesAnnualReturn.objects.filter(company=company)
     rows = [{
         'cells': [r.year, r.total_employed, r.total_wages_paid, r.get_wage_period_display(),
@@ -236,7 +236,7 @@ def add_pow_return(request):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     if request.method == 'POST':
         form = PaymentOfWagesAnnualReturnForm(request.POST)
@@ -262,7 +262,7 @@ def alter_pow_return(request, return_id):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     ret = get_object_or_404(PaymentOfWagesAnnualReturn, return_id=return_id, company=company)
 

@@ -273,7 +273,7 @@ def list_epf_nominations(request):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
     nominations = EpfNomination.objects.filter(company=company).select_related('employee')
     rows = [{
         'cells': [n.employee.employeecode, n.nominee_name, n.get_relationship_display(),
@@ -294,7 +294,7 @@ def add_epf_nomination(request):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     employees = employee.objects.filter(CompanyID=company, is_working=True).order_by('name')
 
@@ -324,7 +324,7 @@ def delete_epf_nomination(request, nomination_id):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     nom = get_object_or_404(EpfNomination, nomination_id=nomination_id, company=company)
     if request.method == 'POST':
@@ -347,7 +347,7 @@ def list_epf_ecr(request):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
     records = EpfMonthlyEcr.objects.filter(company=company)
     rows = [{
         'cells': [f'{r.salary_month}/{r.salary_year}', r.total_members, r.total_epf_wages,
@@ -368,7 +368,7 @@ def add_epf_ecr(request):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     if request.method == 'POST':
         form = EpfMonthlyEcrForm(request.POST)
@@ -394,7 +394,7 @@ def alter_epf_ecr(request, ecr_id):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     ecr = get_object_or_404(EpfMonthlyEcr, ecr_id=ecr_id, company=company)
 
@@ -421,7 +421,7 @@ def list_esi_family(request):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
     members = EsiFamilyMember.objects.filter(company=company).select_related('employee')
     rows = [{
         'cells': [m.employee.employeecode, m.member_name, m.get_relationship_display(),
@@ -443,7 +443,7 @@ def add_esi_family(request):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     employees = employee.objects.filter(CompanyID=company, is_working=True).order_by('name')
 
@@ -473,7 +473,7 @@ def remove_esi_family(request, member_id):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     member = get_object_or_404(EsiFamilyMember, member_id=member_id, company=company)
     if request.method == 'POST':
@@ -503,7 +503,7 @@ def list_esi_returns(request):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
     returns = EsiContributionReturn.objects.filter(company=company)
     rows = [{
         'cells': [r.year, r.get_contribution_period_display(), r.total_covered_employees,
@@ -524,7 +524,7 @@ def add_esi_return(request):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     if request.method == 'POST':
         form = EsiContributionReturnForm(request.POST)
@@ -550,7 +550,7 @@ def alter_esi_return(request, return_id):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     ret = get_object_or_404(EsiContributionReturn, return_id=return_id, company=company)
 

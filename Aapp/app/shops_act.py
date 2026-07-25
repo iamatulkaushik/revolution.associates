@@ -145,7 +145,7 @@ def list_establishments(request):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
     estabs = establishment_details.objects.filter(company=company)
     rows = [{
         'cells': [e.registration_number or '—', e.establishment_name, e.manager_name or '—',
@@ -170,7 +170,7 @@ def add_establishment(request):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     if request.method == 'POST':
         form = EstablishmentForm(request.POST)
@@ -196,7 +196,7 @@ def update_establishment(request, estab_id):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     est = get_object_or_404(establishment_details, estab_id=estab_id, company=company)
 
@@ -221,7 +221,7 @@ def delete_establishment(request, estab_id):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     est = get_object_or_404(establishment_details, estab_id=estab_id, company=company)
     if request.method == 'POST':
@@ -243,7 +243,7 @@ def list_overtime(request):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
     records = overtime_register.objects.filter(
         employee__CompanyID=company
     ).select_related('employee')
@@ -266,7 +266,7 @@ def add_overtime(request):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     if request.method == 'POST':
         form = OvertimeRegisterForm(request.POST)
@@ -291,7 +291,7 @@ def delete_overtime(request, ot_id):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     rec = get_object_or_404(overtime_register, ot_id=ot_id, employee__CompanyID=company)
     if request.method == 'POST':

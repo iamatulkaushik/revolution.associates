@@ -133,7 +133,7 @@ def create_department(request):
     company = get_object_or_404(Company, company_id=company_id) if company_id else None
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
     if request.method == 'POST':
         department_name = request.POST.get('department_name')
         branch_id = request.POST.get('branch')

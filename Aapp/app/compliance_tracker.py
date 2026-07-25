@@ -120,7 +120,7 @@ def compliance_dashboard(request):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     today = timezone.now().date()
     all_items = StatutoryReturnTracker.objects.filter(company=company)
@@ -144,7 +144,7 @@ def list_compliance_items(request):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
     items = StatutoryReturnTracker.objects.filter(company=company)
     rows = [{
         'cells': [i.act_name, i.form_number, i.return_description, i.get_frequency_display(),
@@ -172,7 +172,7 @@ def add_compliance_item(request):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     if request.method == 'POST':
         form = StatutoryReturnTrackerForm(request.POST)
@@ -198,7 +198,7 @@ def alter_compliance_item(request, tracker_id):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     item = get_object_or_404(StatutoryReturnTracker, tracker_id=tracker_id, company=company)
 
@@ -223,7 +223,7 @@ def mark_compliance_filed(request, tracker_id):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     item = get_object_or_404(StatutoryReturnTracker, tracker_id=tracker_id, company=company)
     if request.method == 'POST':
@@ -253,7 +253,7 @@ def seed_compliance_calendar(request):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     if request.method == 'POST':
         from datetime import date

@@ -214,7 +214,7 @@ def list_factory_registration(request):
     company = _company_ctx(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
     factories = FactoryRegistration.objects.filter(company=company)
     rows = [{
         'cells': [f.factory_license_no, f.occupier_name, f.manager_name, f.max_workers_day,
@@ -241,7 +241,7 @@ def create_factory_registration(request):
     company = _company_ctx(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     if request.method == 'POST':
         form = FactoryRegistrationForm(request.POST)
@@ -266,7 +266,7 @@ def alter_factory_registration(request, factory_id):
     company = _company_ctx(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     factory = get_object_or_404(FactoryRegistration, factory_id=factory_id, company=company)
 
@@ -293,7 +293,7 @@ def list_whitewash_register(request, factory_id):
     company = _company_ctx(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     factory = get_object_or_404(FactoryRegistration, factory_id=factory_id, company=company)
     records = FactoryWhitewashRegister.objects.filter(factory=factory)
@@ -315,7 +315,7 @@ def create_whitewash_register(request, factory_id):
     company = _company_ctx(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     factory = get_object_or_404(FactoryRegistration, factory_id=factory_id, company=company)
 
@@ -344,7 +344,7 @@ def list_vessel_examination(request, factory_id):
     company = _company_ctx(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     factory = get_object_or_404(FactoryRegistration, factory_id=factory_id, company=company)
     records = FactoryVesselExamination.objects.filter(factory=factory)
@@ -367,7 +367,7 @@ def create_vessel_examination(request, factory_id):
     company = _company_ctx(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     factory = get_object_or_404(FactoryRegistration, factory_id=factory_id, company=company)
 
@@ -396,7 +396,7 @@ def list_leave_wages_register(request):
     company = _company_ctx(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     records = LeaveWithWagesRegister.objects.filter(employee__CompanyID=company).select_related('employee')
     rows = [{
@@ -418,7 +418,7 @@ def create_leave_wages_register(request):
     company = _company_ctx(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     if request.method == 'POST':
         form = LeaveWithWagesRegisterForm(request.POST)
@@ -444,7 +444,7 @@ def list_accident_register(request, factory_id):
     company = _company_ctx(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     factory = get_object_or_404(FactoryRegistration, factory_id=factory_id, company=company)
     records = FactoryAccidentRegister.objects.filter(factory=factory).select_related('employee')
@@ -468,7 +468,7 @@ def create_accident_register(request, factory_id):
     company = _company_ctx(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     factory = get_object_or_404(FactoryRegistration, factory_id=factory_id, company=company)
 
@@ -498,7 +498,7 @@ def list_annual_return(request, factory_id):
     company = _company_ctx(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     factory = get_object_or_404(FactoryRegistration, factory_id=factory_id, company=company)
     records = FactoryAnnualReturn.objects.filter(factory=factory)
@@ -523,7 +523,7 @@ def create_annual_return(request, factory_id):
     company = _company_ctx(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     factory = get_object_or_404(FactoryRegistration, factory_id=factory_id, company=company)
 
@@ -550,7 +550,7 @@ def alter_annual_return(request, return_id):
     company = _company_ctx(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     record = get_object_or_404(FactoryAnnualReturn, return_id=return_id, factory__company=company)
 

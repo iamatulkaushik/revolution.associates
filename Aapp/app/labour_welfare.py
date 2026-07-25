@@ -107,7 +107,7 @@ def list_lwf(request):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
     records = LabourWelfareFundContribution.objects.filter(company=company)
     rows = [{
         'cells': [r.year, r.get_contribution_period_display(), r.total_employees,
@@ -130,7 +130,7 @@ def add_lwf(request):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     if request.method == 'POST':
         form = LabourWelfareFundContributionForm(request.POST)
@@ -163,7 +163,7 @@ def alter_lwf(request, lwf_id):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     rec = get_object_or_404(LabourWelfareFundContribution, lwf_id=lwf_id, company=company)
 
@@ -188,7 +188,7 @@ def mark_lwf_paid(request, lwf_id):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     rec = get_object_or_404(LabourWelfareFundContribution, lwf_id=lwf_id, company=company)
     if request.method == 'POST':

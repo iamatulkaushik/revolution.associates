@@ -146,7 +146,7 @@ def list_maternity(request):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
     records = maternity_record.objects.filter(company=company).select_related('employee')
     rows = [{
         'cells': [r.employee.name, r.expected_delivery_date, r.maternity_leave_start,
@@ -173,7 +173,7 @@ def add_maternity(request):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     employees = employee.objects.filter(CompanyID=company, is_working=True, gender='Female').order_by('name')
 
@@ -204,7 +204,7 @@ def update_maternity(request, maternity_id):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     rec = get_object_or_404(maternity_record, maternity_id=maternity_id, company=company)
 
@@ -229,7 +229,7 @@ def mark_maternity_paid(request, maternity_id):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     rec = get_object_or_404(maternity_record, maternity_id=maternity_id, company=company, is_paid=False)
     if request.method == 'POST':
@@ -255,7 +255,7 @@ def delete_maternity(request, maternity_id):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     rec = get_object_or_404(maternity_record, maternity_id=maternity_id, company=company)
     if request.method == 'POST':
@@ -277,7 +277,7 @@ def list_maternity_nominations(request):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
     nominations = maternity_nomination.objects.filter(company=company).select_related('employee')
     rows = [{
         'cells': [n.employee.name, n.nominee_name, n.get_relationship_display(),
@@ -299,7 +299,7 @@ def add_maternity_nomination(request):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     employees = employee.objects.filter(CompanyID=company, is_working=True, gender='Female').order_by('name')
 
@@ -338,7 +338,7 @@ def delete_maternity_nomination(request, nomination_id):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     nom = get_object_or_404(maternity_nomination, nomination_id=nomination_id, company=company)
     if request.method == 'POST':

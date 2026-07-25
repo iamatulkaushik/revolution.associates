@@ -189,7 +189,7 @@ def list_wages(request):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
     records = wages_record.objects.filter(company=company).select_related('employee')
     rows = [{
         'cells': [r.employee.name, r.emp_code, f'{r.salary_month}/{r.salary_year}',
@@ -218,7 +218,7 @@ def generate_wages(request):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     if request.method == 'POST':
         from Aapp.app.attandance import attendance
@@ -269,7 +269,7 @@ def update_wages(request, wages_id):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     rec = get_object_or_404(wages_record, wages_id=wages_id, company=company, is_finalized=False)
 
@@ -307,7 +307,7 @@ def finalize_wages(request, wages_id):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     rec = get_object_or_404(wages_record, wages_id=wages_id, company=company, is_finalized=False)
     if request.method == 'POST':
@@ -331,7 +331,7 @@ def delete_wages(request, wages_id):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     rec = get_object_or_404(wages_record, wages_id=wages_id, company=company, is_finalized=False)
     if request.method == 'POST':
@@ -354,7 +354,7 @@ def list_fines(request):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
     fines = wages_fine.objects.filter(company=company).select_related('employee')
     rows = [{
         'cells': [f.employee.name, f.fine_date, f.fine_reason, f.fine_amount,
@@ -375,7 +375,7 @@ def add_fine(request):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     employees = employee.objects.filter(CompanyID=company, is_working=True).order_by('name')
 
@@ -404,7 +404,7 @@ def delete_fine(request, fine_id):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     fine = get_object_or_404(wages_fine, fine_id=fine_id, company=company)
     if request.method == 'POST':
@@ -427,7 +427,7 @@ def list_deductions(request):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
     deductions = wages_deduction.objects.filter(company=company).select_related('employee')
     rows = [{
         'cells': [d.employee.name, d.deduction_type, d.reason, d.deduction_amount,
@@ -448,7 +448,7 @@ def add_deduction(request):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     employees = employee.objects.filter(CompanyID=company, is_working=True).order_by('name')
 
@@ -477,7 +477,7 @@ def delete_deduction(request, deduction_id):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     ded = get_object_or_404(wages_deduction, deduction_id=deduction_id, company=company)
     if request.method == 'POST':

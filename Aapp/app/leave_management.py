@@ -93,7 +93,7 @@ class LeaveForm(forms.ModelForm):
 def list_leave(request):
     associate, company = _guard(request)
     if not associate:
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     records = employee_leave.objects.filter(companyid=company).select_related('employee_id')
 
@@ -127,7 +127,7 @@ def list_leave(request):
 def add_leave(request):
     associate, company = _guard(request)
     if not associate:
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     employees = employee.objects.filter(CompanyID=company, is_working=True).order_by('name')
 
@@ -173,7 +173,7 @@ def add_leave(request):
 def update_leave(request, leave_id):
     associate, company = _guard(request)
     if not associate:
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     rec = get_object_or_404(employee_leave, leaveid=leave_id, companyid=company)
 
@@ -209,7 +209,7 @@ def update_leave(request, leave_id):
 def delete_leave(request, leave_id):
     associate, company = _guard(request)
     if not associate:
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     rec = get_object_or_404(employee_leave, leaveid=leave_id, companyid=company)
 

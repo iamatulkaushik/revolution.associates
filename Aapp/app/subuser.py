@@ -31,7 +31,7 @@ def list_subusers(request):
     associate = get_associate(request)
     if not associate:
         messages.error(request, 'Associate profile not found.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
     subusers = SubUser.objects.filter(associate=associate).select_related('user')
     limit    = get_subuser_limit(associate)
     return render(request, 'Aapp/users/list_subusers.html', {
@@ -45,7 +45,7 @@ def add_subuser(request):
     associate = get_associate(request)
     if not associate:
         messages.error(request, 'Associate profile not found.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     companies  = associate.get_companies()
     limit      = get_subuser_limit(associate)
@@ -95,7 +95,7 @@ def alter_subuser(request, subuser_id):
     associate = get_associate(request)
     if not associate:
         messages.error(request, 'Associate profile not found.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     subuser = get_object_or_404(SubUser, pk=subuser_id, associate=associate)
 
@@ -119,7 +119,7 @@ def reset_subuser_password(request, subuser_id):
     associate = get_associate(request)
     if not associate:
         messages.error(request, 'Associate profile not found.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     subuser = get_object_or_404(SubUser, pk=subuser_id, associate=associate)
 
@@ -143,7 +143,7 @@ def disable_subuser(request, subuser_id):
     associate = get_associate(request)
     if not associate:
         messages.error(request, 'Associate profile not found.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     subuser = get_object_or_404(SubUser, pk=subuser_id, associate=associate)
 
@@ -169,7 +169,7 @@ def subuser_companies(request, subuser_id):
     associate = get_associate(request)
     if not associate:
         messages.error(request, 'Associate profile not found.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     subuser = get_object_or_404(SubUser, pk=subuser_id, associate=associate)
     available = associate.get_companies()

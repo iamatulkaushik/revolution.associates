@@ -424,7 +424,7 @@ def salary_dashboard(request):
     company_obj = _get_selected_company(request)
     if not company_obj:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     current_month = timezone.now().month
     current_year = timezone.now().year
@@ -459,7 +459,7 @@ def create_salary_batch(request):
     company_obj = _get_selected_company(request)
     if not company_obj:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     if request.method == 'POST':
         try:
@@ -513,7 +513,7 @@ def process_salary_batch(request, batch_id):
     company_obj = _get_selected_company(request)
     if not company_obj:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     batch = salary_processing.objects.filter(
         id=batch_id, company_id=company_obj
@@ -621,7 +621,7 @@ def view_salary_batch(request, batch_id):
     company_obj = _get_selected_company(request)
     if not company_obj:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     batch = salary_processing.objects.filter(
         id=batch_id, company_id=company_obj
@@ -651,7 +651,7 @@ def view_salary_slip(request, slip_id):
     company_obj = _get_selected_company(request)
     if not company_obj:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     slip = salary_slip.objects.filter(
         id=slip_id, company_id=company_obj
@@ -678,7 +678,7 @@ def edit_salary_slip(request, slip_id):
     company_obj = _get_selected_company(request)
     if not company_obj:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     slip = salary_slip.objects.filter(
         id=slip_id, company_id=company_obj
@@ -742,7 +742,7 @@ def approve_salary_batch(request, batch_id):
     company_obj = _get_selected_company(request)
     if not company_obj:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     batch = salary_processing.objects.filter(
         id=batch_id, company_id=company_obj
@@ -771,7 +771,7 @@ def delete_salary_batch(request, batch_id):
     company_obj = _get_selected_company(request)
     if not company_obj:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     batch = salary_processing.objects.filter(
         id=batch_id, company_id=company_obj
@@ -813,7 +813,7 @@ def list_salary_structures(request):
     company_obj = _get_selected_company(request)
     if not company_obj:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     designations = designation.objects.filter(
         company=company_obj, is_active=True, is_deleted=False
@@ -851,7 +851,7 @@ def view_salary_structure(request, structure_id):
     company_obj = _get_selected_company(request)
     if not company_obj:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     desig = designation.objects.filter(
         designationid=structure_id, company=company_obj
@@ -897,7 +897,7 @@ def export_salary_register(request, batch_id):
     company_obj = _get_selected_company(request)
     if not company_obj:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     batch = salary_processing.objects.filter(
         id=batch_id, company_id=company_obj
@@ -1008,7 +1008,7 @@ def export_bank_advice(request, batch_id):
     company_obj = _get_selected_company(request)
     if not company_obj:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     batch = salary_processing.objects.filter(
         id=batch_id, company_id=company_obj
@@ -1098,7 +1098,7 @@ def pf_report(request):
     company_obj = _get_selected_company(request)
     if not company_obj:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     month = int(request.GET.get('month', timezone.now().month))
     year = int(request.GET.get('year', timezone.now().year))
@@ -1143,7 +1143,7 @@ def esi_report(request):
     company_obj = _get_selected_company(request)
     if not company_obj:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     month = int(request.GET.get('month', timezone.now().month))
     year = int(request.GET.get('year', timezone.now().year))

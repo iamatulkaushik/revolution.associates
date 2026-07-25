@@ -137,7 +137,7 @@ app_name = 'Aapp'
 # 'aapp' host by django-hosts (see revolution/hosts.py: host 'aapp' ->
 # 'Aapp.urls'), not via include(). Django only applies app_name
 # namespacing through include(), so 'Aapp:' is NEVER a valid prefix
-# here — always use bare names, e.g. redirect('dashboard'),
+# here — use 'aapp_dashboard' (not bare 'dashboard'), e.g. redirect('aapp_dashboard'),
 # {% url 'list_employee' %}. (revolution/urls.py deliberately does NOT
 # also include() this module under a path prefix — see the note there.)
 
@@ -146,7 +146,7 @@ urlpatterns = [
     path('', views.associate_base_home, name='home'),
     path('login/', views.associate_login, name='login'),
     path('logout/', views.logout, name='logout'),
-    path('dashboard/', views.dashboard, name='aapp_dashboard'),
+    path('dashboard/', views.associate_dashboard, name='aapp_dashboard'),
     path('profile/', views.associate_profile, name='associate_profile'),
 
     # ── Branch & Department ──────────────────────────────────────────────────

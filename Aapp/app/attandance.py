@@ -126,7 +126,7 @@ def list_attendance(request):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
     records = attendance.objects.filter(companyid=company).select_related('employee_id', 'branchid')
     return render(request, 'Aapp/attendance/list_attendance.html',
                   {'records': records, 'company': company})
@@ -139,7 +139,7 @@ def add_attendance(request):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     employees = employee.objects.filter(CompanyID=company, is_working=True).order_by('name')
     branches  = branch.objects.filter(companyid=company)
@@ -194,7 +194,7 @@ def update_attendance(request, attendance_id):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     rec      = get_object_or_404(attendance, attendanceid=attendance_id, companyid=company)
     branches = branch.objects.filter(companyid=company)
@@ -236,7 +236,7 @@ def bulk_attendance(request):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     employees = employee.objects.filter(CompanyID=company, is_working=True).order_by('name')
     branches  = branch.objects.filter(companyid=company)
@@ -297,7 +297,7 @@ def delete_attendance(request, attendance_id):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     rec = get_object_or_404(attendance, attendanceid=attendance_id, companyid=company)
 
@@ -316,7 +316,7 @@ def download_attendance_template(request):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     wb = openpyxl.Workbook()
     ws = wb.active
@@ -384,7 +384,7 @@ def bulk_excel_upload_Attandance(request):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     if request.method == 'POST':
         xl = request.FILES.get('excel_file')
@@ -500,7 +500,7 @@ def list_overtime_register(request):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
     records = MinimumWagesOvertimeRegister.objects.filter(
         attendance__companyid=company
     ).select_related('attendance__employee_id')
@@ -525,7 +525,7 @@ def create_overtime_register(request):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     if request.method == 'POST':
         form = MinimumWagesOvertimeRegisterForm(request.POST)
@@ -549,7 +549,7 @@ def alter_overtime_register(request, ot_register_id):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     record = get_object_or_404(MinimumWagesOvertimeRegister, ot_register_id=ot_register_id,
                                 attendance__companyid=company)
@@ -576,7 +576,7 @@ def delete_overtime_register(request, ot_register_id):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     record = get_object_or_404(MinimumWagesOvertimeRegister, ot_register_id=ot_register_id,
                                 attendance__companyid=company)

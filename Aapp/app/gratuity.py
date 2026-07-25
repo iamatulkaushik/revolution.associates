@@ -197,7 +197,7 @@ def list_nominees(request):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
     nominees = gratuity_nominee.objects.filter(company=company).select_related('employee')
     rows = [{
         'cells': [n.employee.name, n.nominee_name, n.get_relationship_display(),
@@ -221,7 +221,7 @@ def add_nominee(request):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     employees = employee.objects.filter(CompanyID=company, is_working=True).order_by('name')
 
@@ -251,7 +251,7 @@ def update_nominee(request, nominee_id):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     nom = get_object_or_404(gratuity_nominee, nominee_id=nominee_id, company=company)
 
@@ -276,7 +276,7 @@ def delete_nominee(request, nominee_id):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     nom = get_object_or_404(gratuity_nominee, nominee_id=nominee_id, company=company)
     if request.method == 'POST':
@@ -298,7 +298,7 @@ def list_gratuity(request):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
     records = gratuity_record.objects.filter(company=company).select_related('employee')
     rows = [{
         'cells': [r.employee.name, r.date_of_joining, r.date_of_leaving,
@@ -325,7 +325,7 @@ def add_gratuity(request):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     employees = employee.objects.filter(CompanyID=company).order_by('name')
 
@@ -358,7 +358,7 @@ def mark_gratuity_paid(request, gratuity_id):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     rec = get_object_or_404(gratuity_record, gratuity_id=gratuity_id, company=company, is_paid=False)
     if request.method == 'POST':
@@ -383,7 +383,7 @@ def delete_gratuity(request, gratuity_id):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     rec = get_object_or_404(gratuity_record, gratuity_id=gratuity_id, company=company, is_paid=False)
     if request.method == 'POST':
@@ -405,7 +405,7 @@ def list_employer_notices(request):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
     notices = gratuity_employer_notice.objects.filter(company=company)
     rows = [{
         'cells': [n.get_notice_type_display(), n.notice_date, n.submitted_to or '—',
@@ -426,7 +426,7 @@ def add_employer_notice(request):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     if request.method == 'POST':
         p = request.POST
@@ -465,7 +465,7 @@ def list_payment_notices(request):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
     notices = gratuity_payment_notice.objects.filter(company=company).select_related('employee')
     rows = [{
         'cells': [n.employee.name, n.get_notice_type_display(), n.notice_date,
@@ -485,7 +485,7 @@ def add_payment_notice(request, gratuity_id):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     rec = get_object_or_404(gratuity_record, gratuity_id=gratuity_id, company=company)
 

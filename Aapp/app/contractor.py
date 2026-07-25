@@ -158,7 +158,7 @@ def list_contractors(request):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
     contractors = contractor.objects.filter(company=company)
     rows = [{
         'cells': [c.contractor_name, c.contractor_license_no or '—', c.work_description[:50],
@@ -186,7 +186,7 @@ def add_contractor(request):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     if request.method == 'POST':
         form = ContractorForm(request.POST)
@@ -212,7 +212,7 @@ def update_contractor(request, contractor_id):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     con = get_object_or_404(contractor, contractor_id=contractor_id, company=company)
 
@@ -237,7 +237,7 @@ def delete_contractor(request, contractor_id):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     con = get_object_or_404(contractor, contractor_id=contractor_id, company=company)
     if request.method == 'POST':
@@ -260,7 +260,7 @@ def list_contractor_workers(request, contractor_id):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     con = get_object_or_404(contractor, contractor_id=contractor_id, company=company)
     workers = contractor_worker.objects.filter(contractor=con).select_related('employee')
@@ -288,7 +288,7 @@ def add_contractor_worker(request, contractor_id):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     con = get_object_or_404(contractor, contractor_id=contractor_id, company=company)
 
@@ -319,7 +319,7 @@ def add_contractor_payment(request, contractor_id):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     con = get_object_or_404(contractor, contractor_id=contractor_id, company=company)
 

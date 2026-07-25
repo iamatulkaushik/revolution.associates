@@ -169,7 +169,7 @@ def list_bonus(request):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
     records = bonus_record.objects.filter(company=company).select_related('employee')
     rows = [{
         'cells': [r.employee.name, f'{r.salary_month}/{r.salary_year}', f'{r.bonus_percentage}%', r.total_bonus,
@@ -194,7 +194,7 @@ def add_bonus(request):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     employees = employee.objects.filter(CompanyID=company, is_working=True).order_by('name')
 
@@ -234,7 +234,7 @@ def update_bonus(request, bonus_id):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     rec = get_object_or_404(bonus_record, bonus_id=bonus_id, company=company)
 
@@ -266,7 +266,7 @@ def mark_bonus_paid(request, bonus_id):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     rec = get_object_or_404(bonus_record, bonus_id=bonus_id, company=company, is_paid=False)
     if request.method == 'POST':
@@ -291,7 +291,7 @@ def delete_bonus(request, bonus_id):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     rec = get_object_or_404(bonus_record, bonus_id=bonus_id, company=company, is_paid=False)
     if request.method == 'POST':
@@ -313,7 +313,7 @@ def list_set_on_set_off(request):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
     records = bonus_set_on_set_off.objects.filter(company=company)
     rows = [{
         'cells': [r.year, r.allocable_surplus, r.bonus_paid, r.set_on_amount,
@@ -334,7 +334,7 @@ def add_set_on_set_off(request):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     if request.method == 'POST':
         p = request.POST
@@ -369,7 +369,7 @@ def alter_set_on_set_off(request, record_id):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     rec = get_object_or_404(bonus_set_on_set_off, record_id=record_id, company=company)
 
@@ -401,7 +401,7 @@ def list_bonus_returns(request):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
     returns = bonus_annual_return.objects.filter(company=company)
     rows = [{
         'cells': [r.year, r.total_employees, r.total_wages, f'{r.bonus_percentage}%',
@@ -422,7 +422,7 @@ def add_bonus_return(request):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     if request.method == 'POST':
         p = request.POST
@@ -458,7 +458,7 @@ def alter_bonus_return(request, return_id):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
-        return redirect('dashboard')
+        return redirect('aapp_dashboard')
 
     ret = get_object_or_404(bonus_annual_return, return_id=return_id, company=company)
 

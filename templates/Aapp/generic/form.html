@@ -95,7 +95,7 @@
 fetch('{% url "get_selected_company" %}').then(r=>r.json()).then(d=>{
   if(!d.company_id){
     document.querySelector('.card').insertAdjacentHTML('beforebegin',
-      '<div class="message-alert message-warning" role="alert">No company selected. <a href="{% url 'dashboard' %}">Select a company first.</a></div>'
+      '<div class="message-alert message-warning" role="alert">No company selected. <a href="{% url 'aapp_dashboard' %}">Select a company first.</a></div>'
     );
   }
 });
