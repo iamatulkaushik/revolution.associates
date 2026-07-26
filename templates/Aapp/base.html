@@ -7,7 +7,7 @@
   <meta name="rights" content="Revolution Associates">
   <title>{% block title %}{% endblock %} · Revolution HRMS</title>
   {% load static %}
-  <link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
+  <link rel="icon" href="{% static '/favicon.ico' %}" type="image/x-icon">
   <link rel="preload" href="{% static 'fonts/Infinitude.ttf' %}" as="font" type="font/ttf" crossorigin>
   <link rel="preload" href="{% static 'fonts/Ubuntu-R.ttf' %}" as="font" type="font/ttf" crossorigin>
   <link rel="stylesheet" href="{% static 'css/base.css' %}">
@@ -31,7 +31,7 @@
       <ul>
 
         <li class="nav-item">
-          <a href="{% url 'Aapp:aapp_dashboard' %}" class="nav-link dashboard">
+          <a href="{% url 'aapp_dashboard' %}" class="nav-link dashboard">
             <span class="nav-label">Dashboard</span>
           </a>
         </li>
@@ -42,10 +42,10 @@
             <span class="nav-chevron">&#9658;</span>
           </button>
           <ul class="nav-sub">
-            <li><a href="{% url 'Aapp:list_company_associate' %}" class="nav-link">Companies</a></li>
-            <li><a href="{% url 'Aapp:branch_list' %}" class="nav-link">Branches</a></li>
-            <li><a href="{% url 'Aapp:department_list' %}" class="nav-link">Departments</a></li>
-            <li><a href="{% url 'Aapp:list_designation' %}" class="nav-link">Designations</a></li>
+            <li><a href="{% url 'list_company_associate' %}" class="nav-link">Companies</a></li>
+            <li><a href="{% url 'branch_list' %}" class="nav-link">Branches</a></li>
+            <li><a href="{% url 'department_list' %}" class="nav-link">Departments</a></li>
+            <li><a href="{% url 'list_designation' %}" class="nav-link">Designations</a></li>
           </ul>
         </li>
 
@@ -55,9 +55,9 @@
             <span class="nav-chevron">&#9658;</span>
           </button>
           <ul class="nav-sub">
-            <li><a href="{% url 'Aapp:list_employee' %}" class="nav-link">All Employees</a></li>
-            <li><a href="{% url 'Aapp:create_employee' %}" class="nav-link">Add Employee</a></li>
-            <li><a href="{% url 'Aapp:bulk_excel_upload_employees' %}" class="nav-link">Bulk Upload</a></li>
+            <li><a href="{% url 'list_employee' %}" class="nav-link">All Employees</a></li>
+            <li><a href="{% url 'create_employee' %}" class="nav-link">Add Employee</a></li>
+            <li><a href="{% url 'bulk_excel_upload_employees' %}" class="nav-link">Bulk Upload</a></li>
           </ul>
         </li>
 
@@ -67,11 +67,11 @@
             <span class="nav-chevron">&#9658;</span>
           </button>
           <ul class="nav-sub">
-            <li><a href="{% url 'Aapp:list_attendance' %}" class="nav-link">Attendance List</a></li>
-            <li><a href="{% url 'Aapp:add_attendance' %}" class="nav-link">Add Attendance</a></li>
-            <li><a href="{% url 'Aapp:bulk_attendance' %}" class="nav-link">Bulk Attendance</a></li>
-            <li><a href="{% url 'Aapp:list_leave' %}" class="nav-link">Leave Records</a></li>
-            <li><a href="{% url 'Aapp:list_overtime_register' %}" class="nav-link">Overtime Register</a></li>
+            <li><a href="{% url 'list_attendance' %}" class="nav-link">Attendance List</a></li>
+            <li><a href="{% url 'add_attendance' %}" class="nav-link">Add Attendance</a></li>
+            <li><a href="{% url 'bulk_attendance' %}" class="nav-link">Bulk Attendance</a></li>
+            <li><a href="{% url 'list_leave' %}" class="nav-link">Leave Records</a></li>
+            <li><a href="{% url 'list_overtime_register' %}" class="nav-link">Overtime Register</a></li>
           </ul>
         </li>
 
@@ -81,11 +81,11 @@
             <span class="nav-chevron">&#9658;</span>
           </button>
           <ul class="nav-sub">
-            <li><a href="{% url 'Aapp:list_wages' %}" class="nav-link">Wage Register</a></li>
-            <li><a href="{% url 'Aapp:list_fines' %}" class="nav-link">Fines (Form I)</a></li>
-            <li><a href="{% url 'Aapp:list_deductions' %}" class="nav-link">Deductions (Form II)</a></li>
-            <li><a href="{% url 'Aapp:list_minwages_returns' %}" class="nav-link">Min Wages Returns</a></li>
-            <li><a href="{% url 'Aapp:list_pow_returns' %}" class="nav-link">POW Annual Returns</a></li>
+            <li><a href="{% url 'list_wages' %}" class="nav-link">Wage Register</a></li>
+            <li><a href="{% url 'list_fines' %}" class="nav-link">Fines (Form I)</a></li>
+            <li><a href="{% url 'list_deductions' %}" class="nav-link">Deductions (Form II)</a></li>
+            <li><a href="{% url 'list_minwages_returns' %}" class="nav-link">Min Wages Returns</a></li>
+            <li><a href="{% url 'list_pow_returns' %}" class="nav-link">POW Annual Returns</a></li>
           </ul>
         </li>
 
@@ -95,11 +95,11 @@
             <span class="nav-chevron">&#9658;</span>
           </button>
           <ul class="nav-sub">
-            <li><a href="{% url 'Aapp:salary_dashboard' %}" class="nav-link">Dashboard</a></li>
-            <li><a href="{% url 'Aapp:create_salary_batch' %}" class="nav-link">Process Salary</a></li>
-            <li><a href="{% url 'Aapp:list_salary_structures' %}" class="nav-link">Salary Structures</a></li>
-            <li><a href="{% url 'Aapp:pf_report' %}" class="nav-link">PF Report</a></li>
-            <li><a href="{% url 'Aapp:esi_report' %}" class="nav-link">ESI Report</a></li>
+            <li><a href="{% url 'salary_dashboard' %}" class="nav-link">Dashboard</a></li>
+            <li><a href="{% url 'create_salary_batch' %}" class="nav-link">Process Salary</a></li>
+            <li><a href="{% url 'list_salary_structures' %}" class="nav-link">Salary Structures</a></li>
+            <li><a href="{% url 'pf_report' %}" class="nav-link">PF Report</a></li>
+            <li><a href="{% url 'esi_report' %}" class="nav-link">ESI Report</a></li>
           </ul>
         </li>
 
@@ -109,19 +109,19 @@
             <span class="nav-chevron">&#9658;</span>
           </button>
           <ul class="nav-sub">
-            <li><a href="{% url 'Aapp:compliance_dashboard' %}" class="nav-link">Compliance Calendar</a></li>
-            <li><a href="{% url 'Aapp:list_factory_registration' %}" class="nav-link">Factory Act</a></li>
-            <li><a href="{% url 'Aapp:list_contractors' %}" class="nav-link">Contractors</a></li>
-            <li><a href="{% url 'Aapp:list_cl_registration' %}" class="nav-link">Contract Labour Reg.</a></li>
-            <li><a href="{% url 'Aapp:list_epf_nominations' %}" class="nav-link">EPF Nominations</a></li>
-            <li><a href="{% url 'Aapp:list_epf_ecr' %}" class="nav-link">EPF ECR</a></li>
-            <li><a href="{% url 'Aapp:list_esi_family' %}" class="nav-link">ESI Family (1A)</a></li>
-            <li><a href="{% url 'Aapp:list_esi_returns' %}" class="nav-link">ESI Returns</a></li>
-            <li><a href="{% url 'Aapp:list_maternity' %}" class="nav-link">Maternity</a></li>
-            <li><a href="{% url 'Aapp:list_gratuity' %}" class="nav-link">Gratuity</a></li>
-            <li><a href="{% url 'Aapp:list_bonus' %}" class="nav-link">Bonus</a></li>
-            <li><a href="{% url 'Aapp:list_establishments' %}" class="nav-link">Shops Act</a></li>
-            <li><a href="{% url 'Aapp:list_lwf' %}" class="nav-link">Labour Welfare Fund</a></li>
+            <li><a href="{% url 'compliance_dashboard' %}" class="nav-link">Compliance Calendar</a></li>
+            <li><a href="{% url 'list_factory_registration' %}" class="nav-link">Factory Act</a></li>
+            <li><a href="{% url 'list_contractors' %}" class="nav-link">Contractors</a></li>
+            <li><a href="{% url 'list_cl_registration' %}" class="nav-link">Contract Labour Reg.</a></li>
+            <li><a href="{% url 'list_epf_nominations' %}" class="nav-link">EPF Nominations</a></li>
+            <li><a href="{% url 'list_epf_ecr' %}" class="nav-link">EPF ECR</a></li>
+            <li><a href="{% url 'list_esi_family' %}" class="nav-link">ESI Family (1A)</a></li>
+            <li><a href="{% url 'list_esi_returns' %}" class="nav-link">ESI Returns</a></li>
+            <li><a href="{% url 'list_maternity' %}" class="nav-link">Maternity</a></li>
+            <li><a href="{% url 'list_gratuity' %}" class="nav-link">Gratuity</a></li>
+            <li><a href="{% url 'list_bonus' %}" class="nav-link">Bonus</a></li>
+            <li><a href="{% url 'list_establishments' %}" class="nav-link">Shops Act</a></li>
+            <li><a href="{% url 'list_lwf' %}" class="nav-link">Labour Welfare Fund</a></li>
           </ul>
         </li>
 
@@ -131,8 +131,8 @@
             <span class="nav-chevron">&#9658;</span>
           </button>
           <ul class="nav-sub">
-            <li><a href="{% url 'Aapp:associate_profile' %}" class="nav-link">My Profile</a></li>
-            <li><a href="{% url 'Aapp:list_subusers' %}" class="nav-link">Sub Users</a></li>
+            <li><a href="{% url 'associate_profile' %}" class="nav-link">My Profile</a></li>
+            <li><a href="{% url 'list_subusers' %}" class="nav-link">Sub Users</a></li>
           </ul>
         </li>
 
@@ -140,7 +140,7 @@
     </nav>
 
     <div class="sidebar-footer">
-      <a href="{% url 'Aapp:logout' %}" class="nav-link logout">
+      <a href="{% url 'logout' %}" class="nav-link logout">
         <span class="nav-label">Logout</span>
       </a>
     </div>
@@ -164,7 +164,7 @@
           <div class="user-avatar" aria-hidden="true">ţ</div>
           <span class="user-name">{{ user.username }}</span>
         </div>
-        <a href="{% url 'Aapp:logout' %}" class="btn-logout logout" aria-label="Logout">
+        <a href="{% url 'logout' %}" class="btn-logout logout" aria-label="Logout">
           <span>Logout</span>
         </a>
       </div>
@@ -193,8 +193,8 @@
       </div>
       <div class="footer-col">
         <span>Quick Links</span>
-        <span class="tagline"><a href="{% url 'Aapp:aapp_dashboard' %}">Dashboard</a> · <a href="{% url 'Aapp:list_employee' %}">Employees</a></span>
-        <span class="tagline"><a href="{% url 'Aapp:list_wages' %}">Wages</a> · <a href="{% url 'Aapp:compliance_dashboard' %}">Compliance</a></span>
+        <span class="tagline"><a href="{% url 'aapp_dashboard' %}">Dashboard</a> · <a href="{% url 'list_employee' %}">Employees</a></span>
+        <span class="tagline"><a href="{% url 'list_wages' %}">Wages</a> · <a href="{% url 'compliance_dashboard' %}">Compliance</a></span>
       </div>
     </footer>
 

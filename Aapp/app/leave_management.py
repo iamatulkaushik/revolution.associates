@@ -14,7 +14,7 @@ MONTH_CHOICES = [
     (5,'May'),(6,'June'),(7,'July'),(8,'August'),
     (9,'September'),(10,'October'),(11,'November'),(12,'December'),
 ]
-
+YEAR_CHOICES = [(y, y) for y in range(2026, 2032)]
 
 # ── Associate-only guard ──────────────────────────────────────────────────────
 
@@ -49,7 +49,7 @@ class employee_leave(models.Model):
     emp_code       = models.CharField(max_length=20)
     companyid      = models.ForeignKey(Company, on_delete=models.CASCADE, db_column='companyid')
     salary_month   = models.PositiveSmallIntegerField(choices=MONTH_CHOICES)
-    salary_year    = models.PositiveSmallIntegerField()
+    salary_year    = models.PositiveSmallIntegerField(choices=YEAR_CHOICES)
     leaves_earned  = models.DecimalField(max_digits=5, decimal_places=2, default=0)
     leave_availed  = models.DecimalField(max_digits=5, decimal_places=2, default=0)
     leave_balance  = models.DecimalField(max_digits=5, decimal_places=2, default=0)

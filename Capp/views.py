@@ -18,6 +18,7 @@ from django.contrib import messages
 from django.http import HttpResponse, Http404
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
+from django.views.decorators.debug import sensitive_post_parameters
 
 logger = logging.getLogger(__name__)
 
@@ -61,6 +62,7 @@ class OwnerLoginForm(AuthenticationForm):
     password = forms.CharField(label='Password', widget=forms.PasswordInput)
 
 
+@sensitive_post_parameters('password')
 def capp_login(request):
     if request.user.is_authenticated and getattr(request, 'owner_profile', None):
         return redirect('capp_dashboard')

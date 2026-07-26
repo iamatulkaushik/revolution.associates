@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib import messages
+from django.views.decorators.debug import sensitive_post_parameters
 from datetime import date
 from Sapp.app.user import SubUser, associateuser, create_sub_user, change_subuser_password
 from Sapp.app.license import License
@@ -41,6 +42,7 @@ def list_subusers(request):
 
 
 @login_required
+@sensitive_post_parameters('password', 'confirm_password')
 def add_subuser(request):
     associate = get_associate(request)
     if not associate:
@@ -115,6 +117,7 @@ def alter_subuser(request, subuser_id):
 
 
 @login_required
+@sensitive_post_parameters('new_password', 'confirm_password')
 def reset_subuser_password(request, subuser_id):
     associate = get_associate(request)
     if not associate:

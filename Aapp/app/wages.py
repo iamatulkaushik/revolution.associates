@@ -20,7 +20,12 @@ DEDUCTION_TYPE_CHOICES = [
     ('fine',            'Fine'),
     ('other',           'Other'),
 ]
-
+MONTH_CHOICES = [
+    (1,'January'),(2,'February'),(3,'March'),(4,'April'),
+    (5,'May'),(6,'June'),(7,'July'),(8,'August'),
+    (9,'September'),(10,'October'),(11,'November'),(12,'December'),
+]
+YEAR_CHOICES = [(y, y) for y in range(2026, 2032)]
 
 # ── Models ────────────────────────────────────────────────────────────────────
 
@@ -30,7 +35,7 @@ class wages_record(models.Model):
     employee        = models.ForeignKey(employee, on_delete=models.CASCADE, db_column='EmployeeID', related_name='wages')
     attendance      = models.OneToOneField(attendance, on_delete=models.SET_NULL, null=True, blank=True, db_column='AttendanceID', related_name='wages')
     salary_month    = models.PositiveSmallIntegerField(choices=MONTH_CHOICES)
-    salary_year     = models.PositiveSmallIntegerField()
+    salary_year     = models.PositiveSmallIntegerField(choices=YEAR_CHOICES)
     working_days    = models.DecimalField(max_digits=5, decimal_places=2, default=0)
     overtime_hours  = models.DecimalField(max_digits=6, decimal_places=2, default=0)
 
@@ -77,7 +82,7 @@ class wages_fine(models.Model):
     fine_amount     = models.DecimalField(max_digits=10, decimal_places=2)
     fine_reason     = models.CharField(max_length=500)
     salary_month    = models.PositiveSmallIntegerField(choices=MONTH_CHOICES)
-    salary_year     = models.PositiveSmallIntegerField()
+    salary_year     = models.PositiveSmallIntegerField(choices=YEAR_CHOICES)
     created_by      = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='fines_created')
     created_date    = models.DateTimeField(auto_now_add=True)
 
@@ -98,7 +103,7 @@ class wages_deduction(models.Model):
     deduction_amount= models.DecimalField(max_digits=10, decimal_places=2)
     reason          = models.CharField(max_length=500)
     salary_month    = models.PositiveSmallIntegerField(choices=MONTH_CHOICES)
-    salary_year     = models.PositiveSmallIntegerField()
+    salary_year     = models.PositiveSmallIntegerField(choices=YEAR_CHOICES)
     created_by      = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='deductions_created')
     created_date    = models.DateTimeField(auto_now_add=True)
 
@@ -111,33 +116,33 @@ class wages_deduction(models.Model):
 
 
 # ── Helper ────────────────────────────────────────────────────────────────────
-def _calculate_wages(emp, att, desig):
+def _calculate_wages(emp, att, designation):
     """Calculate wages from designation rates and attendance days."""
     days = float(att.working_days) if att else 0
     ot_hours = float(att.work_pay) if att else 0  # work_pay reused as OT hours until attendance updated
 
-    if desig.is_dailywage:
-        basic = round(desig.dailywage * days, 2)
+    if designation.is_dailywage:
+        basic = round(designation.dailywage * days, 2)
         da    = 0
         hra   = 0
     else:
         # Pro-rate monthly salary by working days (assume 26 working days/month)
         factor = days / 26 if days else 0
-        basic  = round(float(desig.basicpay) * factor, 2)
-        da     = round(float(desig.da) * factor, 2)
-        hra    = round(float(desig.hra) * factor, 2)
+        basic  = round(float(designation.basicpay) * factor, 2)
+        da     = round(float(designation.da) * factor, 2)
+        hra    = round(float(designation.hra) * factor, 2)
 
     # Overtime: basic daily rate × 2 × OT hours / 8
-    daily_rate  = float(desig.dailywage) if desig.is_dailywage else float(desig.basicpay) / 26
+    daily_rate  = float(designation.dailywage) if designation.is_dailywage else float(designation.basicpay) / 26
     ot_wages    = round(daily_rate * 2 * ot_hours / 8, 2)
 
     gross = round(basic + da + hra + ot_wages, 2)
 
     # Deductions from designation
-    epf  = round(float(desig.ed_epf_amount) or gross * float(desig.ed_epf_per) / 100, 2)
-    esi  = round(float(desig.ed_esi_amount) or gross * float(desig.ed_esi_per) / 100, 2)
-    pt   = round(float(desig.ed_professionaltax), 2)
-    lw   = round(float(desig.ed_labourwelfare_amount) or gross * float(desig.ed_labourwelfare_per) / 100, 2)
+    epf  = round(float(designation.ed_epf_amount) or gross * float(designation.ed_epf_per) / 100, 2)
+    esi  = round(float(designation.ed_esi_amount) or gross * float(designation.ed_esi_per) / 100, 2)
+    pt   = round(float(designation.ed_professionaltax), 2)
+    lw   = round(float(designation.ed_labourwelfare_amount) or gross * float(designation.ed_labourwelfare_per) / 100, 2)
     total_ded = round(epf + esi + pt + lw, 2)
     net  = round(gross - total_ded, 2)
 
@@ -239,6 +244,8 @@ def generate_wages(request):
                     CompanyID=company, is_active=True,
                     designationid=emp.designation_id
                 ).first() if hasattr(emp, 'designation_id') else None
+                if not desig:
+                    continue  # Skip employees without a valid designation
                 if not wages_record.objects.filter(
                     employee=emp, salary_month=month, salary_year=year
                 ).exists():

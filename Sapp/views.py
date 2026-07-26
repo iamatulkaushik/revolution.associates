@@ -12,6 +12,7 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
+from django.views.decorators.debug import sensitive_post_parameters
 
 from Sapp.app.company import Company, create_company_form_superadmin
 from Sapp.app.user import (
@@ -44,6 +45,7 @@ class loginForm(AuthenticationForm):
     password = forms.CharField(label='Password', widget=forms.PasswordInput)
 
 
+@sensitive_post_parameters('password')
 def login(request):
     if request.method == 'POST':
         form = loginForm(data=request.POST)

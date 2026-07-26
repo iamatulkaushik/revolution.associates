@@ -22,25 +22,26 @@
   </div>
   <div class="card-body">
 
-    {# Employee selector (shown when view passes 'employees' context) #}
-    {% if employees %}
-    <div class="form-grid" style="margin-bottom:var(--sp-5);padding-bottom:var(--sp-5);border-bottom:1px solid var(--c-border)">
-      <div class="form-group">
-        <label for="employee_id">Employee <span class="required">*</span></label>
-        <select id="employee_id" name="employee_id" required>
-          <option value="">— Select Employee —</option>
-          {% for emp in employees %}
-          <option value="{{ emp.employeeid }}">{{ emp.name }} ({{ emp.employeecode }})</option>
-          {% endfor %}
-        </select>
-      </div>
-    </div>
-    {% endif %}
-
     {# Standard Django ModelForm #}
     {% if form %}
     <form method="post" novalidate>
       {% csrf_token %}
+
+      {# Employee selector (shown when view passes 'employees' context) #}
+      {% if employees %}
+      <div class="form-grid" style="margin-bottom:var(--sp-5);padding-bottom:var(--sp-5);border-bottom:1px solid var(--c-border)">
+        <div class="form-group">
+          <label for="employee_id">Employee <span class="required">*</span></label>
+          <select id="employee_id" name="employee_id" required>
+            <option value="">— Select Employee —</option>
+            {% for emp in employees %}
+            <option value="{{ emp.employeeid }}">{{ emp.name }} ({{ emp.employeecode }})</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      {% endif %}
+
       <div class="form-grid">
         {% for field in form %}
         <div class="form-group {% if field.field.widget.attrs.rows %}full-width{% endif %}">
@@ -64,6 +65,22 @@
     {% elif manual_fields %}
     <form method="post" novalidate>
       {% csrf_token %}
+
+      {# Employee selector (shown when view passes 'employees' context) #}
+      {% if employees %}
+      <div class="form-grid" style="margin-bottom:var(--sp-5);padding-bottom:var(--sp-5);border-bottom:1px solid var(--c-border)">
+        <div class="form-group">
+          <label for="employee_id">Employee <span class="required">*</span></label>
+          <select id="employee_id" name="employee_id" required>
+            <option value="">— Select Employee —</option>
+            {% for emp in employees %}
+            <option value="{{ emp.employeeid }}">{{ emp.name }} ({{ emp.employeecode }})</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      {% endif %}
+
       <div class="form-grid">
         {% for f in manual_fields %}
         <div class="form-group {% if f.type == 'textarea' %}full-width{% endif %}">

@@ -18,7 +18,7 @@
         <thead>
             <tr>
                 <th>#</th><th>Emp Code</th><th>Employee</th><th>Branch</th>
-                <th>Month</th><th>Year</th><th>Working Days</th><th>Holidays</th>
+                <th>Month/Year</th><th>Working Days</th><th>Holidays</th>
                 <th>CL</th><th>EL</th><th>SL</th><th>Comp</th><th>Work Pay</th><th>Bulk</th><th>Actions</th>
             </tr>
         </thead>
@@ -29,8 +29,7 @@
                 <td>{{ r.emp_code }}</td>
                 <td>{{ r.employee_id.name }}</td>
                 <td>{{ r.branchid.branch_name|default:"—" }}</td>
-                <td>{{ r.get_salary_month_display }}</td>
-                <td>{{ r.salary_year }}</td>
+                <td>{{ r.get_salary_month_display }}/{{ r.salary_year }}</td>
                 <td>{{ r.working_days }}</td>
                 <td>{{ r.holidays }}</td>
                 <td>{{ r.casual_leaves }}</td>

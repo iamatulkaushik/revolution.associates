@@ -6,6 +6,7 @@ from django import forms
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.debug import sensitive_post_parameters
 from django.http import JsonResponse
 
 from Aapp.app.branch_department import branch, department
@@ -30,6 +31,7 @@ def associate_base_home(request):
     return render(request, 'associate_base_home.html')
 
 
+@sensitive_post_parameters('password')
 def associate_login(request):
     if request.method == 'POST':
         form = loginForm(data=request.POST)
@@ -49,7 +51,7 @@ def associate_login(request):
             auth_login(request, user)
             logger.info("Associate login: user='%s'", user.username)
             messages.success(request, 'Logged in successfully.')
-            return redirect('Aapp:aapp_dashboard')
+            return redirect('aapp_dashboard')
     else:
         form = loginForm()
     return render(request, 'associate_login.html', {'form': form})
@@ -93,7 +95,7 @@ def associate_profile(request):
         associate = associateuser.objects.get(user=request.user)
     except associateuser.DoesNotExist:
         messages.error(request, 'Associate profile not found.')
-        return redirect('Aapp:aapp_dashboard')
+        return redirect('aapp_dashboard')
 
     licenses = License.objects.filter(associate=associate).select_related('company')
     subusers = SubUser.objects.filter(associate=associate).select_related('user')

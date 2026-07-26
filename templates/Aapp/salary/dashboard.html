@@ -20,12 +20,12 @@
 
 <div class="stat-grid">
   <div class="stat-card" style="--accent-color:var(--c-primary)">
-    <span class="stat-icon">Ő</span>
+    <span class="stat-icon">đ</span>
     <span class="stat-value">{{ employees_count }}</span>
     <span class="stat-label">Active Employees</span>
   </div>
   <div class="stat-card" style="--accent-color:var(--c-success)">
-    <span class="stat-icon">ő</span>
+    <span class="stat-icon">Ĕ</span>
     <span class="stat-value">{{ structures_count }}</span>
     <span class="stat-label">Salary Structures Set</span>
   </div>
@@ -55,7 +55,7 @@
       <tbody>
         {% for batch in recent_batches %}
         <tr>
-          <td><strong>{{ batch.get_month_display }} {{ batch.year }}</strong></td>
+          <td><strong>{{ batch.month }}/{{ batch.year }}</strong></td>
           <td>{{ batch.total_employees }}</td>
           <td>₹{{ batch.total_gross }}</td>
           <td>₹{{ batch.total_deductions }}</td>

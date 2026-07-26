@@ -248,12 +248,13 @@ img{max-width:100%;display:block}
 .form-actions{grid-column:1/-1;display:flex;gap:var(--sp-3);align-items:center;padding-top:var(--sp-4);border-top:1px solid var(--c-border);margin-top:var(--sp-3);flex-wrap:wrap}
 
 /* ── Inputs ─────────────────────────────────────────────────────────────── */
+label{font-size:13px;font-weight:500;color:var(--c-text);margin-bottom:var(--sp-1);    display: inline-flex;    width: 15%;    flex-direction: row;    justify-content: space-between;    align-items: center;}
 input[type="text"],input[type="password"],input[type="email"],
 input[type="date"],input[type="url"],input[type="tel"],
 input[type="number"],select,textarea{
   font-family:var(--font-body);font-size:14px;color:var(--c-text);
   background:var(--c-bg);border:1.5px solid var(--c-border);
-  border-radius:var(--r-sm);padding:9px var(--sp-3);width:100%;
+  border-radius:var(--r-sm);padding:9px var(--sp-3);
   transition:border-color var(--ease),box-shadow var(--ease);outline:none;
 }
 input:focus,select:focus,textarea:focus{
