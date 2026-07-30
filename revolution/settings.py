@@ -67,10 +67,9 @@ ROOT_URLCONF = 'revolution.urls'
 # settings.py
 
 CSRF_TRUSTED_ORIGINS = [
-    'https://revolutionassociates-production.up.railway.app',
-    'https://reas-hrms-production.up.railway.app',
-    'https://*.reas-hrms-production.up.railway.app',
-]
+    'http://reas.host',
+]+ \
+    [h.strip() for h in os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',') if h.strip()]
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
