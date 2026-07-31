@@ -55,6 +55,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django_hosts.middleware.HostsRequestMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -153,6 +154,21 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / "static",]
 STATIC_ROOT = BASE_DIR / 'static_collected'
+STORAGES = {
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
+# Fonts are loaded with crossorigin from subdomains (aapp/sapp/capp.reas.host)
+# even though static files are served from the same app — browsers still
+# enforce CORS on font requests when the <link> tag sets crossorigin, so
+# this header must be present on every response for .ttf/.woff assets.
+WHITENOISE_ADD_HEADERS_FUNCTION = 'revolution.settings.add_cors_header_for_fonts'
+
+
+def add_cors_header_for_fonts(headers, path, url):
+    if path.endswith(('.ttf', '.woff', '.woff2', '.otf', '.eot')):
+        headers['Access-Control-Allow-Origin'] = '*'
 
 MEDIA_URL="/media/"
 MEDIA_ROOT= os.path.join(BASE_DIR / "media")
