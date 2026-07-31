@@ -343,11 +343,35 @@ def calculate_employee_salary(employee_obj, desig, month, year):
     except Exception:
         pass
 
-    # Statutory deductions — PF/ESI applicability based on whether the
-    # employee has been enrolled (UAN / ESIC number present on record);
-    # rates come from the designation, not a fixed constant.
-    pf_applicable = bool(getattr(employee_obj, 'uan_number', ''))
-    esi_applicable = bool(getattr(employee_obj, 'esic_number', ''))
+    # Company-level statutory registration check — a deduction can only be
+    # applied if the company itself is registered under that act. Without
+    # this, employee-level enrolment (UAN/ESIC number) alone would let
+    # deductions happen even for a company with no EPFO/ESIC/Labour/TAN
+    # registration on file, which is not legally valid.
+    company_obj = getattr(employee_obj, 'CompanyID', None) or getattr(employee_obj, 'company', None)
+    company_epfo_registered = False
+    company_esic_registered = False
+    company_labour_registered = False
+    company_tan_registered = False
+    if company_obj is not None:
+        try:
+            from Sapp.app.company import company_statury
+            statury = company_statury.objects.filter(company=company_obj).first()
+            if statury:
+                company_epfo_registered = bool(statury.epfo)
+                company_esic_registered = bool(statury.esic)
+                company_labour_registered = bool(statury.labour)
+        except Exception:
+            pass
+        company_tan_registered = bool(getattr(company_obj, 'tan', ''))
+
+    # Statutory deductions — PF/ESI applicability requires BOTH the company
+    # being registered under the act AND the employee being enrolled
+    # (UAN / ESIC number present on record); rates come from the
+    # designation, not a fixed constant.
+    pf_applicable = company_epfo_registered and bool(getattr(employee_obj, 'uan_number', ''))
+    esi_applicable = company_esic_registered and bool(getattr(employee_obj, 'esic_number', ''))
+    lw_applicable = company_labour_registered
 
     pf_emp, pf_empr = _calculate_pf(
         basic_for_statutory, pf_applicable, desig.ed_epf_per, desig.er_epf_per
@@ -355,9 +379,12 @@ def calculate_employee_salary(employee_obj, desig, month, year):
     esi_emp, esi_empr = _calculate_esi(
         gross, esi_applicable, desig.ed_esi_per, desig.er_esi_per
     )
-    lw_emp, lw_empr = _calculate_labour_welfare(
-        desig.ed_labourwelfare_per, desig.er_labourwelfare_per, gross
-    )
+    if lw_applicable:
+        lw_emp, lw_empr = _calculate_labour_welfare(
+            desig.ed_labourwelfare_per, desig.er_labourwelfare_per, gross
+        )
+    else:
+        lw_emp, lw_empr = Decimal('0'), Decimal('0')
 
     # Professional Tax — designation's own configured amount takes
     # priority; falls back to employee's state slab only if not set.
@@ -370,7 +397,12 @@ def calculate_employee_salary(employee_obj, desig, month, year):
         pass
     pt = _calculate_pt(gross, state_name, desig.ed_professionaltax)
 
-    it = _decimal_round(Decimal(str(desig.ed_income_tax)) * proration)
+    # Income tax withholding requires the company to hold a TAN
+    # (Tax Deduction Account Number) — no TAN means no TDS can be filed.
+    it = (
+        _decimal_round(Decimal(str(desig.ed_income_tax)) * proration)
+        if company_tan_registered else Decimal('0')
+    )
 
     total_deductions = pf_emp + esi_emp + lw_emp + pt + it
     net_pay = gross - total_deductions

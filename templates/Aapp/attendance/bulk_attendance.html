@@ -16,7 +16,10 @@
                 {% for val, label in months %}<option value="{{ val }}">{{ label }}</option>{% endfor %}
             </select>
             <label>Year <span style="color:var(--Color1)">*</span></label>
-            <input type="number" class="sml" name="salary_year" min="2026" max="2032" required placeholder="2026">
+            <select class="sml" name="salary_year" required>
+                <option value="">--</option>
+                {% for val, label in years %}<option value="{{ val }}">{{ label }}</option>{% endfor %}
+            </select>
             <label>Branch</label>
             <select class="medium" name="branchid">
                 <option value="">-- All --</option>

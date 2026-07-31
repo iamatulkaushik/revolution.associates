@@ -183,7 +183,7 @@ def add_attendance(request):
 
     return render(request, 'Aapp/attendance/add_attendance.html', {
         'employees': employees, 'branches': branches,
-        'months': MONTH_CHOICES, 'company': company,
+        'months': MONTH_CHOICES, 'years': YEAR_CHOICES, 'company': company,
     })
 
 
@@ -225,7 +225,7 @@ def update_attendance(request, attendance_id):
             messages.error(request, f"Error: {e}")
 
     return render(request, 'Aapp/attendance/update_attendance.html', {
-        'rec': rec, 'branches': branches, 'months': MONTH_CHOICES,
+        'rec': rec, 'branches': branches, 'months': MONTH_CHOICES,'years': YEAR_CHOICES,
     })
 
 
@@ -286,7 +286,7 @@ def bulk_attendance(request):
 
     return render(request, 'Aapp/attendance/bulk_attendance.html', {
         'employees': employees, 'branches': branches,
-        'months': MONTH_CHOICES, 'company': company,
+        'months': MONTH_CHOICES, 'years': YEAR_CHOICES, 'company': company,
     })
 
 

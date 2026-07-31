@@ -27,11 +27,14 @@ if _env_file.exists():
 
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-fallback-dev-key-replace-in-production')
 DEBUG = os.environ.get('DJANGO_DEBUG', 'True') == 'True'
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'aapp.localhost', 'capp.localhost', 'www.localhost', 'admin.localhost'] + \
-    [h.strip() for h in os.environ.get('ALLOWED_HOSTS', '').split(',') if h.strip()]
+ALLOWED_HOSTS = [
+    'localhost', '127.0.0.1', 'aapp.localhost', 'capp.localhost', 'sapp.localhost',
+    'www.localhost', 'admin.localhost',
+    'reas.host', 'www.reas.host', 'aapp.reas.host', 'sapp.reas.host', 'capp.reas.host',
+] + [h.strip() for h in os.environ.get('ALLOWED_HOSTS', '').split(',') if h.strip()]
 DEFAULT_HOST = 'www'
 ROOT_HOSTCONF = 'revolution.hosts'
-PARENT_HOST = os.environ.get('DJANGO_PARENT_HOST', 'localhost:8000')
+PARENT_HOST = os.environ.get('DJANGO_PARENT_HOST', 'reas.host')
 
 # Application definition
 
@@ -67,10 +70,9 @@ ROOT_URLCONF = 'revolution.urls'
 # settings.py
 
 CSRF_TRUSTED_ORIGINS = [
-    'https://revolutionassociates-production.up.railway.app',
-    'https://reas-hrms-production.up.railway.app',
-    'https://*.reas-hrms-production.up.railway.app',
-]
+    'https://reas.host',
+    'https://*.reas.host',
+] + [o.strip() for o in os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',') if o.strip()]
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',

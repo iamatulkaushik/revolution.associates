@@ -238,7 +238,7 @@ img{max-width:100%;display:block}
 .data-table .empty-row td{text-align:center;padding:var(--sp-10);color:var(--c-muted);font-size:14px}
 
 /* ═══ FORMS ══════════════════════════════════════════════════════════════── */
-.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:var(--sp-5) var(--sp-6)}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(80px,1fr));gap:var(--sp-5) var(--sp-6)}
 .form-group{display:flex;flex-direction:column;gap:var(--sp-1)}
 .form-group label{font-size:12px;font-weight:600;color:var(--c-muted);text-transform:uppercase;letter-spacing:.05em}
 .form-group label .required{color:var(--c-danger);margin-left:2px}
@@ -248,13 +248,14 @@ img{max-width:100%;display:block}
 .form-actions{grid-column:1/-1;display:flex;gap:var(--sp-3);align-items:center;padding-top:var(--sp-4);border-top:1px solid var(--c-border);margin-top:var(--sp-3);flex-wrap:wrap}
 
 /* ── Inputs ─────────────────────────────────────────────────────────────── */
-label{font-size:13px;font-weight:500;color:var(--c-text);margin-bottom:var(--sp-1);    display: inline-flex;    width: 15%;    flex-direction: row;    justify-content: space-between;    align-items: center;}
+label{font-size:13px;font-weight:500;color:var(--c-text);margin-bottom:var(--sp-1);    display: inline-flex;    
+  min-width: 100px;    flex-direction: row;    justify-content: space-between;    align-items: center;}
 input[type="text"],input[type="password"],input[type="email"],
 input[type="date"],input[type="url"],input[type="tel"],
 input[type="number"],select,textarea{
   font-family:var(--font-body);font-size:14px;color:var(--c-text);
   background:var(--c-bg);border:1.5px solid var(--c-border);
-  border-radius:var(--r-sm);padding:9px var(--sp-3);
+  border-radius:var(--r-sm);padding:9px var(--sp-3);min-width:
   transition:border-color var(--ease),box-shadow var(--ease);outline:none;
 }
 input:focus,select:focus,textarea:focus{
@@ -265,7 +266,7 @@ input:disabled,select:disabled,textarea:disabled{
 }
 textarea{resize:vertical;min-height:80px}
 select{cursor:pointer;appearance:auto}
-
+input[type="number"]{width:100px;}
 /* ═══ BUTTONS ════════════════════════════════════════════════════════════── */
 .button,.btn{
   display:inline-flex;align-items:center;gap:var(--sp-2);

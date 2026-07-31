@@ -83,7 +83,7 @@ class LeaveForm(forms.ModelForm):
         fields = ['salary_month', 'salary_year', 'leaves_earned', 'leave_availed', 'wages_paid']
         widgets = {
             'salary_month': forms.Select(choices=MONTH_CHOICES),
-            'salary_year':  forms.NumberInput(attrs={'min': 2026, 'max': 2032}),
+            'salary_year':  forms.Select(choices=YEAR_CHOICES),
         }
 
 

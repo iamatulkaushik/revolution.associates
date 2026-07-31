@@ -114,15 +114,14 @@ class wages_deduction(models.Model):
     def __str__(self):
         return f"{self.employee.employeecode} — {self.get_deduction_type_display()} ₹{self.deduction_amount}"
 
-
 # ── Helper ────────────────────────────────────────────────────────────────────
 def _calculate_wages(emp, att, designation):
     """Calculate wages from designation rates and attendance days."""
     days = float(att.working_days) if att else 0
-    ot_hours = float(att.work_pay) if att else 0  # work_pay reused as OT hours until attendance updated
-
+    ot_hours = float(att.overtime_hours) if att else 0
+ 
     if designation.is_dailywage:
-        basic = round(designation.dailywage * days, 2)
+        basic = round(float(designation.dailywage) * days, 2)
         da    = 0
         hra   = 0
     else:
@@ -131,13 +130,13 @@ def _calculate_wages(emp, att, designation):
         basic  = round(float(designation.basicpay) * factor, 2)
         da     = round(float(designation.da) * factor, 2)
         hra    = round(float(designation.hra) * factor, 2)
-
+ 
     # Overtime: basic daily rate × 2 × OT hours / 8
     daily_rate  = float(designation.dailywage) if designation.is_dailywage else float(designation.basicpay) / 26
     ot_wages    = round(daily_rate * 2 * ot_hours / 8, 2)
-
+ 
     gross = round(basic + da + hra + ot_wages, 2)
-
+ 
     # Deductions from designation
     epf  = round(float(designation.ed_epf_amount) or gross * float(designation.ed_epf_per) / 100, 2)
     esi  = round(float(designation.ed_esi_amount) or gross * float(designation.ed_esi_per) / 100, 2)
@@ -145,7 +144,7 @@ def _calculate_wages(emp, att, designation):
     lw   = round(float(designation.ed_labourwelfare_amount) or gross * float(designation.ed_labourwelfare_per) / 100, 2)
     total_ded = round(epf + esi + pt + lw, 2)
     net  = round(gross - total_ded, 2)
-
+ 
     return {
         'working_days': days, 'overtime_hours': ot_hours,
         'basic_wages': basic, 'da': da, 'hra': hra,
@@ -154,7 +153,6 @@ def _calculate_wages(emp, att, designation):
         'professional_tax': pt, 'labour_welfare': lw,
         'total_deductions': total_ded, 'net_wages': net,
     }
-
 
 
 
@@ -197,7 +195,7 @@ def list_wages(request):
         return redirect('aapp_dashboard')
     records = wages_record.objects.filter(company=company).select_related('employee')
     rows = [{
-        'cells': [r.employee.name, r.emp_code, f'{r.salary_month}/{r.salary_year}',
+        'cells': [r.employee.name, r.employee.employeecode, f'{r.salary_month}/{r.salary_year}',
                   r.basic_wages, r.net_wages, 'Finalised' if r.is_finalized else 'Draft'],
         'actions': [
             {'url': reverse('update_wages', args=[r.wages_id]), 'label': 'Edit', 'css': 'edit'},
@@ -242,10 +240,10 @@ def generate_wages(request):
                 ).first()
                 desig = designation.objects.filter(
                     CompanyID=company, is_active=True,
-                    designationid=emp.designation_id
+                    designationid=emp.designation_id, is_dailywage=True
                 ).first() if hasattr(emp, 'designation_id') else None
                 if not desig:
-                    continue  # Skip employees without a valid designation
+                    continue  # Skip employees without a valid daily-wage designation
                 if not wages_record.objects.filter(
                     employee=emp, salary_month=month, salary_year=year
                 ).exists():
@@ -263,7 +261,8 @@ def generate_wages(request):
         'manual_fields': [
             {'name': 'salary_month', 'label': 'Month', 'type': 'select',
              'choices': [(str(i), name) for i, name in MONTH_CHOICES]},
-            {'name': 'salary_year', 'label': 'Year', 'type': 'text'},
+            {'name': 'salary_year', 'label': 'Year', 'type': 'select',
+             'choices': [(str(i), name) for i, name in YEAR_CHOICES]},
         ],
         'company': company,
         'page_title': 'Generate Monthly Wages (Form 17)',
