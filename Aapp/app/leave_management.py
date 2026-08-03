@@ -1,20 +1,30 @@
+"""
+Leave management — now reads/writes the leave fields that already live on
+Aapp.app.attandance.attendance (casual_leaves, earned_leaves, sick_leaves,
+comp_leaves) plus the leave_lapsed/leave_encashed/leave_encashment_amount/
+leave_wages_paid fields absorbed there from the old, now-deleted
+employee_leave model.
+
+No separate leave record is stored — attendance is the single source of
+truth for a given employee/month/year, avoiding two tables drifting out
+of sync with each other.
+
+Leave balances are gated on Shop & Establishments Act registration: with
+no shop_act on file, attendance.leave_balance() returns None and this
+module surfaces that as "Not available" rather than a numeric zero.
+"""
+
 from django import forms
-from django.db import models
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
 from Sapp.app.company import Company
 from Sapp.app.user import associateuser
 from Aapp.app.employee import employee
+from Aapp.app.attandance import attendance, MONTH_CHOICES, YEAR_CHOICES
+from Aapp.app.statutory_gates import get_company_gates
 
-MONTH_CHOICES = [
-    (1,'January'),(2,'February'),(3,'March'),(4,'April'),
-    (5,'May'),(6,'June'),(7,'July'),(8,'August'),
-    (9,'September'),(10,'October'),(11,'November'),(12,'December'),
-]
-YEAR_CHOICES = [(y, y) for y in range(2026, 2032)]
 
 # ── Associate-only guard ──────────────────────────────────────────────────────
 
@@ -41,49 +51,17 @@ def _guard(request):
     return associate, company
 
 
-# ── Model ─────────────────────────────────────────────────────────────────────
-
-class employee_leave(models.Model):
-    leaveid        = models.AutoField(primary_key=True)
-    employee_id    = models.ForeignKey(employee, on_delete=models.CASCADE, db_column='employee_id', related_name='leaves')
-    emp_code       = models.CharField(max_length=20)
-    companyid      = models.ForeignKey(Company, on_delete=models.CASCADE, db_column='companyid')
-    salary_month   = models.PositiveSmallIntegerField(choices=MONTH_CHOICES)
-    salary_year    = models.PositiveSmallIntegerField(choices=YEAR_CHOICES)
-    leaves_earned  = models.DecimalField(max_digits=5, decimal_places=2, default=0)
-    leave_availed  = models.DecimalField(max_digits=5, decimal_places=2, default=0)
-    leave_balance  = models.DecimalField(max_digits=5, decimal_places=2, default=0)
-    leave_lapsed  = models.DecimalField(max_digits=5, decimal_places=2, default=0)
-    leave_encased = models.DecimalField(max_digits=5, decimal_places=2, default=0)
-    encashmanent_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    wages_paid     = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    created_by     = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='leave_created')
-    created_date   = models.DateTimeField(auto_now_add=True)
-    updated_by     = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='leave_updated')
-    updated_date   = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        db_table = 'employee_leave'
-        unique_together = ('employee_id', 'salary_month', 'salary_year')
-        ordering = ['-salary_year', '-salary_month']
-
-    def __str__(self):
-        return f"{self.emp_code} — {self.get_salary_month_display()} {self.salary_year}"
-
-    def save(self, *args, **kwargs):
-        self.leave_balance = self.leaves_earned - self.leave_availed
-        super().save(*args, **kwargs)
-
-
 # ── Form ──────────────────────────────────────────────────────────────────────
 
 class LeaveForm(forms.ModelForm):
     class Meta:
-        model  = employee_leave
-        fields = ['salary_month', 'salary_year', 'leaves_earned', 'leave_availed', 'wages_paid']
+        model  = attendance
+        fields = ['salary_month', 'salary_year', 'casual_leaves', 'earned_leaves',
+                  'sick_leaves', 'comp_leaves', 'leave_lapsed', 'leave_encashed',
+                  'leave_encashment_amount', 'leave_wages_paid']
         widgets = {
             'salary_month': forms.Select(choices=MONTH_CHOICES),
-            'salary_year':  forms.Select(choices=YEAR_CHOICES),
+            'salary_year':  forms.NumberInput(attrs={'min': 2026, 'max': 2032}),
         }
 
 
@@ -95,7 +73,15 @@ def list_leave(request):
     if not associate:
         return redirect('aapp_dashboard')
 
-    records = employee_leave.objects.filter(companyid=company).select_related('employee_id')
+    gates = get_company_gates(company)
+    if not gates['shop_act']:
+        messages.warning(
+            request,
+            'Shop & Establishments Act registration not on file — '
+            'leave balances are not available for this company.'
+        )
+
+    records = attendance.objects.filter(companyid=company).select_related('employee_id')
 
     month = request.GET.get('month')
     year = request.GET.get('year')
@@ -105,11 +91,16 @@ def list_leave(request):
         records = records.filter(salary_year=year)
 
     rows = [{
-        'cells': [r.emp_code, r.get_salary_month_display(), r.salary_year, r.leaves_earned,
-                  r.leave_availed, r.leave_balance, r.wages_paid],
+        'cells': [
+            r.emp_code, r.get_salary_month_display(), r.salary_year,
+            r.leave_earned_total() if gates['shop_act'] else 'N/A',
+            (r.leave_earned_total() - (r.leave_balance() or 0)) if gates['shop_act'] else 'N/A',
+            r.leave_balance() if gates['shop_act'] else 'N/A',
+            r.leave_wages_paid,
+        ],
         'actions': [
-            {'url': reverse('update_leave', args=[r.leaveid]), 'label': 'Edit', 'css': 'edit'},
-            {'url': reverse('delete_leave', args=[r.leaveid]), 'label': 'Delete', 'css': 'delete'},
+            {'url': reverse('update_leave', args=[r.attendanceid]), 'label': 'Edit', 'css': 'edit'},
+            {'url': reverse('delete_leave', args=[r.attendanceid]), 'label': 'Delete', 'css': 'delete'},
         ],
     } for r in records]
     return render(request, 'Aapp/generic/list.html', {
@@ -129,6 +120,15 @@ def add_leave(request):
     if not associate:
         return redirect('aapp_dashboard')
 
+    gates = get_company_gates(company)
+    if not gates['shop_act']:
+        messages.error(
+            request,
+            'Shop & Establishments Act registration not on file — '
+            'leave records cannot be created for this company.'
+        )
+        return redirect('list_leave')
+
     employees = employee.objects.filter(CompanyID=company, is_working=True).order_by('name')
 
     if request.method == 'POST':
@@ -137,28 +137,30 @@ def add_leave(request):
         month = int(p.get('salary_month', 0))
         year = int(p.get('salary_year', 0))
 
-        if employee_leave.objects.filter(employee_id=emp, salary_month=month, salary_year=year).exists():
-            messages.error(request, f"Leave record for {emp.name} — {month}/{year} already exists.")
-        else:
-            try:
-                earned = float(p.get('leaves_earned', 0) or 0)
-                availed = float(p.get('leave_availed', 0) or 0)
-                employee_leave.objects.create(
-                    employee_id=emp,
-                    emp_code=emp.employeecode,
-                    companyid=company,
-                    salary_month=month,
-                    salary_year=year,
-                    leaves_earned=earned,
-                    leave_availed=availed,
-                    leave_balance=earned - availed,
-                    wages_paid=p.get('wages_paid', 0) or 0,
-                    created_by=request.user,
-                )
-                messages.success(request, f"Leave record for {emp.name} saved.")
-                return redirect('list_leave')
-            except Exception as e:
-                messages.error(request, f"Error: {e}")
+        rec, created = attendance.objects.get_or_create(
+            employee_id=emp, salary_month=month, salary_year=year,
+            defaults={'emp_code': emp.employeecode, 'companyid': company, 'created_by': request.user},
+        )
+        if not created and (rec.casual_leaves or rec.earned_leaves or rec.sick_leaves):
+            messages.warning(
+                request,
+                f"Attendance record for {emp.name} — {month}/{year} already has leave data; updating it."
+            )
+        try:
+            rec.casual_leaves = p.get('casual_leaves', 0) or 0
+            rec.earned_leaves = p.get('earned_leaves', 0) or 0
+            rec.sick_leaves = p.get('sick_leaves', 0) or 0
+            rec.comp_leaves = p.get('comp_leaves', 0) or 0
+            rec.leave_lapsed = p.get('leave_lapsed', 0) or 0
+            rec.leave_encashed = p.get('leave_encashed', 0) or 0
+            rec.leave_encashment_amount = p.get('leave_encashment_amount', 0) or 0
+            rec.leave_wages_paid = p.get('leave_wages_paid', 0) or 0
+            rec.updated_by = request.user
+            rec.save()
+            messages.success(request, f"Leave record for {emp.name} saved.")
+            return redirect('list_leave')
+        except Exception as e:
+            messages.error(request, f"Error: {e}")
 
     return render(request, 'Aapp/generic/form.html', {
         'form': LeaveForm(), 'employees': employees, 'company': company,
@@ -175,19 +177,32 @@ def update_leave(request, leave_id):
     if not associate:
         return redirect('aapp_dashboard')
 
-    rec = get_object_or_404(employee_leave, leaveid=leave_id, companyid=company)
+    gates = get_company_gates(company)
+    if not gates['shop_act']:
+        messages.error(
+            request,
+            'Shop & Establishments Act registration not on file — '
+            'leave records cannot be edited for this company.'
+        )
+        return redirect('list_leave')
+
+    rec = get_object_or_404(attendance, attendanceid=leave_id, companyid=company)
 
     if request.method == 'POST':
         p = request.POST
         try:
-            earned = float(p.get('leaves_earned', rec.leaves_earned) or 0)
-            availed = float(p.get('leave_availed', rec.leave_availed) or 0)
             rec.salary_month = int(p.get('salary_month', rec.salary_month))
             rec.salary_year = int(p.get('salary_year', rec.salary_year))
-            rec.leaves_earned = earned
-            rec.leave_availed = availed
-            rec.leave_balance = earned - availed
-            rec.wages_paid = p.get('wages_paid', rec.wages_paid) or rec.wages_paid
+            rec.casual_leaves = p.get('casual_leaves', rec.casual_leaves) or rec.casual_leaves
+            rec.earned_leaves = p.get('earned_leaves', rec.earned_leaves) or rec.earned_leaves
+            rec.sick_leaves = p.get('sick_leaves', rec.sick_leaves) or rec.sick_leaves
+            rec.comp_leaves = p.get('comp_leaves', rec.comp_leaves) or rec.comp_leaves
+            rec.leave_lapsed = p.get('leave_lapsed', rec.leave_lapsed) or rec.leave_lapsed
+            rec.leave_encashed = p.get('leave_encashed', rec.leave_encashed) or rec.leave_encashed
+            rec.leave_encashment_amount = (
+                p.get('leave_encashment_amount', rec.leave_encashment_amount) or rec.leave_encashment_amount
+            )
+            rec.leave_wages_paid = p.get('leave_wages_paid', rec.leave_wages_paid) or rec.leave_wages_paid
             rec.updated_by = request.user
             rec.save()
             messages.success(request, "Leave record updated.")
@@ -204,6 +219,9 @@ def update_leave(request, leave_id):
 
 
 # ── delete ────────────────────────────────────────────────────────────────────
+# NOTE: clears the leave fields on the attendance row rather than deleting
+# the row itself — the row also carries working_days/overtime data that
+# must not be lost.
 
 @login_required
 def delete_leave(request, leave_id):
@@ -211,17 +229,25 @@ def delete_leave(request, leave_id):
     if not associate:
         return redirect('aapp_dashboard')
 
-    rec = get_object_or_404(employee_leave, leaveid=leave_id, companyid=company)
+    rec = get_object_or_404(attendance, attendanceid=leave_id, companyid=company)
 
     if request.method == 'POST':
-        rec.delete()
-        messages.success(request, "Leave record deleted.")
+        rec.casual_leaves = 0
+        rec.earned_leaves = 0
+        rec.sick_leaves = 0
+        rec.comp_leaves = 0
+        rec.leave_lapsed = 0
+        rec.leave_encashed = 0
+        rec.leave_encashment_amount = 0
+        rec.leave_wages_paid = 0
+        rec.save()
+        messages.success(request, "Leave record cleared.")
         return redirect('list_leave')
 
     return render(request, 'Aapp/generic/confirm.html', {
         'company': company,
         'page_title': 'Delete Leave Record',
-        'confirm_message': f'Delete leave record for <strong>{rec.emp_code}</strong> — '
+        'confirm_message': f'Clear leave data for <strong>{rec.emp_code}</strong> — '
                             f'{rec.get_salary_month_display()} {rec.salary_year}?',
         'cancel_url': reverse('list_leave'),
     })

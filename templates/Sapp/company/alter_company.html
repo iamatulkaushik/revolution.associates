@@ -53,37 +53,24 @@
       <div class="form-group">
         <label>Company Name *</label>
         {{form.company_name}}
+        {{form.tagline1}}
       </div>
       <div class="form-row">
         <div class="form-group">
           <label>Start Date *</label>
           {{form.start_date}}
-        </div>
-        <div class="form-group">
           <label>Shut Date</label>
           {{form.shut_date}}
         </div>
-      </div>
-      <div class="form-group">
-        <label>Tagline</label>
-        {{form.tagline1}}
       </div>
     </div>
     <div class="form-section">
       <h3>Address</h3>
       <div class="form-group">
-        <label>Address Line 1</label>
+        <label>Address</label>
         {{form.address1}}
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Address Line 2</label>
-          {{form.address2}}
-        </div>
-        <div class="form-group">
-          <label>Address Line 3</label>
-          {{form.address3}}
-        </div>
+        {{form.address2}}
+        {{form.address3}}
       </div>
       <div class="form-row">
         <div class="form-group">
@@ -91,13 +78,13 @@
           {{form.state_id}}
         </div>
         <div class="form-group">
-          <label>District *</label>
-          {{form.district_id}}
+          <label>District * | PIN</label>
+          {{form.district_id}}-
+          {{form.pin}}
         </div>
       </div>
       <div class="form-group">
         <label>PIN Code</label>
-        {{form.pin}}
       </div>
     </div>
     <div class="form-section">
@@ -106,9 +93,6 @@
         <div class="form-group">
           <label>Mobile *</label>
           {{form.mobile}}
-        </div>
-        <div class="form-group">
-          <label>Alternate Mobile</label>
           {{form.mobile2}}
         </div>
       </div>
@@ -116,9 +100,6 @@
         <div class="form-group">
           <label>Phone</label>
           {{form.phone}}
-        </div>
-        <div class="form-group">
-          <label>Alternate Phone</label>
           {{form.phone2}}
         </div>
       </div>
@@ -126,9 +107,6 @@
         <div class="form-group">
           <label>Email *</label>
           {{form.email1}}
-        </div>
-        <div class="form-group">
-          <label>Alternate Email</label>
           {{form.email2}}
         </div>
       </div>
@@ -159,20 +137,14 @@
       <div class="form-group">
         <label>Bank Name</label>
         {{form.bank_id}}
+        {{form.branch_address}}
       </div>
       <div class="form-row">
         <div class="form-group">
-          <label>Account Number</label>
+          <label>Account Number | IFSC Code</label>
           {{form.account}}
-        </div>
-        <div class="form-group">
-          <label>IFSC Code</label>
           {{form.ifsc}}
         </div>
-      </div>
-      <div class="form-group">
-        <label>Branch Address</label>
-        {{form.branch_address}}
       </div>
     </div>
     <button type="submit" class="button btn-primary">Update Company</button>

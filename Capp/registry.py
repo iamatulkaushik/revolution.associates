@@ -12,7 +12,6 @@ from Aapp.app.branch_department import branch, department
 from Aapp.app.designation import designation
 from Aapp.app.employee import employee
 from Aapp.app.attandance import attendance, MinimumWagesOvertimeRegister
-from Aapp.app.leave_management import employee_leave
 from Aapp.app.factory_act import (
     FactoryRegistration, FactoryWhitewashRegister, FactoryVesselExamination,
     LeaveWithWagesRegister, FactoryAccidentRegister, FactoryAnnualReturn,
@@ -27,8 +26,9 @@ from Aapp.app.gratuity import (
 )
 from Aapp.app.maternity import maternity_record, maternity_nomination
 from Aapp.app.bonus import bonus_record, bonus_set_on_set_off, bonus_annual_return
-from Aapp.app.shops_act import establishment_details, overtime_register
-from Aapp.app.wages import wages_record, wages_fine, wages_deduction
+from Aapp.app.shops_act import establishment_details
+from Aapp.app.wages import wages_fine, wages_deduction
+from Aapp.app.salary_processing import salary_slip
 from Aapp.app.wage_compliance import MinimumWagesAnnualReturn, PaymentOfWagesAnnualReturn
 from Aapp.app.epf_esi import EpfNomination, EpfMonthlyEcr, EsiFamilyMember, EsiContributionReturn
 from Aapp.app.labour_welfare import LabourWelfareFundContribution
@@ -69,9 +69,11 @@ REGISTRY = [
     Entry('employees', employee, 'CompanyID', 'Employees', 'Employees'),
 
     # ── Attendance & Leave ───────────────────────────────────────────────
+    # Leave balances (casual/earned/sick/comp) now live directly on
+    # attendance — no separate 'leave' entry; edit via the Attendance
+    # entry below.
     Entry('attendance', attendance, 'companyid', 'Attendance', 'Attendance'),
     Entry('overtime-wages', MinimumWagesOvertimeRegister, 'attendance__companyid', 'Minimum Wages Overtime Register', 'Attendance'),
-    Entry('leave', employee_leave, 'companyid', 'Leave Records', 'Attendance'),
 
     # ── Factory Act 1948 ─────────────────────────────────────────────────
     Entry('factory-registration', FactoryRegistration, 'company', 'Factory Registration', 'Factory Act'),
@@ -107,10 +109,14 @@ REGISTRY = [
 
     # ── Shops & Establishment Act ────────────────────────────────────────
     Entry('establishment', establishment_details, 'company', 'Establishment Details', 'Shops Act'),
-    Entry('shops-overtime', overtime_register, 'company', 'Shops Act Overtime Register', 'Shops Act'),
+    # Overtime register consolidated into 'overtime-wages' entry above
+    # (Aapp.app.attandance.MinimumWagesOvertimeRegister) — shops_act's
+    # own overtime_register model was removed as a duplicate.
 
     # ── Wages ────────────────────────────────────────────────────────────
-    Entry('wages-record', wages_record, 'company', 'Wages Record', 'Wages'),
+    # Wages Register is read-only, sourced from salary_slip (payroll
+    # engine output) — not a separately-maintained record.
+    Entry('wages-record', salary_slip, 'company_id', 'Wages Record (from Salary Processing)', 'Wages'),
     Entry('wages-fine', wages_fine, 'company', 'Wages Fine', 'Wages'),
     Entry('wages-deduction', wages_deduction, 'company', 'Wages Deduction', 'Wages'),
     Entry('mw-annual-return', MinimumWagesAnnualReturn, 'company', 'Minimum Wages Annual Return', 'Wages'),

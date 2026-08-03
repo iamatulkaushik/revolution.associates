@@ -65,3 +65,5 @@ build/
 .env
 .gitignore
 PRODUCTION_READINESS_REPORT.md
+req.txt
+requirements.txt

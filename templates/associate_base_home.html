@@ -9,12 +9,14 @@
 <link rel="prefetch" href="{% static 'fonts/Saber.ttf' %}" as="font" type="font/ttf" crossorigin>
 <link rel="prefetch" href="{% static 'fonts/Ubuntu-R.ttf' %}" as="font" type="font/ttf" crossorigin>
 <link rel="prefetch" href="{% static 'fonts/Infinitude.ttf' %}" as="font" type="font/ttf" crossorigin>
+<link rel="prefetch" href="{% static 'fonts/allerta.medium.ttf' %}" as="font" type="font/ttf" crossorigin>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Lora:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
     @font-face{font-family:'Saber';src:url("{% static 'fonts/Saber.ttf' %}") format('truetype');font-display:swap}
     @font-face{font-family:'Ubuntu';src:url("{% static 'fonts/Ubuntu-R.ttf' %}") format('truetype');font-display:swap}
     @font-face{font-family:'Infinitude';src:url("{% static 'fonts/Infinitude.ttf' %}") format('truetype');font-display:swap}
+    @font-face{font-family:'Allerta';src:url("{% static 'fonts/allerta.medium.ttf' %}") format('truetype'), url("{% static 'fonts/allerta.medium.otf' %}") format('otf');font-display:swap}
   :root{
     --bg:#faf8f3;
     --panel:#ffffff;
@@ -169,7 +171,7 @@
     </nav>
 
     <div class="nav-cta">
-      <a href="{% url 'login' %}" class="btn btn-ghost">Sign in</a>
+      <a href="/login/" class="btn btn-ghost">Sign in</a>
       <a href="#signup" class="btn btn-primary">Sign up</a>
     </div>
   </div>

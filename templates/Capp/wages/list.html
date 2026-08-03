@@ -52,22 +52,22 @@
         {% for r in records %}
         <tr>
           <td class="text-muted text-sm">{{ forloop.counter }}</td>
-          <td><strong>{{ r.employee.employeecode }}</strong></td>
-          <td>{{ r.employee.name }}</td>
+          <td><strong>{{ r.employee_id.employeecode }}</strong></td>
+          <td>{{ r.employee_id.name }}</td>
           <td class="text-muted">{{ r.working_days|default:"—" }}</td>
-          <td style="text-align:right">{{ r.basic_wages|floatformat:2 }}</td>
-          <td style="text-align:right">{{ r.da|floatformat:2 }}</td>
-          <td style="text-align:right">{{ r.hra|floatformat:2 }}</td>
-          <td style="text-align:right">{{ r.overtime_wages|floatformat:2 }}</td>
-          <td style="text-align:right"><strong>{{ r.gross_wages|floatformat:2 }}</strong></td>
-          <td style="text-align:right">{{ r.epf_deduction|floatformat:2 }}</td>
+          <td style="text-align:right">{{ r.basic_earned|floatformat:2 }}</td>
+          <td style="text-align:right">{{ r.da_earned|floatformat:2 }}</td>
+          <td style="text-align:right">{{ r.hra_earned|floatformat:2 }}</td>
+          <td style="text-align:right">{{ r.overtime_amount|floatformat:2 }}</td>
+          <td style="text-align:right"><strong>{{ r.gross_earnings|floatformat:2 }}</strong></td>
+          <td style="text-align:right">{{ r.pf_deduction|floatformat:2 }}</td>
           <td style="text-align:right">{{ r.esi_deduction|floatformat:2 }}</td>
           <td style="text-align:right">{{ r.professional_tax|floatformat:2 }}</td>
           <td style="text-align:right">{{ r.total_deductions|floatformat:2 }}</td>
-          <td style="text-align:right"><strong>{{ r.net_wages|floatformat:2 }}</strong></td>
+          <td style="text-align:right"><strong>{{ r.net_pay|floatformat:2 }}</strong></td>
           <td>
             {% if access.wages %}
-            <a href="{% url 'capp_slip_download' r.wages_id %}" class="action-edit">PDF</a>
+            <a href="{% url 'capp_slip_download' r.id %}" class="action-edit">PDF</a>
             {% endif %}
           </td>
         </tr>

@@ -1,3 +1,17 @@
+"""
+Wages Register (Form 17 / Form III) — no longer a separately-entered or
+separately-calculated record. It is now a read-only view over
+Aapp.app.salary_processing.salary_slip, filtered to employees whose
+designation is a daily-wage designation, exactly as the batch salary
+processor already computes and gates (Shop Act / EPF / ESI / Labour /
+TAN) via statutory_gates. This avoids a second, independently-maintained
+wage calculation drifting out of sync with the payroll engine.
+
+wages_fine and wages_deduction remain genuinely separate data (manual
+entries, not derivable from salary processing) — their link now points
+at salary_slip instead of the deleted wages_record.
+"""
+
 from django.db import models
 from django.contrib.auth.models import User
 from django.shortcuts import render, redirect, get_object_or_404
@@ -8,6 +22,8 @@ from Sapp.app.company import Company
 from Aapp.app.employee import employee
 from Aapp.app.designation import designation
 from Aapp.app.attandance import attendance, MONTH_CHOICES
+from Aapp.app.statutory_gates import get_company_gates
+from Aapp.app.salary_processing import salary_slip as sp
 
 
 DEDUCTION_TYPE_CHOICES = [
@@ -29,55 +45,11 @@ YEAR_CHOICES = [(y, y) for y in range(2026, 2032)]
 
 # ── Models ────────────────────────────────────────────────────────────────────
 
-class wages_record(models.Model):
-    wages_id        = models.AutoField(primary_key=True)
-    company         = models.ForeignKey(Company, on_delete=models.CASCADE, db_column='CompanyID')
-    employee        = models.ForeignKey(employee, on_delete=models.CASCADE, db_column='EmployeeID', related_name='wages')
-    attendance      = models.OneToOneField(attendance, on_delete=models.SET_NULL, null=True, blank=True, db_column='AttendanceID', related_name='wages')
-    salary_month    = models.PositiveSmallIntegerField(choices=MONTH_CHOICES)
-    salary_year     = models.PositiveSmallIntegerField(choices=YEAR_CHOICES)
-    working_days    = models.DecimalField(max_digits=5, decimal_places=2, default=0)
-    overtime_hours  = models.DecimalField(max_digits=6, decimal_places=2, default=0)
-
-    # Earnings — pulled from designation at time of generation
-    basic_wages     = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    da              = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    hra             = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    overtime_wages  = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    other_earnings  = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    gross_wages     = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-
-    # Deductions — pulled from designation at time of generation
-    epf_deduction           = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    esi_deduction           = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    professional_tax        = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    income_tax              = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    labour_welfare          = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    other_deductions        = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    total_deductions        = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-
-    net_wages       = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    is_finalized    = models.BooleanField(default=False)
-    remarks         = models.CharField(max_length=255, blank=True)
-    created_by      = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='wages_created')
-    created_date    = models.DateTimeField(auto_now_add=True)
-    updated_by      = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='wages_updated')
-    updated_date    = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        db_table        = 'wages_record'
-        unique_together = ('employee', 'salary_month', 'salary_year')
-        ordering        = ['-salary_year', '-salary_month']
-
-    def __str__(self):
-        return f"{self.employee.employeecode} — {self.get_salary_month_display()} {self.salary_year}"
-
-
 class wages_fine(models.Model):
     fine_id         = models.AutoField(primary_key=True)
     company         = models.ForeignKey(Company, on_delete=models.CASCADE, db_column='CompanyID')
     employee        = models.ForeignKey(employee, on_delete=models.CASCADE, db_column='EmployeeID', related_name='fines')
-    wages_record    = models.ForeignKey(wages_record, on_delete=models.SET_NULL, null=True, blank=True, related_name='fines')
+    salary_slip     = models.ForeignKey(sp, on_delete=models.SET_NULL, null=True, blank=True, related_name='fines')
     fine_date       = models.DateField()
     fine_amount     = models.DecimalField(max_digits=10, decimal_places=2)
     fine_reason     = models.CharField(max_length=500)
@@ -98,7 +70,7 @@ class wages_deduction(models.Model):
     deduction_id    = models.AutoField(primary_key=True)
     company         = models.ForeignKey(Company, on_delete=models.CASCADE, db_column='CompanyID')
     employee        = models.ForeignKey(employee, on_delete=models.CASCADE, db_column='EmployeeID', related_name='extra_deductions')
-    wages_record    = models.ForeignKey(wages_record, on_delete=models.SET_NULL, null=True, blank=True, related_name='extra_deductions')
+    salary_slip     = models.ForeignKey(sp, on_delete=models.SET_NULL, null=True, blank=True, related_name='extra_deductions')
     deduction_type  = models.CharField(max_length=30, choices=DEDUCTION_TYPE_CHOICES)
     deduction_amount= models.DecimalField(max_digits=10, decimal_places=2)
     reason          = models.CharField(max_length=500)
@@ -114,70 +86,20 @@ class wages_deduction(models.Model):
     def __str__(self):
         return f"{self.employee.employeecode} — {self.get_deduction_type_display()} ₹{self.deduction_amount}"
 
-# ── Helper ────────────────────────────────────────────────────────────────────
-def _calculate_wages(emp, att, designation):
-    """Calculate wages from designation rates and attendance days."""
-    days = float(att.working_days) if att else 0
-    ot_hours = float(att.overtime_hours) if att else 0
- 
-    if designation.is_dailywage:
-        basic = round(float(designation.dailywage) * days, 2)
-        da    = 0
-        hra   = 0
-    else:
-        # Pro-rate monthly salary by working days (assume 26 working days/month)
-        factor = days / 26 if days else 0
-        basic  = round(float(designation.basicpay) * factor, 2)
-        da     = round(float(designation.da) * factor, 2)
-        hra    = round(float(designation.hra) * factor, 2)
- 
-    # Overtime: basic daily rate × 2 × OT hours / 8
-    daily_rate  = float(designation.dailywage) if designation.is_dailywage else float(designation.basicpay) / 26
-    ot_wages    = round(daily_rate * 2 * ot_hours / 8, 2)
- 
-    gross = round(basic + da + hra + ot_wages, 2)
- 
-    # Deductions from designation
-    epf  = round(float(designation.ed_epf_amount) or gross * float(designation.ed_epf_per) / 100, 2)
-    esi  = round(float(designation.ed_esi_amount) or gross * float(designation.ed_esi_per) / 100, 2)
-    pt   = round(float(designation.ed_professionaltax), 2)
-    lw   = round(float(designation.ed_labourwelfare_amount) or gross * float(designation.ed_labourwelfare_per) / 100, 2)
-    total_ded = round(epf + esi + pt + lw, 2)
-    net  = round(gross - total_ded, 2)
- 
-    return {
-        'working_days': days, 'overtime_hours': ot_hours,
-        'basic_wages': basic, 'da': da, 'hra': hra,
-        'overtime_wages': ot_wages, 'gross_wages': gross,
-        'epf_deduction': epf, 'esi_deduction': esi,
-        'professional_tax': pt, 'labour_welfare': lw,
-        'total_deductions': total_ded, 'net_wages': net,
-    }
-
-
 
 from django import forms as _wforms
-
-class WagesRecordForm(_wforms.ModelForm):
-    class Meta:
-        model = wages_record
-        fields = ['basic_wages', 'da', 'hra', 'overtime_wages', 'other_earnings',
-                  'working_days', 'overtime_hours', 'epf_deduction', 'esi_deduction',
-                  'professional_tax', 'income_tax', 'labour_welfare', 'other_deductions',
-                  'remarks']
 
 class WagesFineForm(_wforms.ModelForm):
     class Meta:
         model = wages_fine
-        fields = ['employee', 'fine_date', 'fine_reason', 'fine_amount',
-                  'salary_month', 'salary_year']
+        fields = ['employee', 'fine_date', 'fine_amount', 'fine_reason', 'salary_month', 'salary_year']
         widgets = {'fine_date': _wforms.DateInput(attrs={'type': 'date'})}
+
 
 class WagesDeductionForm(_wforms.ModelForm):
     class Meta:
         model = wages_deduction
-        fields = ['employee', 'deduction_type', 'reason',
-                  'deduction_amount', 'salary_month', 'salary_year']
+        fields = ['employee', 'deduction_type', 'deduction_amount', 'reason', 'salary_month', 'salary_year']
 
 
 def _company(request):
@@ -185,175 +107,59 @@ def _company(request):
     return Company.objects.filter(company_id=cid).first() if cid else None
 
 
-# ── Wage Register Views (Form 17 — Register of Wages) ────────────────────────
+# ── Wage Register View (Form 17 / Form III) — READ ONLY, sourced from salary_slip ──
 
 @login_required
 def list_wages(request):
+    """
+    Wages Register — read-only, generated from salary_slip records for
+    daily-wage designations only. No separate generation step: run the
+    normal salary batch (salary_processing) for the month first, and the
+    daily-wage employees within it appear here automatically.
+    """
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
         return redirect('aapp_dashboard')
-    records = wages_record.objects.filter(company=company).select_related('employee')
+
+    from Aapp.app.salary_processing import salary_slip
+
+    month = request.GET.get('month')
+    year = request.GET.get('year')
+
+    records = salary_slip.objects.filter(
+        company_id=company, designation_id__is_dailywage=True
+    ).select_related('employee_id', 'designation_id')
+    if month:
+        records = records.filter(processing_id__month=month)
+    if year:
+        records = records.filter(processing_id__year=year)
+
     rows = [{
-        'cells': [r.employee.name, r.employee.employeecode, f'{r.salary_month}/{r.salary_year}',
-                  r.basic_wages, r.net_wages, 'Finalised' if r.is_finalized else 'Draft'],
+        'cells': [
+            r.employee_id.name, r.employee_id.employeecode,
+            f'{r.processing_id.month}/{r.processing_id.year}',
+            r.basic_earned, r.net_pay, r.processing_id.status,
+        ],
         'actions': [
-            {'url': reverse('update_wages', args=[r.wages_id]), 'label': 'Edit', 'css': 'edit'},
-        ] + ([{'url': reverse('finalize_wages', args=[r.wages_id]), 'label': 'Finalise'}]
-             if not r.is_finalized else []) +
-            [{'url': reverse('delete_wages', args=[r.wages_id]), 'label': 'Delete', 'css': 'delete'}],
+            {'url': reverse('view_salary_slip', args=[r.id]), 'label': 'View', 'css': 'edit'},
+        ],
     } for r in records]
     return render(request, 'Aapp/generic/list.html', {
         'page_title': 'Wages Register (Form 17 / Form III)',
         'columns': ['Employee', 'Code', 'Month/Year', 'Basic Wages', 'Net Wages', 'Status'],
         'rows': rows, 'company': company,
-        'add_url': reverse('generate_wages'), 'add_label': 'Generate Wages',
         'extra_links': [
+            {'url': reverse('salary_dashboard'), 'label': 'Process Salary Batch'},
             {'url': reverse('list_fines'), 'label': 'Fines Register (Form I)'},
             {'url': reverse('list_deductions'), 'label': 'Deductions Register (Form II)'},
         ],
-        'empty_message': 'No wage records yet. Use "Generate Wages" to auto-calculate.',
-    })
-
-
-@login_required
-def generate_wages(request):
-    company = _company(request)
-    if not company:
-        messages.warning(request, 'Please select a company first.')
-        return redirect('aapp_dashboard')
-
-    if request.method == 'POST':
-        from Aapp.app.attandance import attendance
-        from Aapp.app.designation import designation
-        p = request.POST
-        month = int(p.get('salary_month', 0))
-        year = int(p.get('salary_year', 0))
-        if not month or not year:
-            messages.error(request, 'Please provide month and year.')
-        else:
-            employees = employee.objects.filter(CompanyID=company, is_working=True)
-            created = 0
-            for emp in employees:
-                att = attendance.objects.filter(
-                    employee_id=emp, salary_month=month, salary_year=year
-                ).first()
-                desig = designation.objects.filter(
-                    CompanyID=company, is_active=True,
-                    designationid=emp.designation_id, is_dailywage=True
-                ).first() if hasattr(emp, 'designation_id') else None
-                if not desig:
-                    continue  # Skip employees without a valid daily-wage designation
-                if not wages_record.objects.filter(
-                    employee=emp, salary_month=month, salary_year=year
-                ).exists():
-                    wages = _calculate_wages(emp, att, desig)
-                    wages_record.objects.create(
-                        company=company, employee=emp,
-                        salary_month=month, salary_year=year,
-                        created_by=request.user, **wages,
-                    )
-                    created += 1
-            messages.success(request, f'Generated wages for {created} employee(s) — {month}/{year}.')
-            return redirect('list_wages')
-
-    return render(request, 'Aapp/generic/form.html', {
-        'manual_fields': [
-            {'name': 'salary_month', 'label': 'Month', 'type': 'select',
-             'choices': [(str(i), name) for i, name in MONTH_CHOICES]},
-            {'name': 'salary_year', 'label': 'Year', 'type': 'select',
-             'choices': [(str(i), name) for i, name in YEAR_CHOICES]},
-        ],
-        'company': company,
-        'page_title': 'Generate Monthly Wages (Form 17)',
-        'cancel_url': reverse('list_wages'),
-    })
-
-
-@login_required
-def update_wages(request, wages_id):
-    company = _company(request)
-    if not company:
-        messages.warning(request, 'Please select a company first.')
-        return redirect('aapp_dashboard')
-
-    rec = get_object_or_404(wages_record, wages_id=wages_id, company=company, is_finalized=False)
-
-    if request.method == 'POST':
-        p = request.POST
-        for field in ['basic_wages', 'da', 'hra', 'overtime_wages', 'other_earnings',
-                      'working_days', 'epf_deduction', 'esi_deduction',
-                      'professional_tax', 'income_tax', 'labour_welfare', 'other_deductions']:
-            if p.get(field):
-                setattr(rec, field, p[field])
-        rec.gross_wages = sum([
-            float(rec.basic_wages or 0), float(rec.da or 0), float(rec.hra or 0),
-            float(rec.overtime_wages or 0), float(rec.other_earnings or 0),
-        ])
-        rec.total_deductions = sum([
-            float(rec.epf_deduction or 0), float(rec.esi_deduction or 0),
-            float(rec.professional_tax or 0), float(rec.income_tax or 0),
-            float(rec.labour_welfare or 0), float(rec.other_deductions or 0),
-        ])
-        rec.net_wages = round(float(rec.gross_wages) - float(rec.total_deductions), 2)
-        rec.updated_by = request.user
-        rec.save()
-        messages.success(request, f'Wages updated for {rec.employee.name}.')
-        return redirect('list_wages')
-
-    return render(request, 'Aapp/generic/form.html', {
-        'form': WagesRecordForm(instance=rec), 'company': company,
-        'page_title': f'Edit Wages — {rec.employee.name} ({rec.salary_month}/{rec.salary_year})',
-        'cancel_url': reverse('list_wages'),
-    })
-
-
-@login_required
-def finalize_wages(request, wages_id):
-    company = _company(request)
-    if not company:
-        messages.warning(request, 'Please select a company first.')
-        return redirect('aapp_dashboard')
-
-    rec = get_object_or_404(wages_record, wages_id=wages_id, company=company, is_finalized=False)
-    if request.method == 'POST':
-        rec.is_finalized = True
-        rec.save()
-        messages.success(request, f'Wages finalised for {rec.employee.name}.')
-        return redirect('list_wages')
-    return render(request, 'Aapp/generic/confirm.html', {
-        'company': company,
-        'page_title': 'Finalise Wages',
-        'confirm_message': f'Finalise wages for <strong>{rec.employee.name}</strong> '
-                            f'({rec.salary_month}/{rec.salary_year})? '
-                            f'Net wages: <strong>₹{rec.net_wages}</strong>. '
-                            f'This cannot be undone.',
-        'cancel_url': reverse('list_wages'),
-    })
-
-
-@login_required
-def delete_wages(request, wages_id):
-    company = _company(request)
-    if not company:
-        messages.warning(request, 'Please select a company first.')
-        return redirect('aapp_dashboard')
-
-    rec = get_object_or_404(wages_record, wages_id=wages_id, company=company, is_finalized=False)
-    if request.method == 'POST':
-        rec.delete()
-        messages.success(request, 'Wages record deleted.')
-        return redirect('list_wages')
-    return render(request, 'Aapp/generic/confirm.html', {
-        'company': company,
-        'page_title': 'Delete Wages Record',
-        'confirm_message': f'Delete wages record for <strong>{rec.employee.name}</strong> '
-                            f'({rec.salary_month}/{rec.salary_year})?',
-        'cancel_url': reverse('list_wages'),
+        'empty_message': 'No wage records yet. Process a salary batch to populate this register.',
     })
 
 
 # ── Fines Register Views (Form I) ─────────────────────────────────────────────
+# Fines require Shop Act registration — same as overtime and leave.
 
 @login_required
 def list_fines(request):
@@ -382,6 +188,14 @@ def add_fine(request):
     if not company:
         messages.warning(request, 'Please select a company first.')
         return redirect('aapp_dashboard')
+
+    gates = get_company_gates(company)
+    if not gates['shop_act']:
+        messages.error(
+            request,
+            'Shop & Establishments Act registration not on file — fines cannot be recorded for this company.'
+        )
+        return redirect('list_fines')
 
     employees = employee.objects.filter(CompanyID=company, is_working=True).order_by('name')
 

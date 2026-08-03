@@ -1,3 +1,18 @@
+"""
+Shops & Commercial Establishments Act.
+
+establishment_details is the establishment/registration record (Form F) —
+kept as-is, no overlap with anything else in the codebase.
+
+The old overtime_register model that lived here has been removed: it
+duplicated Aapp.app.attandance.MinimumWagesOvertimeRegister (same Form IV
+overtime data, just keyed to `employee` directly instead of via
+`attendance`). Its one unique field, ot_reason, was absorbed onto
+MinimumWagesOvertimeRegister. Use list_overtime_register /
+create_overtime_register (Aapp.app.attandance) instead of the old
+list_overtime / add_overtime views.
+"""
+
 from django.db import models
 from django.contrib.auth.models import User
 from django.shortcuts import render, redirect, get_object_or_404
@@ -5,8 +20,6 @@ from django.urls import reverse
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from Sapp.app.company import Company
-from Aapp.app.employee import employee
-from Aapp.app.attandance import MONTH_CHOICES
 
 
 WEEKLY_OFF_CHOICES = [
@@ -25,7 +38,7 @@ OT_RATE_CHOICES = [
 ]
 
 
-# ── Models ────────────────────────────────────────────────────────────────────
+# ── Model ────────────────────────────────────────────────────────────────────
 
 class establishment_details(models.Model):
     """
@@ -80,36 +93,7 @@ class establishment_details(models.Model):
         return f"{self.establishment_name} — {self.company.company_name}"
 
 
-class overtime_register(models.Model):
-    """
-    Overtime register as required under Shops & Establishments Act.
-    Linked to attendance for the month.
-    """
-    ot_id           = models.AutoField(primary_key=True)
-    company         = models.ForeignKey(Company, on_delete=models.CASCADE, db_column='CompanyID')
-    establishment   = models.ForeignKey(establishment_details, on_delete=models.SET_NULL, null=True, blank=True,
-                        related_name='ot_records')
-    employee        = models.ForeignKey(employee, on_delete=models.CASCADE, db_column='EmployeeID',
-                        related_name='ot_records')
-    salary_month    = models.PositiveSmallIntegerField(choices=MONTH_CHOICES)
-    salary_year     = models.PositiveSmallIntegerField()
-    ot_date         = models.DateField()
-    ot_hours        = models.DecimalField(max_digits=5, decimal_places=2)
-    ot_reason       = models.CharField(max_length=255, blank=True)
-    ot_wages        = models.DecimalField(max_digits=10, decimal_places=2, default=0,
-                        help_text='Auto-calculated when wages are generated')
-    created_by      = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='ot_created')
-    created_date    = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        db_table = 'overtime_register'
-        ordering = ['-ot_date']
-
-    def __str__(self):
-        return f"{self.employee.employeecode} — OT {self.ot_hours}hrs on {self.ot_date}"
-
-
-# ── Helper ────────────────────────────────────────────────────────────────────
+# ── Form ─────────────────────────────────────────────────────────────────────
 
 from django import forms as _saforms
 
@@ -124,13 +108,6 @@ class EstablishmentForm(_saforms.ModelForm):
             'registration_date': _saforms.DateInput(attrs={'type': 'date'}),
             'renewal_date': _saforms.DateInput(attrs={'type': 'date'}),
         }
-
-class OvertimeRegisterForm(_saforms.ModelForm):
-    class Meta:
-        model = overtime_register
-        fields = ['employee', 'salary_month', 'salary_year', 'ot_date',
-                  'ot_hours', 'ot_reason', 'ot_wages']
-        widgets = {'ot_date': _saforms.DateInput(attrs={'type': 'date'})}
 
 
 def _company(request):
@@ -160,7 +137,7 @@ def list_establishments(request):
         'columns': ['Reg. No.', 'Establishment', 'Manager', 'Reg. Date', 'Renewal Due'],
         'rows': rows, 'company': company,
         'add_url': reverse('add_establishment'), 'add_label': 'Register Establishment',
-        'extra_links': [{'url': reverse('list_overtime'), 'label': 'Overtime Register'}],
+        'extra_links': [{'url': reverse('list_overtime_register'), 'label': 'Overtime Register (Form IV)'}],
         'empty_message': 'No establishments registered.',
     })
 
@@ -233,74 +210,4 @@ def delete_establishment(request, estab_id):
         'page_title': 'Delete Establishment',
         'confirm_message': f'Delete establishment <strong>{est.establishment_name} ({est.registration_number})</strong>?',
         'cancel_url': reverse('list_establishments'),
-    })
-
-
-# ── Overtime Register Views (Form IV) ────────────────────────────────────────
-
-@login_required
-def list_overtime(request):
-    company = _company(request)
-    if not company:
-        messages.warning(request, 'Please select a company first.')
-        return redirect('aapp_dashboard')
-    records = overtime_register.objects.filter(
-        employee__CompanyID=company
-    ).select_related('employee')
-    rows = [{
-        'cells': [r.employee.name, r.ot_date, r.ot_hours, r.ot_reason or '—',
-                  r.ot_wages, f'{r.salary_month}/{r.salary_year}'],
-        'actions': [{'url': reverse('delete_overtime', args=[r.ot_id]), 'label': 'Delete', 'css': 'delete'}],
-    } for r in records]
-    return render(request, 'Aapp/generic/list.html', {
-        'page_title': 'Shops Act / Minimum Wages Act — Overtime Register (Form IV)',
-        'columns': ['Employee', 'OT Date', 'OT Hours', 'Reason', 'OT Wages Paid', 'Month/Year'],
-        'rows': rows, 'company': company,
-        'add_url': reverse('add_overtime'), 'add_label': 'Add Overtime Record',
-        'empty_message': 'No overtime records yet.',
-    })
-
-
-@login_required
-def add_overtime(request):
-    company = _company(request)
-    if not company:
-        messages.warning(request, 'Please select a company first.')
-        return redirect('aapp_dashboard')
-
-    if request.method == 'POST':
-        form = OvertimeRegisterForm(request.POST)
-        if form.is_valid():
-            rec = form.save(commit=False)
-            rec.save()
-            messages.success(request, 'Overtime record added.')
-            return redirect('list_overtime')
-    else:
-        form = OvertimeRegisterForm()
-        form.fields['employee'].queryset = employee.objects.filter(CompanyID=company, is_working=True)
-
-    return render(request, 'Aapp/generic/form.html', {
-        'form': form, 'company': company,
-        'page_title': 'Add Overtime Record (Form IV)',
-        'cancel_url': reverse('list_overtime'),
-    })
-
-
-@login_required
-def delete_overtime(request, ot_id):
-    company = _company(request)
-    if not company:
-        messages.warning(request, 'Please select a company first.')
-        return redirect('aapp_dashboard')
-
-    rec = get_object_or_404(overtime_register, ot_id=ot_id, employee__CompanyID=company)
-    if request.method == 'POST':
-        rec.delete()
-        messages.success(request, 'Overtime record deleted.')
-        return redirect('list_overtime')
-    return render(request, 'Aapp/generic/confirm.html', {
-        'company': company,
-        'page_title': 'Delete Overtime Record',
-        'confirm_message': f'Delete overtime record for <strong>{rec.employee.name}</strong> on {rec.ot_date} ({rec.ot_hours} hrs)?',
-        'cancel_url': reverse('list_overtime'),
     })

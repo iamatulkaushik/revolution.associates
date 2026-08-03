@@ -272,13 +272,23 @@ def _calculate_overtime(basic, overtime_hours):
 # SALARY CALCULATION ENGINE
 # =====================================================================
 
-def calculate_employee_salary(employee_obj, desig, month, year):
+def calculate_employee_salary(employee_obj, desig, month, year, company=None):
     """
     Calculate complete salary for one employee for the given month, using
     their assigned designation's pay scale and statutory rates.
 
+    `company` is required to evaluate statutory gates (Shop Act, EPF, ESI,
+    Labour, TAN). If omitted, it's derived from employee_obj/desig — pass
+    it explicitly where available to avoid an extra query.
+
     Returns dict with all earnings, deductions and net pay.
     """
+    from Aapp.app.statutory_gates import get_company_gates
+
+    if company is None:
+        company = getattr(employee_obj, 'CompanyID', None) or getattr(employee_obj, 'company', None)
+    gates = get_company_gates(company)
+
     total_days = Decimal(_get_days_in_month(month, year))
 
     attendance = _get_attendance_summary(employee_obj, month, year)
@@ -286,6 +296,11 @@ def calculate_employee_salary(employee_obj, desig, month, year):
     paid_days = attendance['paid_days']
 
     proration = paid_days / working_days if working_days > 0 else Decimal('0')
+
+    # Overtime is a Shop & Establishments Act entitlement — with no
+    # registration on file, no overtime can be paid regardless of hours
+    # logged in attendance.
+    overtime_hours_gated = attendance['overtime_hours'] if gates['shop_act'] else Decimal('0')
 
     # Daily-wage designations pay per day worked directly; salaried
     # designations pay a prorated monthly basic + allowances.
@@ -304,7 +319,7 @@ def calculate_employee_salary(employee_obj, desig, month, year):
         cycle_earned = Decimal('0')
         other_earned = Decimal('0')
         basic_for_statutory = daily_rate * working_days  # notional monthly basic for PF ceiling logic
-        overtime_amt = _calculate_overtime(daily_rate * Decimal('30'), attendance['overtime_hours'])
+        overtime_amt = _calculate_overtime(daily_rate * Decimal('30'), overtime_hours_gated)
     else:
         basic = Decimal(str(desig.basicpay))
         basic_earned = _decimal_round(basic * proration)
@@ -322,7 +337,7 @@ def calculate_employee_salary(employee_obj, desig, month, year):
             (Decimal(str(desig.other1)) + Decimal(str(desig.other2))) * proration
         )
         basic_for_statutory = basic
-        overtime_amt = _calculate_overtime(basic, attendance['overtime_hours'])
+        overtime_amt = _calculate_overtime(basic, overtime_hours_gated)
 
     gross = (
         basic_earned + hra_earned + da_earned + conv_earned + medical_earned +
@@ -347,31 +362,16 @@ def calculate_employee_salary(employee_obj, desig, month, year):
     # applied if the company itself is registered under that act. Without
     # this, employee-level enrolment (UAN/ESIC number) alone would let
     # deductions happen even for a company with no EPFO/ESIC/Labour/TAN
-    # registration on file, which is not legally valid.
-    company_obj = getattr(employee_obj, 'CompanyID', None) or getattr(employee_obj, 'company', None)
-    company_epfo_registered = False
-    company_esic_registered = False
-    company_labour_registered = False
-    company_tan_registered = False
-    if company_obj is not None:
-        try:
-            from Sapp.app.company import company_statury
-            statury = company_statury.objects.filter(company=company_obj).first()
-            if statury:
-                company_epfo_registered = bool(statury.epfo)
-                company_esic_registered = bool(statury.esic)
-                company_labour_registered = bool(statury.labour)
-        except Exception:
-            pass
-        company_tan_registered = bool(getattr(company_obj, 'tan', ''))
+    # registration on file, which is not legally valid. `gates` was
+    # computed at the top of this function via statutory_gates.
 
     # Statutory deductions — PF/ESI applicability requires BOTH the company
     # being registered under the act AND the employee being enrolled
     # (UAN / ESIC number present on record); rates come from the
     # designation, not a fixed constant.
-    pf_applicable = company_epfo_registered and bool(getattr(employee_obj, 'uan_number', ''))
-    esi_applicable = company_esic_registered and bool(getattr(employee_obj, 'esic_number', ''))
-    lw_applicable = company_labour_registered
+    pf_applicable = gates['epf'] and bool(getattr(employee_obj, 'uan_number', ''))
+    esi_applicable = gates['esi'] and bool(getattr(employee_obj, 'esic_number', ''))
+    lw_applicable = gates['labour']
 
     pf_emp, pf_empr = _calculate_pf(
         basic_for_statutory, pf_applicable, desig.ed_epf_per, desig.er_epf_per
@@ -401,7 +401,7 @@ def calculate_employee_salary(employee_obj, desig, month, year):
     # (Tax Deduction Account Number) — no TAN means no TDS can be filed.
     it = (
         _decimal_round(Decimal(str(desig.ed_income_tax)) * proration)
-        if company_tan_registered else Decimal('0')
+        if gates['income_tax'] else Decimal('0')
     )
 
     total_deductions = pf_emp + esi_emp + lw_emp + pt + it
@@ -587,7 +587,7 @@ def process_salary_batch(request, batch_id):
 
                     try:
                         calc = calculate_employee_salary(
-                            emp, desig, batch.month, batch.year
+                            emp, desig, batch.month, batch.year, company=company_obj
                         )
 
                         salary_slip.objects.create(

@@ -44,6 +44,14 @@ class attendance(models.Model):
     ordinary_rate  = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     ot_rate        = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     ot_wages_paid  = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    # Absorbed from the old employee_leave model — fields with no
+    # equivalent already on attendance (leave balance itself is derived,
+    # see leave_balance property below; earned/sick/casual/comp already
+    # existed above).
+    leave_lapsed         = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    leave_encashed        = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    leave_encashment_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    leave_wages_paid       = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     created_by    = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='attendance_created')
     created_date  = models.DateTimeField(auto_now_add=True)
     updated_by    = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='attendance_updated')
@@ -64,6 +72,25 @@ class attendance(models.Model):
             self.ot_wages_paid = self.overtime_hours * self.ot_rate
         super().save(*args, **kwargs)
 
+    def leave_earned_total(self):
+        """Total leave earned this period across the three statutory
+        leave types (matches old employee_leave.leaves_earned)."""
+        return self.casual_leaves + self.earned_leaves + self.sick_leaves
+
+    def leave_balance(self):
+        """
+        Matches the old employee_leave.leave_balance computation
+        (leaves_earned - leave_availed), reading from equivalent
+        attendance fields. Gated: with no Shop Act registration on file,
+        no leave balance is available regardless of hours logged —
+        returns None (explicitly "not available"), not zero.
+        """
+        from Aapp.app.statutory_gates import get_company_gates
+        gates = get_company_gates(self.companyid)
+        if not gates['shop_act']:
+            return None
+        return self.leave_earned_total() - self.leave_encashed - self.leave_lapsed
+
 class MinimumWagesOvertimeRegister(models.Model):
     ot_register_id = models.AutoField(primary_key=True)
     attendance = models.ForeignKey(attendance, on_delete=models.CASCADE, related_name='ot_details')
@@ -72,6 +99,11 @@ class MinimumWagesOvertimeRegister(models.Model):
     ordinary_rate = models.DecimalField(max_digits=10, decimal_places=2)
     ot_rate = models.DecimalField(max_digits=10, decimal_places=2)
     ot_wages_paid = models.DecimalField(max_digits=10, decimal_places=2)
+    # Absorbed from the old shops_act.overtime_register (now removed) —
+    # that table duplicated this one (same Form IV data) but was keyed
+    # directly to employee instead of attendance; ot_reason was its one
+    # field with no home here, so it's added rather than lost.
+    ot_reason = models.CharField(max_length=255, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -83,10 +115,18 @@ class MinimumWagesOvertimeRegister(models.Model):
         return f"{self.attendance.emp_code} - {self.ot_date}"
 
     def save(self, *args, **kwargs):
-        if self.ordinary_rate and not self.ot_rate:
-            self.ot_rate = self.ordinary_rate * 2
-        if self.overtime_hours and self.ot_rate:
-            self.ot_wages_paid = self.overtime_hours * self.ot_rate
+        # Shop Act gate — overtime cannot be recorded/paid without
+        # registration on file for this attendance record's company.
+        from Aapp.app.statutory_gates import get_company_gates
+        gates = get_company_gates(self.attendance.companyid)
+        if not gates['shop_act']:
+            self.overtime_hours = 0
+            self.ot_wages_paid = 0
+        else:
+            if self.ordinary_rate and not self.ot_rate:
+                self.ot_rate = self.ordinary_rate * 2
+            if self.overtime_hours and self.ot_rate:
+                self.ot_wages_paid = self.overtime_hours * self.ot_rate
         super().save(*args, **kwargs)
 
 
@@ -106,7 +146,7 @@ class AttendanceForm(forms.ModelForm):
 class MinimumWagesOvertimeRegisterForm(forms.ModelForm):
     class Meta:
         model = MinimumWagesOvertimeRegister
-        fields = ['attendance', 'ot_date', 'overtime_hours', 'ordinary_rate', 'ot_rate', 'ot_wages_paid']
+        fields = ['attendance', 'ot_date', 'overtime_hours', 'ordinary_rate', 'ot_rate', 'ot_wages_paid', 'ot_reason']
         widgets = {
             'ot_date': forms.DateInput(attrs={'type': 'date'}),
         }
@@ -183,7 +223,7 @@ def add_attendance(request):
 
     return render(request, 'Aapp/attendance/add_attendance.html', {
         'employees': employees, 'branches': branches,
-        'months': MONTH_CHOICES, 'years': YEAR_CHOICES, 'company': company,
+        'months': MONTH_CHOICES, 'company': company,
     })
 
 
@@ -225,7 +265,7 @@ def update_attendance(request, attendance_id):
             messages.error(request, f"Error: {e}")
 
     return render(request, 'Aapp/attendance/update_attendance.html', {
-        'rec': rec, 'branches': branches, 'months': MONTH_CHOICES,'years': YEAR_CHOICES,
+        'rec': rec, 'branches': branches, 'months': MONTH_CHOICES,
     })
 
 
@@ -286,7 +326,7 @@ def bulk_attendance(request):
 
     return render(request, 'Aapp/attendance/bulk_attendance.html', {
         'employees': employees, 'branches': branches,
-        'months': MONTH_CHOICES, 'years': YEAR_CHOICES, 'company': company,
+        'months': MONTH_CHOICES, 'company': company,
     })
 
 

@@ -113,10 +113,10 @@ def capp_dashboard(request):
         ctx['total_employees'] = ctx['total_all_emp'] = 0
 
     try:
-        from Aapp.app.wages import wages_record
+        from Aapp.app.salary_processing import salary_slip
         today = date.today()
-        ctx['wages_this_month'] = wages_record.objects.filter(
-            company=company, salary_month=today.month, salary_year=today.year
+        ctx['wages_this_month'] = salary_slip.objects.filter(
+            company_id=company, processing_id__month=today.month, processing_id__year=today.year
         ).count()
     except Exception:
         ctx['wages_this_month'] = 0
@@ -214,20 +214,21 @@ def capp_attendance_list(request):
 
 @access_required('attendance')
 def capp_overtime_list(request):
-    from Aapp.app.shops_act import overtime_register
+    from Aapp.app.attandance import MinimumWagesOvertimeRegister
     company = request.owned_company
     month = int(request.GET.get('month', date.today().month))
     year  = int(request.GET.get('year',  date.today().year))
-    records = overtime_register.objects.filter(
-        company=company, salary_month=month, salary_year=year
-    ).select_related('employee')
+    records = MinimumWagesOvertimeRegister.objects.filter(
+        attendance__companyid=company, attendance__salary_month=month, attendance__salary_year=year
+    ).select_related('attendance', 'attendance__employee_id')
 
     return render(request, 'Capp/generic/list.html', {
-        'page_title': f'Overtime Register — {month}/{year}',
+        'page_title': f'Overtime Register (Form IV) — {month}/{year}',
         'company':    company,
         'columns':    ['Employee', 'OT Date', 'OT Hours', 'Reason', 'OT Wages'],
         'rows': [{
-            'cells': [r.employee.name, r.ot_date, r.ot_hours, r.ot_reason or '—', r.ot_wages],
+            'cells': [r.attendance.employee_id.name, r.ot_date, r.overtime_hours,
+                      r.ot_reason or '—', r.ot_wages_paid],
             'actions': [],
         } for r in records],
         'empty_message': 'No overtime records for this period.',
@@ -238,16 +239,16 @@ def capp_overtime_list(request):
 
 @access_required('wages')
 def capp_wages_list(request):
-    from Aapp.app.wages import wages_record
+    from Aapp.app.salary_processing import salary_slip
     company = request.owned_company
     month = int(request.GET.get('month', date.today().month))
     year  = int(request.GET.get('year',  date.today().year))
-    records = wages_record.objects.filter(
-        company=company, salary_month=month, salary_year=year
-    ).select_related('employee').order_by('employee__employeecode')
+    records = salary_slip.objects.filter(
+        company_id=company, processing_id__month=month, processing_id__year=year
+    ).select_related('employee_id').order_by('employee_id__employeecode')
 
-    total_gross = sum(float(r.gross_wages or 0) for r in records)
-    total_net   = sum(float(r.net_wages   or 0) for r in records)
+    total_gross = sum(float(r.gross_earnings or 0) for r in records)
+    total_net   = sum(float(r.net_pay or 0) for r in records)
 
     return render(request, 'Capp/wages/list.html', {
         'records':     records,
@@ -272,13 +273,13 @@ def capp_salary_slip_select(request):
 
 @access_required('wages')
 def capp_salary_slip_download(request, wages_id):
-    from Aapp.app.wages import wages_record
+    from Aapp.app.salary_processing import salary_slip
     from Aapp.app.salary_pdf import salary_slip_pdf
-    rec = get_object_or_404(wages_record, wages_id=wages_id, company=request.owned_company)
+    rec = get_object_or_404(salary_slip, id=wages_id, company_id=request.owned_company)
     if not request.owner_profile.can_download_pdf:
         raise Http404('PDF download not permitted.')
     pdf = salary_slip_pdf(rec)
-    fname = f'Slip_{rec.employee.employeecode}_{rec.salary_month}_{rec.salary_year}.pdf'
+    fname = f'Slip_{rec.employee_id.employeecode}_{rec.processing_id.month}_{rec.processing_id.year}.pdf'
     return HttpResponse(pdf, content_type='application/pdf',
                         headers={'Content-Disposition': f'attachment; filename="{fname}"'})
 

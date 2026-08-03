@@ -142,7 +142,7 @@ def alter_company(request, company_id):
         form = create_company_form_superadmin(instance=company)
         current_owner = CompanyOwnerProfile.objects.filter(company=company).select_related('user').first()
         eligible_users = User.objects.filter(
-            company_owner_profile__isnull=True,
+            owner_profile__isnull=True,
             is_superuser=False,
             profile__isnull=False,
             profile__role__in=['owner']

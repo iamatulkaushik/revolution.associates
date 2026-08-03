@@ -8,12 +8,16 @@
 <link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
 <link rel="prefetch" href="{% static 'fonts/Infinitude.ttf' %}" as="font" type="font/ttf" crossorigin>
 <link rel="prefetch" href="{% static 'fonts/Ubuntu-R.ttf' %}" as="font" type="font/ttf" crossorigin>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link rel="prefetch" href="{% static 'fonts/allerta.medium.ttf' %}" as="font" type="font/ttf" crossorigin>
 {% load static %}
 <style>
   @font-face{font-family:'Ubuntu';src:url('static/fonts/Ubuntu-R.ttf') format('truetype');font-display:swap}
+  @font-face {
+    font-family: 'Allerta';
+    src: url('static/fonts/allerta.medium.ttf') format('truetype'),
+        url('static/fonts/allerta.medium.otf') format('otf');
+    font-display: swap;
+  }
   :root{
     --bg-0:#080c17;
     --bg-1:#0d1426;
@@ -48,8 +52,8 @@
     overflow-x:hidden;
     -webkit-font-smoothing:antialiased;
   }
-  h1,h2,h3, .display{ font-family:'Sora', 'Inter', sans-serif; letter-spacing:-0.02em; }
-  .mono{ font-family:'JetBrains Mono', monospace; }
+  h1,h2,h3, .display{ font-family:'Allerta', 'Inter', sans-serif; letter-spacing:-0.02em; }
+  .mono{ font-family:'Ubuntu', monospace; }
   a{ color:inherit; text-decoration:none; }
   img,svg{ display:block; max-width:100%; }
   button{ font:inherit; }

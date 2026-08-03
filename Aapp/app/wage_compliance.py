@@ -2,8 +2,9 @@
 Minimum Wages Act, 1948 and Payment of Wages Act, 1936 — annual returns.
 
 Already covered elsewhere:
-    Aapp/app/wages.py       -> wages_fine (Form I), wages_deduction (Form II), wages_record (Form III/17)
-    Aapp/app/shops_act.py   -> overtime_register (Form IV — Overtime Register)
+    Aapp/app/wages.py              -> wages_fine (Form I), wages_deduction (Form II),
+                                       Wages Register / Form III/17 (read-only, from salary_slip)
+    Aapp/app/attandance.py         -> MinimumWagesOvertimeRegister (Form IV — Overtime Register)
 
 This file adds the two annual returns not yet covered:
     Minimum Wages Form V        -> MinimumWagesAnnualReturn   (due 1 Feb)
@@ -38,12 +39,7 @@ PAYMENT_MODE_CHOICES = [
     ('cheque', 'Cheque'),
     ('bank_transfer', 'Bank Transfer'),
 ]
-MONTH_CHOICES = [
-    (1,'January'),(2,'February'),(3,'March'),(4,'April'),
-    (5,'May'),(6,'June'),(7,'July'),(8,'August'),
-    (9,'September'),(10,'October'),(11,'November'),(12,'December'),
-]
-YEAR_CHOICES = [(y, y) for y in range(2026, 2032)]
+
 
 # ── Models ───────────────────────────────────────────────────────────────────
 
@@ -51,7 +47,7 @@ class MinimumWagesAnnualReturn(models.Model):
     """Form V (Rule 21(4A)) — due by 1 February of the following year."""
     return_id = models.AutoField(primary_key=True)
     company = models.ForeignKey(Company, on_delete=models.CASCADE, db_column='CompanyID')
-    year = models.PositiveSmallIntegerField(choices=YEAR_CHOICES)
+    year = models.PositiveSmallIntegerField()
 
     category_of_work = models.CharField(max_length=255, help_text='Category of scheduled employment (Form V)')
     total_employees_male = models.PositiveIntegerField(default=0)
@@ -85,7 +81,7 @@ class PaymentOfWagesAnnualReturn(models.Model):
     """Form IV (Rule 18) — due by 15 February of the following year."""
     return_id = models.AutoField(primary_key=True)
     company = models.ForeignKey(Company, on_delete=models.CASCADE, db_column='CompanyID')
-    year = models.PositiveSmallIntegerField(choices=YEAR_CHOICES)
+    year = models.PositiveSmallIntegerField()
 
     total_employed = models.PositiveIntegerField(default=0)
     total_wages_paid = models.DecimalField(max_digits=15, decimal_places=2, default=0)

@@ -34,8 +34,7 @@ ALLOWED_HOSTS = [
 ] + [h.strip() for h in os.environ.get('ALLOWED_HOSTS', '').split(',') if h.strip()]
 DEFAULT_HOST = 'www'
 ROOT_HOSTCONF = 'revolution.hosts'
-PARENT_HOST = os.environ.get('DJANGO_PARENT_HOST', 'reas.host')
-
+PARENT_HOST = os.environ.get('DJANGO_PARENT_HOST','localhost')
 # Application definition
 
 INSTALLED_APPS = [
@@ -49,7 +48,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'livereload',
 ]
 
 MIDDLEWARE = [

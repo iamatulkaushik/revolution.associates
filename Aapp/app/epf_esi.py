@@ -2,8 +2,9 @@
 EPF & MP Act, 1952 (EPFO) and ESI Act, 1948 (ESIC) — remaining statutory forms.
 
 Already covered elsewhere in the codebase:
-    Aapp/app/employee.py  -> uan_number, epf_memberID, esic_number fields on `employee`
-    Aapp/app/wages.py     -> epf_deduction, esi_deduction on `wages_record`
+    Aapp/app/employee.py           -> uan_number, epf_memberID, esic_number fields on `employee`
+    Aapp/app/salary_processing.py  -> pf_deduction, esi_deduction on `salary_slip`
+    Aapp/app/statutory_gates.py    -> company-level EPF/ESI registration gates
 
 This file adds:
     EPF Form 2          -> EpfNomination          (nominee declaration, due within 1 month of joining)

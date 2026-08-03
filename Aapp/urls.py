@@ -53,8 +53,11 @@ from Aapp.app.contract_labour import (
 )
 
 # Minimum Wages Act / Payment of Wages Act — wage registers
+# NOTE: Wages Register is now read-only, sourced from salary_slip;
+# generate_wages/update_wages/finalize_wages/delete_wages removed —
+# process a salary batch instead (see salary_processing urls below).
 from Aapp.app.wages import (
-    list_wages, generate_wages, update_wages, finalize_wages, delete_wages,
+    list_wages,
     list_fines, add_fine, delete_fine,
     list_deductions, add_deduction, delete_deduction,
 )
@@ -106,9 +109,11 @@ from Aapp.app.bonus import (
 )
 
 # Punjab Shops & Commercial Establishments Act (Haryana)
+# NOTE: overtime views removed here — use list_overtime_register /
+# create_overtime_register from Aapp.app.attandance instead (Form IV
+# overtime register now lives on MinimumWagesOvertimeRegister).
 from Aapp.app.shops_act import (
     list_establishments, add_establishment, update_establishment, delete_establishment,
-    list_overtime, add_overtime, delete_overtime,
 )
 
 # Punjab Labour Welfare Fund Act (Haryana)
@@ -144,7 +149,7 @@ app_name = 'Aapp'
 urlpatterns = [
     # ── Auth & Dashboard ─────────────────────────────────────────────────────
     path('', views.associate_base_home, name='home'),
-    path('login/', views.associate_login, name='login'),
+    path('login/', views.associate_login, name='associate_login'),
     path('logout/', views.logout, name='logout'),
     path('dashboard/', views.associate_dashboard, name='aapp_dashboard'),
     path('profile/', views.associate_profile, name='associate_profile'),
@@ -270,13 +275,10 @@ urlpatterns = [
     path('contract-labour/returns/alter/<int:return_id>/', alter_cl_return, name='alter_cl_return'),
 
     # ════════════════════════════════════════════════════════════════════════
-    # WAGES — Form III/17 (Wage Register), Form I (Fines), Form II (Deductions)
+    # WAGES — Form III/17 (Wage Register, read-only from salary_slip),
+    # Form I (Fines), Form II (Deductions)
     # ════════════════════════════════════════════════════════════════════════
     path('wages/', list_wages, name='list_wages'),
-    path('wages/generate/', generate_wages, name='generate_wages'),
-    path('wages/update/<int:wages_id>/', update_wages, name='update_wages'),
-    path('wages/finalize/<int:wages_id>/', finalize_wages, name='finalize_wages'),
-    path('wages/delete/<int:wages_id>/', delete_wages, name='delete_wages'),
 
     path('wages/fines/', list_fines, name='list_fines'),
     path('wages/fines/add/', add_fine, name='add_fine'),
@@ -399,10 +401,8 @@ urlpatterns = [
     path('shops-act/establishments/add/', add_establishment, name='add_establishment'),
     path('shops-act/establishments/update/<int:estab_id>/', update_establishment, name='update_establishment'),
     path('shops-act/establishments/delete/<int:estab_id>/', delete_establishment, name='delete_establishment'),
-
-    path('shops-act/overtime/', list_overtime, name='list_overtime'),
-    path('shops-act/overtime/add/', add_overtime, name='add_overtime'),
-    path('shops-act/overtime/delete/<int:ot_id>/', delete_overtime, name='delete_overtime'),
+    # Overtime register — see 'attendance/overtime-register/' below
+    # (Aapp.app.attandance.MinimumWagesOvertimeRegister)
 
     # ════════════════════════════════════════════════════════════════════════
     # PUNJAB LABOUR WELFARE FUND ACT 1965 (HARYANA)

@@ -10,6 +10,7 @@
 @font-face{font-family:'Infinitude';src:url('../fonts/Infinitude.ttf') format('truetype');font-display:swap}
 @font-face{font-family:'Ubuntu';src:url('../fonts/Ubuntu-R.ttf') format('truetype');font-display:swap}
 @font-face{font-family:'Saber';src:url('../fonts/Saber.ttf') format('truetype');font-display:swap}
+@font-face{font-family:'Allerta';src:url('../fonts/allerta.medium.ttf') format('truetype'), url('../fonts/allerta.medium.otf') format('otf');font-display:swap}
 
 /* ── Design Tokens ──────────────────────────────────────────────────────── */
 :root{
@@ -239,8 +240,8 @@ img{max-width:100%;display:block}
 
 /* ═══ FORMS ══════════════════════════════════════════════════════════════── */
 .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(80px,1fr));gap:var(--sp-5) var(--sp-6)}
-.form-group{display:flex;flex-direction:column;gap:var(--sp-1)}
-.form-group label{font-size:12px;font-weight:600;color:var(--c-muted);text-transform:uppercase;letter-spacing:.05em}
+.form-group{display:flex;flex-direction:row;gap:var(--sp-1);padding:2px;}
+.form-group label{font-size:12px;font-weight:600;color:var(--c-muted);text-transform:uppercase;letter-spacing:.05em;min-width:20%;}
 .form-group label .required{color:var(--c-danger);margin-left:2px}
 .form-group .hint{font-size:11px;color:var(--c-muted);margin-top:2px}
 .form-group .field-error{font-size:12px;color:var(--c-danger);margin-top:2px}

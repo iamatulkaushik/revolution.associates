@@ -6,7 +6,7 @@ PDF generators for Revolution Associates HRMS.
 All functions return bytes — pass directly to HttpResponse or email attachment.
 
 Functions:
-  salary_slip_pdf(wages_record_obj)         → individual pay slip
+  salary_slip_pdf(salary_slip_obj)          → individual pay slip
   salary_sheet_pdf(company, month, year)    → full monthly payroll register
   salary_abstract_pdf(company, month, year) → department-wise summary / abstract
   letterhead_pdf(company, content_items, doc_meta)   → generic letterhead doc
@@ -14,9 +14,13 @@ Functions:
 
 Drop-in usage in any view:
   from Aapp.app.salary_pdf import salary_slip_pdf
-  pdf_bytes = salary_slip_pdf(wages_record_obj)
+  pdf_bytes = salary_slip_pdf(salary_slip_obj)
   return HttpResponse(pdf_bytes, content_type='application/pdf',
                       headers={'Content-Disposition': 'attachment; filename="slip.pdf"'})
+
+NOTE: Previously sourced from the now-deleted wages_record model — all
+functions here read from Aapp.app.salary_processing.salary_slip instead,
+the single payroll source of truth.
 """
 
 from datetime import date
@@ -41,12 +45,15 @@ AVAIL = PAGE_W - LM - RM
 # ── helpers ───────────────────────────────────────────────────────────────────
 
 def _wages_qs(company, month, year):
-    """Import here to avoid circular imports — wages_record is in Aapp.app.wages."""
-    from Aapp.app.wages import wages_record
-    return (wages_record.objects
-            .filter(company=company, salary_month=month, salary_year=year)
-            .select_related('employee')
-            .order_by('employee__employeecode'))
+    """
+    Now sourced from salary_processing.salary_slip (wages_record was
+    deleted — Wages Register is a read-only view over payroll data).
+    """
+    from Aapp.app.salary_processing import salary_slip
+    return (salary_slip.objects
+            .filter(company_id=company, processing_id__month=month, processing_id__year=year)
+            .select_related('employee_id', 'processing_id')
+            .order_by('employee_id__employeecode'))
 
 
 MONTH_NAMES = {
@@ -59,12 +66,12 @@ MONTH_NAMES = {
 # 1. INDIVIDUAL SALARY SLIP
 # ═══════════════════════════════════════════════════════════════════════════════
 
-def salary_slip_pdf(wages_record_obj):
+def salary_slip_pdf(salary_slip_obj):
     """
     Generate a single employee salary slip with company letterhead.
 
     Args:
-        wages_record_obj: wages_record model instance
+        salary_slip_obj: Aapp.app.salary_processing.salary_slip instance
 
     Returns: bytes (PDF)
 
@@ -72,20 +79,36 @@ def salary_slip_pdf(wages_record_obj):
         from Aapp.app.salary_pdf import salary_slip_pdf
         pdf = salary_slip_pdf(rec)
         response = HttpResponse(pdf, content_type='application/pdf')
-        response['Content-Disposition'] = f'attachment; filename="slip_{rec.employee.employeecode}.pdf"'
+        response['Content-Disposition'] = f'attachment; filename="slip_{rec.employee_id.employeecode}.pdf"'
         return response
     """
-    r   = wages_record_obj
-    emp = r.employee
-    co  = r.company
+    r   = salary_slip_obj
+    emp = r.employee_id
+    co  = r.company_id
+    month = r.processing_id.month
+    year = r.processing_id.year
     s   = doc_styles()
-    month_name = MONTH_NAMES.get(r.salary_month, str(r.salary_month))
+    month_name = MONTH_NAMES.get(month, str(month))
+
+    # other_earnings / other_deductions are aggregates on salary_slip —
+    # wages_record had single fields for these, salary_slip breaks them
+    # into individual allowance/deduction line items. Sum them back into
+    # the same two summary lines this PDF has always shown, so the layout
+    # (and every downstream consumer expecting these two numbers) is
+    # unchanged.
+    other_earnings = (
+        r.conveyance_earned + r.medical_allowance_earned + r.lunch_allowance_earned +
+        r.cca_earned + r.special_allowance_earned + r.travel_allowance_earned +
+        r.washing_allowance_earned + r.cycle_allowance_earned + r.other_allowance_earned +
+        r.bonus_amount
+    )
+    other_deductions = r.loan_deduction + r.advance_deduction + r.late_fine + r.other_deduction
 
     story = []
 
     # ── Employee info header ──────────────────────────────────────────────────
     story.append(Paragraph('SALARY SLIP', s['Title']))
-    story.append(Paragraph(f'{month_name} {r.salary_year}', s['Subtitle']))
+    story.append(Paragraph(f'{month_name} {year}', s['Subtitle']))
     story.append(Spacer(1, 4 * mm))
 
     emp_info = [
@@ -137,11 +160,11 @@ def salary_slip_pdf(wages_record_obj):
     earn_data = [
         [Paragraph('EARNINGS', s['TableHeader']),
          Paragraph('AMOUNT (₹)', s['TableHeader'])],
-        ['Basic Wages',        INR(r.basic_wages)],
-        ['Dearness Allowance', INR(r.da)],
-        ['HRA',                INR(r.hra)],
-        ['Overtime Wages',     INR(r.overtime_wages)],
-        ['Other Earnings',     INR(r.other_earnings)],
+        ['Basic Wages',        INR(r.basic_earned)],
+        ['Dearness Allowance', INR(r.da_earned)],
+        ['HRA',                INR(r.hra_earned)],
+        ['Overtime Wages',     INR(r.overtime_amount)],
+        ['Other Earnings',     INR(other_earnings)],
     ]
     earn_ts = table_style(header_bg=STEEL)
     earn_ts.add('ALIGN', (1, 1), (1, -1), 'RIGHT')
@@ -152,12 +175,12 @@ def salary_slip_pdf(wages_record_obj):
     ded_data = [
         [Paragraph('DEDUCTIONS', s['TableHeader']),
          Paragraph('AMOUNT (₹)', s['TableHeader'])],
-        ['EPF',               INR(r.epf_deduction)],
+        ['EPF',               INR(r.pf_deduction)],
         ['ESI',               INR(r.esi_deduction)],
         ['Professional Tax',  INR(r.professional_tax)],
         ['Income Tax',        INR(r.income_tax)],
-        ['Labour Welfare',    INR(r.labour_welfare)],
-        ['Other Deductions',  INR(r.other_deductions)],
+        ['Labour Welfare',    INR(r.labour_welfare_deduction)],
+        ['Other Deductions',  INR(other_deductions)],
     ]
     ded_ts = table_style(header_bg=NAVY)
     ded_ts.add('ALIGN', (1, 1), (1, -1), 'RIGHT')
@@ -175,11 +198,11 @@ def salary_slip_pdf(wages_record_obj):
     # ── Net Wages summary bar ─────────────────────────────────────────────────
     net_data = [
         [Paragraph('<b>GROSS WAGES</b>', s['TableHeader']),
-         Paragraph(INR(r.gross_wages), s['TableHeader']),
+         Paragraph(INR(r.gross_earnings), s['TableHeader']),
          Paragraph('<b>TOTAL DEDUCTIONS</b>', s['TableHeader']),
          Paragraph(INR(r.total_deductions), s['TableHeader']),
          Paragraph('<b>NET WAGES</b>', s['TableHeader']),
-         Paragraph(INR(r.net_wages), s['TableHeader'])],
+         Paragraph(INR(r.net_pay), s['TableHeader'])],
     ]
     net_ts = TableStyle([
         ('BACKGROUND',    (0, 0), (-1, -1), NAVY),
@@ -198,7 +221,7 @@ def salary_slip_pdf(wages_record_obj):
 
     # Amount in words
     story.append(Paragraph(
-        f'<b>Net Amount in Words:</b> {amount_in_words(r.net_wages)}',
+        f'<b>Net Amount in Words:</b> {amount_in_words(r.net_pay)}',
         s['Small'],
     ))
     story.append(Spacer(1, 8 * mm))
@@ -225,9 +248,9 @@ def salary_slip_pdf(wages_record_obj):
     ))
 
     doc_meta = {
-        'title': f'Salary Slip — {month_name} {r.salary_year}',
+        'title': f'Salary Slip — {month_name} {year}',
         'doc_date': date.today(),
-        'ref': f'EMP/{emp.employeecode}/{r.salary_month}/{r.salary_year}',
+        'ref': f'EMP/{emp.employeecode}/{month}/{year}',
     }
     return build_pdf(story, company=co, doc_meta=doc_meta)
 
@@ -281,50 +304,72 @@ def salary_sheet_pdf(company, month, year):
     ]
     col_w = [c * mm for c in col_w]
 
-    # Totals accumulators
-    totals = {k: 0 for k in ['working_days', 'basic_wages', 'da', 'hra',
-                               'overtime_wages', 'other_earnings', 'gross_wages',
-                               'epf_deduction', 'esi_deduction', 'professional_tax',
-                               'other_deductions', 'total_deductions', 'net_wages']}
+    # Totals accumulators — field names match salary_slip, not the old
+    # wages_record; 'other_earnings'/'other_deductions' are computed
+    # per-row below (salary_slip breaks these into several line items).
+    totals = {k: 0 for k in ['working_days', 'basic_earned', 'da_earned', 'hra_earned',
+                               'overtime_amount', 'other_earnings', 'gross_earnings',
+                               'pf_deduction', 'esi_deduction', 'professional_tax',
+                               'other_deductions', 'total_deductions', 'net_pay']}
 
     rows = [headers]
     for i, r in enumerate(qs, 1):
-        for k in totals:
-            totals[k] += float(getattr(r, k, 0) or 0)
+        other_earnings = (
+            r.conveyance_earned + r.medical_allowance_earned + r.lunch_allowance_earned +
+            r.cca_earned + r.special_allowance_earned + r.travel_allowance_earned +
+            r.washing_allowance_earned + r.cycle_allowance_earned + r.other_allowance_earned +
+            r.bonus_amount
+        )
+        other_deductions = r.loan_deduction + r.advance_deduction + r.late_fine + r.other_deduction
+
+        totals['working_days'] += float(r.working_days or 0)
+        totals['basic_earned'] += float(r.basic_earned or 0)
+        totals['da_earned'] += float(r.da_earned or 0)
+        totals['hra_earned'] += float(r.hra_earned or 0)
+        totals['overtime_amount'] += float(r.overtime_amount or 0)
+        totals['other_earnings'] += float(other_earnings or 0)
+        totals['gross_earnings'] += float(r.gross_earnings or 0)
+        totals['pf_deduction'] += float(r.pf_deduction or 0)
+        totals['esi_deduction'] += float(r.esi_deduction or 0)
+        totals['professional_tax'] += float(r.professional_tax or 0)
+        totals['other_deductions'] += float(other_deductions or 0)
+        totals['total_deductions'] += float(r.total_deductions or 0)
+        totals['net_pay'] += float(r.net_pay or 0)
+
         rows.append([
             str(i),
-            r.employee.employeecode,
-            r.employee.name[:20],
-            str(getattr(r, 'working_days', '—') or '—'),
-            INR(r.basic_wages),
-            INR(r.da),
-            INR(r.hra),
-            INR(r.overtime_wages),
-            INR(r.other_earnings),
-            INR(r.gross_wages),
-            INR(r.epf_deduction),
+            r.employee_id.employeecode,
+            r.employee_id.name[:20],
+            str(r.working_days or '—'),
+            INR(r.basic_earned),
+            INR(r.da_earned),
+            INR(r.hra_earned),
+            INR(r.overtime_amount),
+            INR(other_earnings),
+            INR(r.gross_earnings),
+            INR(r.pf_deduction),
             INR(r.esi_deduction),
             INR(r.professional_tax),
-            INR(r.other_deductions),
+            INR(other_deductions),
             INR(r.total_deductions),
-            INR(r.net_wages),
+            INR(r.net_pay),
         ])
 
     # Totals row
     rows.append([
         'TOTAL', '', '', str(int(totals['working_days'])),
-        INR(totals['basic_wages']),
-        INR(totals['da']),
-        INR(totals['hra']),
-        INR(totals['overtime_wages']),
+        INR(totals['basic_earned']),
+        INR(totals['da_earned']),
+        INR(totals['hra_earned']),
+        INR(totals['overtime_amount']),
         INR(totals['other_earnings']),
-        INR(totals['gross_wages']),
-        INR(totals['epf_deduction']),
+        INR(totals['gross_earnings']),
+        INR(totals['pf_deduction']),
         INR(totals['esi_deduction']),
         INR(totals['professional_tax']),
         INR(totals['other_deductions']),
         INR(totals['total_deductions']),
-        INR(totals['net_wages']),
+        INR(totals['net_pay']),
     ])
 
     ts = table_style(header_bg=NAVY)
@@ -342,9 +387,9 @@ def salary_sheet_pdf(company, month, year):
     # Summary
     story.append(Paragraph(
         f'Total Employees: {len(qs)} · '
-        f'Total Gross: {INR(totals["gross_wages"])} · '
+        f'Total Gross: {INR(totals["gross_earnings"])} · '
         f'Total Deductions: {INR(totals["total_deductions"])} · '
-        f'Total Net: {INR(totals["net_wages"])}',
+        f'Total Net: {INR(totals["net_pay"])}',
         s['Small'],
     ))
     story.append(Spacer(1, 8 * mm))
@@ -392,19 +437,20 @@ def salary_abstract_pdf(company, month, year):
         'pt': 0, 'lwf': 0, 'other_ded': 0, 'total_ded': 0, 'net': 0,
     })
     for r in qs:
-        dept = (getattr(r.employee, 'department_name', None) or
-                getattr(getattr(r.employee, 'department', None), 'department_name', None) or
+        dept = (getattr(r.employee_id, 'department_name', None) or
+                getattr(getattr(r.employee_id, 'department', None), 'department_name', None) or
                 'Unassigned')
+        other_deductions = r.loan_deduction + r.advance_deduction + r.late_fine + r.other_deduction
         d = dept_data[dept]
         d['count'] += 1
-        d['gross']     += float(r.gross_wages or 0)
-        d['epf']       += float(r.epf_deduction or 0)
+        d['gross']     += float(r.gross_earnings or 0)
+        d['epf']       += float(r.pf_deduction or 0)
         d['esi']       += float(r.esi_deduction or 0)
         d['pt']        += float(r.professional_tax or 0)
-        d['lwf']       += float(r.labour_welfare or 0)
-        d['other_ded'] += float(r.other_deductions or 0)
+        d['lwf']       += float(r.labour_welfare_deduction or 0)
+        d['other_ded'] += float(other_deductions or 0)
         d['total_ded'] += float(r.total_deductions or 0)
-        d['net']       += float(r.net_wages or 0)
+        d['net']       += float(r.net_pay or 0)
 
     story = []
     story.append(Paragraph('SALARY ABSTRACT', s['Title']))

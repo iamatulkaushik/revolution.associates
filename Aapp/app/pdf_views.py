@@ -56,15 +56,17 @@ def _pdf_response(pdf_bytes, filename):
 def download_salary_slip(request, wages_id):
     """
     GET /wages/<wages_id>/slip.pdf/
-    Downloads salary slip PDF for one wages_record.
+    Downloads salary slip PDF for one salary_slip record (param name
+    'wages_id' kept for URL/template compatibility — it's a salary_slip
+    pk now, not a wages_record pk).
     Company-scoped — user can only access records for their selected company.
     """
-    from Aapp.app.wages import wages_record
+    from Aapp.app.salary_processing import salary_slip
     company = _company(request)
     if not company:
         raise Http404('No company selected.')
 
-    rec = get_object_or_404(wages_record, wages_id=wages_id, company=company)
+    rec = get_object_or_404(salary_slip, id=wages_id, company_id=company)
 
     try:
         pdf = salary_slip_pdf(rec)
@@ -72,7 +74,7 @@ def download_salary_slip(request, wages_id):
         logger.exception('salary_slip_pdf failed for wages_id=%s: %s', wages_id, e)
         raise Http404('Could not generate salary slip.')
 
-    fname = f'Salary_Slip_{rec.employee.employeecode}_{rec.salary_month}_{rec.salary_year}.pdf'
+    fname = f'Salary_Slip_{rec.employee_id.employeecode}_{rec.processing_id.month}_{rec.processing_id.year}.pdf'
     return _pdf_response(pdf, fname)
 
 
@@ -339,7 +341,6 @@ def download_all_slips(request, month, year):
     Generates one multi-page PDF with individual salary slips for all employees.
     Useful for printing and distributing in bulk.
     """
-    from Aapp.app.wages import wages_record
     from reportlab.platypus import PageBreak
     from Aapp.app.salary_pdf import salary_slip_pdf
     from Aapp.app.pdf_engine import build_pdf, doc_styles, INR
@@ -366,7 +367,7 @@ def download_all_slips(request, month, year):
             for page in reader.pages:
                 writer.add_page(page)
         except Exception as e:
-            logger.warning('Skipping slip for %s: %s', rec.employee.employeecode, e)
+            logger.warning('Skipping slip for %s: %s', rec.employee_id.employeecode, e)
 
     buf = io.BytesIO()
     writer.write(buf)
