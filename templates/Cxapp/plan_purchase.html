@@ -1,0 +1,61 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Choose a Plan · {{ cx_company.company_name }}</title>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--navy:#0f2027;--green:#2a9d8f;--gold:#e9c46a;--cream:#f0f4f8}
+    body{font-family:'Ubuntu',system-ui,sans-serif;background:var(--cream);color:var(--navy)}
+    .topbar{background:var(--navy);color:#fff;padding:16px 32px;display:flex;justify-content:space-between}
+    .topbar a{color:#fff;text-decoration:none;font-size:13px;opacity:.8}
+    .wrap{max-width:820px;margin:0 auto;padding:40px 24px}
+    .notice{background:#fdecea;border-left:4px solid #e63946;border-radius:8px;padding:16px 20px;
+      margin-bottom:28px;font-size:14px;color:#7d2027}
+    .notice.ok{background:#eafaf5;border-left-color:var(--green);color:#0f2027}
+    h1{font-family:'Infinitude','Ubuntu',sans-serif;font-size:28px;margin-bottom:8px}
+    .sub{font-size:13.5px;color:#6b7c93;margin-bottom:28px}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px}
+    .plan-card{background:#fff;border-radius:12px;padding:24px;box-shadow:0 4px 20px rgba(15,32,39,.06);
+      display:flex;flex-direction:column}
+    .plan-card h3{font-size:16px;margin-bottom:6px}
+    .plan-card .days{font-size:13px;color:#6b7c93;margin-bottom:16px}
+    .plan-card button{margin-top:auto;padding:11px;background:linear-gradient(135deg,#0f2027,#2a9d8f);
+      color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;width:100%}
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <strong>{{ cx_company.company_name }}</strong>
+    <a href="{% url 'cxapp_logout' %}">Logout</a>
+  </div>
+  <div class="wrap">
+    {% if plan and plan.is_valid %}
+      <div class="notice ok">Your {{ plan.get_plan_display }} plan is active — {{ plan.days_remaining }} day(s) remaining.</div>
+    {% else %}
+      <div class="notice">Your trial has ended. Choose a plan below to regain access to the rest of the portal.</div>
+    {% endif %}
+
+    <h1>Choose your plan</h1>
+    <p class="sub">Company profile stays visible; everything else unlocks once you pick a plan.</p>
+
+    {% if messages %}
+      {% for message in messages %}<div class="notice">{{ message }}</div>{% endfor %}
+    {% endif %}
+
+    <form method="post">
+      {% csrf_token %}
+      <div class="grid">
+        {% for code, label, days in plans %}
+        <div class="plan-card">
+          <h3>{{ label }}</h3>
+          <p class="days">{{ days }} days</p>
+          <button type="submit" name="plan" value="{{ code }}">Choose {{ label }}</button>
+        </div>
+        {% endfor %}
+      </div>
+    </form>
+  </div>
+</body>
+</html>

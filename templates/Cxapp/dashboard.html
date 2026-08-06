@@ -1,0 +1,52 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard · {{ cx_company.company_name }}</title>
+  <link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--navy:#0f2027;--green:#2a9d8f;--cream:#f0f4f8}
+    body{font-family:'Ubuntu',system-ui,sans-serif;background:var(--cream);color:var(--navy)}
+    .topbar{background:var(--navy);color:#fff;padding:16px 32px;display:flex;justify-content:space-between;align-items:center}
+    .topbar a{color:#fff;text-decoration:none;font-size:13px;opacity:.8}
+    .wrap{max-width:960px;margin:0 auto;padding:32px 24px}
+    h1{font-size:24px;margin-bottom:4px}
+    .sub{font-size:13px;color:#6b7c93;margin-bottom:24px}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
+    .card{background:#fff;border-radius:12px;padding:20px;box-shadow:0 4px 20px rgba(15,32,39,.06)}
+    .card h3{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:#6b7c93;margin-bottom:8px}
+    .card .val{font-size:26px;font-weight:700;color:var(--green)}
+    .card a{display:inline-block;margin-top:12px;font-size:13px;color:var(--green);text-decoration:none;font-weight:600}
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <strong>{{ cx_company.company_name }}</strong>
+    <a href="{% url 'cxapp_logout' %}">Logout</a>
+  </div>
+  <div class="wrap">
+    <h1>Welcome{% if cx_is_owner %}, Owner{% endif %}</h1>
+    <p class="sub">{{ cx_company.full_address }}</p>
+    <div class="grid">
+      <div class="card">
+        <h3>Sub Users</h3>
+        <div class="val">{{ sub_user_count }} / {{ sub_user_max }}</div>
+        {% if cx_is_owner %}<a href="{% url 'cxapp_sub_user_list' %}">Manage sub-users →</a>{% endif %}
+      </div>
+      <div class="card">
+        <h3>Company Profile</h3>
+        <div class="val">View</div>
+        <a href="{% url 'cxapp_company_profile' %}">Edit profile →</a>
+      </div>
+      <div class="card">
+        <h3>Designations</h3>
+        <div class="val">Wage Code</div>
+        <a href="{% url 'cxapp_designation_list' %}">Manage designations →</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

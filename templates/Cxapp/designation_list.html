@@ -1,0 +1,58 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><title>Designations · {{ request.cx_company.company_name }}</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--navy:#0f2027;--green:#2a9d8f;--cream:#f0f4f8}
+body{font-family:'Ubuntu',system-ui,sans-serif;background:var(--cream);color:var(--navy)}
+.topbar{background:var(--navy);color:#fff;padding:16px 32px;display:flex;justify-content:space-between}
+.topbar a{color:#fff;text-decoration:none;font-size:13px;opacity:.8}
+.wrap{max-width:860px;margin:0 auto;padding:32px 24px}
+.head{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.btn{padding:10px 18px;background:linear-gradient(135deg,#0f2027,#2a9d8f);color:#fff;border:none;
+  border-radius:8px;font-weight:600;text-decoration:none;font-size:13px}
+table{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;overflow:hidden;
+  box-shadow:0 4px 20px rgba(15,32,39,.06)}
+th,td{text-align:left;padding:12px 16px;font-size:13.5px;border-bottom:1px solid #eef2f6}
+th{background:var(--cream);text-transform:uppercase;font-size:11px;color:#6b7c93}
+a.link{color:var(--green);text-decoration:none;font-size:13px;font-weight:600;margin-right:12px}
+.tag{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:600}
+.tag-ok{background:rgba(42,157,143,.1);color:var(--green)}
+.tag-bad{background:#fdecea;color:#e63946}
+</style>
+</head>
+<body>
+<div class="topbar"><strong>{{ request.cx_company.company_name }}</strong>
+  <a href="{% url 'cxapp_dashboard' %}">← Dashboard</a></div>
+<div class="wrap">
+  <div class="head">
+    <h1>Designations</h1>
+    {% if cx_is_owner %}<a href="{% url 'cxapp_designation_create' %}" class="btn">+ New Designation</a>{% endif %}
+  </div>
+  <table>
+    <tr><th>Name</th><th>Basic</th><th>DA</th><th>Wage Code</th><th></th></tr>
+    {% for d in designations %}
+    <tr>
+      <td>{{ d.designation_name }}{% if d.is_dailywage %} <span class="tag tag-ok">Daily-wage</span>{% endif %}</td>
+      <td>₹{{ d.basic_pay }}</td>
+      <td>₹{{ d.da }}</td>
+      <td>
+        {% with c=d.wage_code_compliance %}
+          {% if c.compliant %}<span class="tag tag-ok">Compliant</span>
+          {% else %}<span class="tag tag-bad">Non-Compliant</span>{% endif %}
+        {% endwith %}
+      </td>
+      <td>
+        <a href="{% url 'cxapp_designation_components' d.id %}" class="link">Components</a>
+        {% if cx_is_owner %}<a href="{% url 'cxapp_designation_edit' d.id %}" class="link">Edit</a>{% endif %}
+      </td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="5">No designations yet.</td></tr>
+    {% endfor %}
+  </table>
+</div>
+</body>
+</html>

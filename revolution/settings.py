@@ -26,11 +26,16 @@ if _env_file.exists():
 
 
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-fallback-dev-key-replace-in-production')
+FIELD_ENCRYPTION_KEY = os.environ.get('FIELD_ENCRYPTION_KEY', 'xR9gxHjMRuaYcZBisFbIYKaVrVc3dYpXYJsmV77oCPs')
+FIELD_ENCRYPTION_ALGORITHM = 'xchacha20'  # or 'aes-gcm'
+# django-cryptography field-level encryption key (Aadhaar, PAN, etc.)
+# Must be set in production; falls back to SECRET_KEY only for local dev.
+CRYPTOGRAPHY_KEY = os.environ.get('CRYPTOGRAPHY_KEY', SECRET_KEY)
 DEBUG = os.environ.get('DJANGO_DEBUG', 'True') == 'True'
 ALLOWED_HOSTS = [
-    'localhost', '127.0.0.1', 'aapp.localhost', 'capp.localhost', 'sapp.localhost',
+    'localhost', '127.0.0.1', 'aapp.localhost', 'capp.localhost', 'sapp.localhost', 'cxapp.localhost',
     'www.localhost', 'admin.localhost',
-    'reas.host', 'www.reas.host', 'aapp.reas.host', 'sapp.reas.host', 'capp.reas.host',
+    'reas.host', 'www.reas.host', 'aapp.reas.host', 'sapp.reas.host', 'capp.reas.host', 'cxapp.reas.host',
 ] + [h.strip() for h in os.environ.get('ALLOWED_HOSTS', '').split(',') if h.strip()]
 DEFAULT_HOST = 'www'
 ROOT_HOSTCONF = 'revolution.hosts'
@@ -39,9 +44,11 @@ PARENT_HOST = os.environ.get('DJANGO_PARENT_HOST','localhost')
 
 INSTALLED_APPS = [
     'django_hosts',
+    'django_cryptography',
     'Sapp',
     'Aapp',
     'Capp',
+    'Cxapp',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -60,6 +67,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'Aapp.middleware.CompanyMiddleware',
     'Capp.middleware.CompanyOwnerMiddleware',
+    'Cxapp.middleware.CxCompanyMiddleware',
+    'Cxapp.middleware.CxLicenseMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django_hosts.middleware.HostsResponseMiddleware',
@@ -84,6 +93,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'Aapp.context_processors.company_context',
                 'Capp.context_processors.owner_context',
+                'Cxapp.context_processors.cx_context',
             ],
         },
     },
