@@ -28,9 +28,18 @@ class CxSignupForm(forms.Form):
     mobile          = forms.CharField(max_length=10, min_length=10)
 
     state_id        = forms.ModelChoiceField(queryset=State.objects.all(), label='State')
-    district_id     = forms.ModelChoiceField(queryset=District.objects.all(), label='District')
+    district_id     = forms.ModelChoiceField(queryset=District.objects.none(), label='District')
     address1        = forms.CharField(max_length=155, required=False)
     pin             = forms.CharField(max_length=6, required=False)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Scope district choices to whatever state was posted/selected,
+        # same reasoning as CxEmployeeAddressForm — server-side guard
+        # against a stale full district list round-tripping as valid.
+        state_id = self.data.get(self.add_prefix('state_id')) if self.is_bound else None
+        if state_id:
+            self.fields['district_id'].queryset = District.objects.filter(state_id=state_id).order_by('name')
 
     def clean_username(self):
         username = self.cleaned_data['username']

@@ -1,14 +1,8 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8"><title>{% if is_new %}New Designation{% else %}Edit Designation{% endif %}</title>
+{% extends 'Cxapp/_base.html' %}
+{% block title %}{% if is_new %}New Designation{% else %}Edit Designation{% endif %}{% endblock %}
+{% block page_title %}{% if is_new %}New Designation{% else %}Edit Designation{% endif %}{% endblock %}
+{% block content %}
 <style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{--navy:#0f2027;--green:#2a9d8f;--cream:#f0f4f8;--gold:#e9c46a}
-body{font-family:'Ubuntu',system-ui,sans-serif;background:var(--cream);color:var(--navy)}
-.topbar{background:var(--navy);color:#fff;padding:16px 32px;display:flex;justify-content:space-between}
-.topbar a{color:#fff;text-decoration:none;font-size:13px;opacity:.8}
 .wrap{max-width:520px;margin:0 auto;padding:32px 24px}
 .card{background:#fff;border-radius:12px;padding:28px;box-shadow:0 4px 20px rgba(15,32,39,.06)}
 .note{font-size:12.5px;color:#a67c00;background:#fff8e1;border-left:4px solid var(--gold);
@@ -20,12 +14,7 @@ body{font-family:'Ubuntu',system-ui,sans-serif;background:var(--cream);color:var
   border-radius:8px;font-weight:600;cursor:pointer}
 .err{color:#e63946;font-size:11.5px;margin-top:2px}
 </style>
-</head>
-<body>
-<div class="topbar"><strong>{% if is_new %}New Designation{% else %}{{ designation.designation_name }}{% endif %}</strong>
-  <a href="{% url 'cxapp_designation_list' %}">← Back</a></div>
-<div class="wrap">
-  <div class="note">Only Basic Pay and DA are fixed here — they anchor the Wage Code 50% floor. HRA and all other allowances are added as dynamic components on the next screen.</div>
+<div class="note">Only Basic Pay and DA are fixed here — they anchor the Wage Code 50% floor. HRA and all other allowances are added as dynamic components on the next screen.</div>
   <div class="card">
     <form method="post">
       {% csrf_token %}
@@ -38,6 +27,4 @@ body{font-family:'Ubuntu',system-ui,sans-serif;background:var(--cream);color:var
       <button type="submit" class="btn">{% if is_new %}Create & Add Components{% else %}Save Changes{% endif %}</button>
     </form>
   </div>
-</div>
-</body>
-</html>
+{% endblock %}

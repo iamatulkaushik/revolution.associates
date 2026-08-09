@@ -26,11 +26,11 @@ if _env_file.exists():
 
 
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-fallback-dev-key-replace-in-production')
+
+# secure_crypto.py field-level encryption key (Aadhaar, PAN, bank details, etc.)
+# Must be set in production via env var; fallback is dev-only.
 FIELD_ENCRYPTION_KEY = os.environ.get('FIELD_ENCRYPTION_KEY', 'xR9gxHjMRuaYcZBisFbIYKaVrVc3dYpXYJsmV77oCPs')
 FIELD_ENCRYPTION_ALGORITHM = 'xchacha20'  # or 'aes-gcm'
-# django-cryptography field-level encryption key (Aadhaar, PAN, etc.)
-# Must be set in production; falls back to SECRET_KEY only for local dev.
-CRYPTOGRAPHY_KEY = os.environ.get('CRYPTOGRAPHY_KEY', SECRET_KEY)
 DEBUG = os.environ.get('DJANGO_DEBUG', 'True') == 'True'
 ALLOWED_HOSTS = [
     'localhost', '127.0.0.1', 'aapp.localhost', 'capp.localhost', 'sapp.localhost', 'cxapp.localhost',
@@ -44,7 +44,6 @@ PARENT_HOST = os.environ.get('DJANGO_PARENT_HOST','localhost')
 
 INSTALLED_APPS = [
     'django_hosts',
-    'django_cryptography',
     'Sapp',
     'Aapp',
     'Capp',

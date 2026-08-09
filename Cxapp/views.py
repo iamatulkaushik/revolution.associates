@@ -21,6 +21,7 @@ from django.shortcuts import render, redirect
 from django.views.decorators.debug import sensitive_post_parameters
 
 from Sapp.app.company import Company
+from Sapp.app.state_district import District
 from Cxapp.models import CxOwnerProfile, LOCKED_COMPANY_FIELDS, MAX_SUB_USERS
 from Cxapp.forms import CxSignupForm
 from Cxapp.app.license import CxPlan
@@ -166,3 +167,20 @@ def cxapp_company_profile(request):
         'company': company,
         'locked_fields': LOCKED_COMPANY_FIELDS,
     })
+
+
+# ── State/District cascading filter ───────────────────────────────────────────
+# Shared JSON endpoint used by every form with a state+district pair
+# (signup, company profile, employee address). No @cx_login_required —
+# this only returns public reference data (district names), and the
+# signup form needs it before an owner profile/session exists.
+
+def cxapp_districts_for_state(request):
+    from django.http import JsonResponse
+
+    state_id = request.GET.get('state_id')
+    if not state_id:
+        return JsonResponse({'districts': []})
+
+    districts = District.objects.filter(state_id=state_id).order_by('name').values('Districtid', 'name')
+    return JsonResponse({'districts': list(districts)})

@@ -1,0 +1,66 @@
+{% comment %}
+Cxapp/_sidebar.html
+=====================
+Shared sidebar navigation, included by every authenticated Cxapp page
+via {% include 'Cxapp/_sidebar.html' %}. Item visibility is driven by
+context-processor booleans (cx_is_owner, cx_can_employees, cx_can_wages,
+etc.) set in Cxapp/context_processors.py from the sub-user's role
+permissions — owner sees everything, sub-users see only what their
+role grants.
+
+Company Profile and Plan Purchase are ALWAYS shown regardless of role
+or plan status, since Cxapp/middleware.py's ALWAYS_ALLOWED_NAMES keeps
+those two reachable even after trial/plan expiry — hiding them here
+would strand an expired owner with no visible way back in.
+{% endcomment %}
+<nav class="cx-sidebar">
+  <div class="cx-sidebar-brand">
+    <span class="cx-sidebar-logo">R</span>
+    <div>
+      <div class="cx-sidebar-company">{{ cx_company.company_name|default:"Revolution HRMS" }}</div>
+      <div class="cx-sidebar-role">{% if cx_is_owner %}Owner{% else %}{{ cx_sub_user.get_role_display }}{% endif %}</div>
+    </div>
+  </div>
+
+  <div class="cx-sidebar-section">
+    <a href="{% url 'cxapp_dashboard' %}" class="cx-nav-item">Dashboard</a>
+  </div>
+
+  {% if cx_can_employees %}
+  <div class="cx-sidebar-section">
+    <div class="cx-sidebar-label">People</div>
+    <a href="{% url 'cxapp_employee_list' %}" class="cx-nav-item">Employees</a>
+    <a href="{% url 'cxapp_designation_list' %}" class="cx-nav-item">Designations</a>
+    {% if cx_is_owner %}<a href="{% url 'cxapp_sub_user_list' %}" class="cx-nav-item">Sub Users</a>{% endif %}
+  </div>
+  {% endif %}
+
+  {% if cx_can_attendance %}
+  <div class="cx-sidebar-section">
+    <div class="cx-sidebar-label">Attendance</div>
+    <a href="{% url 'cxapp_attendance_list' %}" class="cx-nav-item">Attendance</a>
+  </div>
+  {% endif %}
+
+  {% if cx_can_wages %}
+  <div class="cx-sidebar-section">
+    <div class="cx-sidebar-label">Payroll</div>
+    <a href="{% url 'cxapp_salary_list' %}" class="cx-nav-item">Payroll</a>
+    <a href="{% url 'cxapp_compliance_dashboard' %}" class="cx-nav-item">Compliance Exports</a>
+  </div>
+  {% endif %}
+
+  <div class="cx-sidebar-section">
+    <div class="cx-sidebar-label">Company</div>
+    <a href="{% url 'cxapp_company_profile' %}" class="cx-nav-item">Company Profile</a>
+    {% if cx_is_owner %}<a href="{% url 'cxapp_company_statutory' %}" class="cx-nav-item">Statutory Registrations</a>{% endif %}
+    <a href="{% url 'cxapp_plan_purchase' %}" class="cx-nav-item">
+      Plan &amp; Billing
+      {% if cx_plan_expired %}<span class="cx-nav-badge">!</span>{% endif %}
+    </a>
+  </div>
+
+  <div class="cx-sidebar-footer">
+    <a href="{% url 'cxapp_logout' %}" class="cx-nav-item cx-nav-logout">Logout</a>
+  </div>
+</nav>

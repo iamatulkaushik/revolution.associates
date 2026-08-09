@@ -142,5 +142,43 @@
       <div class="login-link">Already have an account? <a href="{% url 'cxapp_login' %}">Sign in</a></div>
     </div>
   </div>
+  <script>
+    // Cascading district filter: only show districts for the selected state.
+    (function () {
+      const stateSelect = document.getElementById('id_state_id');
+      const districtSelect = document.getElementById('id_district_id');
+      if (!stateSelect || !districtSelect) return;
+
+      function loadDistricts(stateId, preselectId) {
+        districtSelect.innerHTML = '<option value="">Loading...</option>';
+        if (!stateId) {
+          districtSelect.innerHTML = '<option value="">Select a state first</option>';
+          return;
+        }
+        fetch('{% url "cxapp_districts_for_state" %}?state_id=' + encodeURIComponent(stateId))
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            districtSelect.innerHTML = '';
+            if (!data.districts.length) {
+              districtSelect.innerHTML = '<option value="">No districts found</option>';
+              return;
+            }
+            data.districts.forEach(function (d) {
+              const opt = document.createElement('option');
+              opt.value = d.Districtid;
+              opt.textContent = d.name;
+              if (preselectId && String(d.Districtid) === String(preselectId)) opt.selected = true;
+              districtSelect.appendChild(opt);
+            });
+          });
+      }
+
+      stateSelect.addEventListener('change', function () { loadDistricts(this.value, null); });
+
+      // On initial load (e.g. after a validation error re-render),
+      // populate districts for whatever state is already selected.
+      if (stateSelect.value) loadDistricts(stateSelect.value, districtSelect.value);
+    })();
+  </script>
 </body>
 </html>

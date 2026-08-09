@@ -101,7 +101,7 @@ def _sub_user_list(request):
     from Cxapp.models import MAX_SUB_USERS
     sub_users = request.cx_owner_profile.sub_users.all().order_by('-created_at')
     slots_remaining = request.cx_owner_profile.sub_user_slots_remaining()
-    return render(request, 'Cxapp/sub_user_list.html', {
+    return render(request, 'Cxapp/users/sub_user_list.html', {
         'sub_users': sub_users,
         'slots_remaining': slots_remaining,
         'max_sub_users': MAX_SUB_USERS,
@@ -141,7 +141,7 @@ def _sub_user_create(request):
     else:
         form = CxSubUserForm()
 
-    return render(request, 'Cxapp/sub_user_form.html', {
+    return render(request, 'Cxapp/users/sub_user_form.html', {
         'form': form,
         'slots_remaining': owner_profile.sub_user_slots_remaining(),
     })
@@ -161,4 +161,4 @@ def _sub_user_deactivate(request, sub_user_id):
         sub_user.save(update_fields=['is_active'])
         messages.success(request, f"Sub-user '{sub_user.user.username}' deactivated.")
         return redirect('cxapp_sub_user_list')
-    return render(request, 'Cxapp/sub_user_deactivate.html', {'sub_user': sub_user})
+    return render(request, 'Cxapp/users/sub_user_deactivate.html', {'sub_user': sub_user})

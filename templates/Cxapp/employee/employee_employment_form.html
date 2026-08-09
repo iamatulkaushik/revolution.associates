@@ -1,0 +1,34 @@
+{% extends 'Cxapp/_base.html' %}
+{% block title %}Employment · {{ employee.name }}{% endblock %}
+{% block page_title %}Employment{% endblock %}
+{% block content %}
+<style>
+.wrap{max-width:540px;margin:0 auto;padding:32px 24px}
+.card{background:#fff;border-radius:12px;padding:28px;box-shadow:0 4px 20px rgba(15,32,39,.06)}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.fg{margin-bottom:16px}
+.fg label{display:block;font-size:11.5px;font-weight:600;color:#6b7c93;text-transform:uppercase;margin-bottom:4px}
+.fg input,.fg select{width:100%;font-size:14px;padding:9px 12px;border:1.5px solid #dde5ed;border-radius:7px;background:var(--cream)}
+.btn{padding:12px 24px;background:linear-gradient(135deg,#0f2027,#2a9d8f);color:#fff;border:none;
+  border-radius:8px;font-weight:600;cursor:pointer}
+</style>
+<div class="card">
+    <form method="post">
+      {% csrf_token %}
+      <div class="fg"><label>Employment Type</label>{{ form.employment_type }}</div>
+      <div class="row">
+        <div class="fg"><label>Date of Joining</label>{{ form.date_of_joining }}</div>
+        <div class="fg"><label>DOJ ESI</label>{{ form.doj_esi }}</div>
+      </div>
+      <div class="row">
+        <div class="fg"><label>DOJ EPF</label>{{ form.doj_epf }}</div>
+        <div class="fg"><label>Date of Retirement</label>{{ form.date_of_retirement }}</div>
+      </div>
+      <div class="row">
+        <div class="fg"><label>Date of Leaving</label>{{ form.date_of_leaving }}</div>
+        <div class="fg"><label>Leaving Reason</label>{{ form.leaving_reason }}</div>
+      </div>
+      <button type="submit" class="btn">Save</button>
+    </form>
+  </div>
+{% endblock %}

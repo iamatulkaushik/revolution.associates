@@ -37,6 +37,7 @@ from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.exceptions import InvalidTag
 from cryptography.hazmat.primitives import hashes
 from django.conf import settings
+from django.db import models
 from django.utils.encoding import force_bytes, force_str
 
 
@@ -46,7 +47,15 @@ SUPPORTED_ALGORITHMS = {
     b'\x01': 'AES-256-GCM',
     b'\x02': 'XChaCha20-Poly1305',
 }
-DEFAULT_ALGORITHM = b'\x02'  # XChaCha20-Poly1305 for speed
+# NOTE: cryptography's ChaCha20Poly1305 class only accepts a 12-byte
+# nonce (standard IETF ChaCha20-Poly1305), NOT the 24-byte extended
+# nonce that "XChaCha20" implies. CryptoConfig.XCHACHA20_NONCE_SIZE=24
+# below would raise ValueError at every encrypt() call under algorithm
+# b'\x02'. True XChaCha20 needs a separate HChaCha20 subkey-derivation
+# step this module doesn't implement. Defaulting to AES-256-GCM (b'\x01')
+# instead, which IS correctly implemented here and has AES-NI hardware
+# acceleration on virtually all modern server CPUs (Render, GCP, AWS).
+DEFAULT_ALGORITHM = b'\x01'  # AES-256-GCM — correct nonce size, hardware accelerated
 
 
 class CryptoError(Exception):
@@ -83,9 +92,11 @@ class CryptoConfig:
     SALT_SIZE = 16
     HKDF_SALT_SIZE = 32
     
-    # Associated data for domain separation
-    AAD_ENCRYPT = b'django-crypto-encrypt-v2'
-    AAD_DECRYPT = b'django-crypto-decrypt-v2'
+    # Associated data for domain separation. Must be IDENTICAL for
+    # encrypt and decrypt — AEAD authentication ties the tag to this
+    # exact byte string, so encrypt/decrypt using different AAD values
+    # will always fail authentication and silently return None.
+    AAD_CONTEXT = b'django-crypto-field-v2'
 
 
 class CryptoUtils:
@@ -239,7 +250,7 @@ class Encryptor:
             raise CryptoError(f"Unsupported algorithm: {algorithm.hex()}")
         
         # Combine AAD
-        aad = CryptoConfig.AAD_ENCRYPT
+        aad = CryptoConfig.AAD_CONTEXT
         if associated_data:
             aad = aad + b'|' + associated_data
         
@@ -305,7 +316,7 @@ class Encryptor:
         ciphertext = data[2 + nonce_size:]
         
         # Combine AAD
-        aad = CryptoConfig.AAD_DECRYPT
+        aad = CryptoConfig.AAD_CONTEXT
         if associated_data:
             aad = aad + b'|' + associated_data
         
@@ -324,84 +335,107 @@ class FastEncryptor:
     """
     Optimized encryptor for high-throughput scenarios.
     Uses object pooling and minimizes allocations.
+    Uses AES-256-GCM (12-byte nonce) to match DEFAULT_ALGORITHM.
     """
     
     def __init__(self):
         self._encryptor = Encryptor()
-        self._xchacha = None
+        self._cipher = None
         self._key = None
     
     def _get_cipher(self, key: bytes):
         """Get or create cipher instance."""
-        if self._key != key or self._xchacha is None:
+        if self._key != key or self._cipher is None:
             self._key = key
-            self._xchacha = ChaCha20Poly1305(key)
-        return self._xchacha
+            self._cipher = AESGCM(key)
+        return self._cipher
     
     def encrypt(self, plaintext: bytes) -> bytes:
         """Fast byte-level encryption."""
         key = KeyManager().get_subkey('encrypt-fast')
         cipher = self._get_cipher(key)
-        nonce = CryptoUtils.generate_nonce(CryptoConfig.XCHACHA20_NONCE_SIZE)
+        nonce = CryptoUtils.generate_nonce(CryptoConfig.AES_GCM_NONCE_SIZE)
         return FORMAT_VERSION + DEFAULT_ALGORITHM + nonce + cipher.encrypt(
-            nonce, plaintext, CryptoConfig.AAD_ENCRYPT
+            nonce, plaintext, CryptoConfig.AAD_CONTEXT
         )
     
     def decrypt(self, data: bytes) -> bytes:
         """Fast byte-level decryption."""
-        if len(data) < 27:
+        min_len = 2 + CryptoConfig.AES_GCM_NONCE_SIZE + 16  # +16 for auth tag
+        if len(data) < min_len:
             raise DecryptionError("Invalid ciphertext")
         
         key = KeyManager().get_subkey('encrypt-fast')
         cipher = self._get_cipher(key)
-        nonce = data[2:26]
-        ciphertext = data[26:]
-        return cipher.decrypt(nonce, ciphertext, CryptoConfig.AAD_DECRYPT)
+        nonce = data[2:2 + CryptoConfig.AES_GCM_NONCE_SIZE]
+        ciphertext = data[2 + CryptoConfig.AES_GCM_NONCE_SIZE:]
+        return cipher.decrypt(nonce, ciphertext, CryptoConfig.AAD_CONTEXT)
 
 
-class EncryptedField:
+class EncryptedCharField(models.CharField):
     """
-    Custom descriptor for Django model fields with encryption.
-    
-    Usage:
-        class MyModel(models.Model):
-            ssn = EncryptedField(models.CharField(max_length=20))
-            salary = EncryptedField(models.DecimalField(...))
+    Proper Django Field subclass for transparent field-level encryption
+    (AES-256-GCM by default, see DEFAULT_ALGORITHM). Plaintext lives in
+    Python; ciphertext lives in the DB — Django's ORM never sees
+    plaintext at the SQL layer.
+
+    Add to your model:
+        from revolution.secure_crypto import EncryptedCharField
+
+        class User(models.Model):
+            ssn = EncryptedCharField(max_length=500)
+            name = EncryptedCharField(max_length=500, null=True, blank=True)
+
+    Why a real Field subclass (not a bolt-on descriptor):
+    Django's Field.pre_save() does `getattr(instance, attname)` right
+    before building the SQL INSERT/UPDATE. A descriptor-only approach
+    that decrypts on every __get__ means pre_save reads back PLAINTEXT
+    and writes it straight to the database — the encryption never
+    reaches disk. Subclassing CharField and overriding get_prep_value
+    (called specifically for DB parameter binding) keeps normal Python
+    attribute access returning plaintext while guaranteeing only
+    ciphertext is ever sent to the database.
     """
-    
     _encryptor = None
-    
+
     @classmethod
-    def get_encryptor(cls) -> Encryptor:
-        """Get singleton encryptor instance."""
+    def _get_encryptor(cls) -> Encryptor:
         if cls._encryptor is None:
             cls._encryptor = Encryptor()
         return cls._encryptor
-    
-    def __init__(self, base_field, algorithm: bytes = DEFAULT_ALGORITHM):
-        self.base_field = base_field
+
+    def __init__(self, *args, algorithm: bytes = DEFAULT_ALGORITHM, **kwargs):
+        kwargs.setdefault('max_length', 500)
         self.algorithm = algorithm
-    
-    def __get__(self, instance, owner):
-        if instance is None:
-            return self
-        value = instance.__dict__.get(self.base_field.attname)
+        super().__init__(*args, **kwargs)
+
+    def deconstruct(self):
+        name, path, args, kwargs = super().deconstruct()
+        kwargs['algorithm'] = self.algorithm
+        return name, path, args, kwargs
+
+    def from_db_value(self, value, expression, connection):
+        """Ciphertext -> plaintext, on the way OUT of the database."""
         if value is None:
             return None
         try:
-            decrypted = self.get_encryptor().decrypt(value)
+            decrypted = self._get_encryptor().decrypt(value)
             return decrypted.decode('utf-8')
         except DecryptionError:
             return None
-    
-    def __set__(self, instance, value):
-        if value is None:
-            instance.__dict__[self.base_field.attname] = None
-            return
-        encrypted = self.get_encryptor().encrypt(
-            str(value), algorithm=self.algorithm
-        )
-        instance.__dict__[self.base_field.attname] = encrypted
+
+    def get_prep_value(self, value):
+        """Plaintext -> ciphertext, on the way INTO the database."""
+        value = super().get_prep_value(value)
+        if value is None or value == '':
+            return value
+        return self._get_encryptor().encrypt(str(value), algorithm=self.algorithm)
+
+    def to_python(self, value):
+        # Values coming from a form/deserializer are already plaintext;
+        # only get_prep_value ever produces ciphertext, so nothing to
+        # decrypt here. Left as a pass-through for clarity/override point.
+        return value
 
 
 def generate_master_key() -> str:
@@ -462,36 +496,6 @@ def decrypt_value(
         return plaintext.decode('utf-8')
     except DecryptionError:
         return None
-
-
-class EncryptedCharField:
-    """
-    Drop-in encrypted field for Django models.
-    
-    Add to your model:
-        from django.db import models
-        from cryptography import EncryptedCharField
-        
-        class User(models.Model):
-            ssn = EncryptedCharField(max_length=500)
-            name = EncryptedCharField(max_length=500, null=True)
-    """
-    
-    def __init__(self, *args, **kwargs):
-        # Increase max_length to accommodate encrypted data
-        kwargs.setdefault('max_length', 500)
-        kwargs['editable'] = False  # Encrypted fields aren't directly editable
-        self._kwargs = kwargs
-        self._args = args
-    
-    def contribute_to_class(self, cls, name, **kwargs):
-        from django.db import models
-        field = models.CharField(*self._args, **self._kwargs)
-        field.contribute_to_class(cls, name, **kwargs)
-        
-        # Add encryption descriptor
-        descriptor = EncryptedField(field)
-        setattr(cls, name, descriptor)
 
 
 # Performance benchmarks (for documentation)

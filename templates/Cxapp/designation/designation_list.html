@@ -1,14 +1,8 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8"><title>Designations · {{ request.cx_company.company_name }}</title>
+{% extends 'Cxapp/_base.html' %}
+{% block title %}Designations · {{ request.cx_company.company_name }}{% endblock %}
+{% block page_title %}Designations{% endblock %}
+{% block content %}
 <style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{--navy:#0f2027;--green:#2a9d8f;--cream:#f0f4f8}
-body{font-family:'Ubuntu',system-ui,sans-serif;background:var(--cream);color:var(--navy)}
-.topbar{background:var(--navy);color:#fff;padding:16px 32px;display:flex;justify-content:space-between}
-.topbar a{color:#fff;text-decoration:none;font-size:13px;opacity:.8}
 .wrap{max-width:860px;margin:0 auto;padding:32px 24px}
 .head{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
 .btn{padding:10px 18px;background:linear-gradient(135deg,#0f2027,#2a9d8f);color:#fff;border:none;
@@ -22,13 +16,8 @@ a.link{color:var(--green);text-decoration:none;font-size:13px;font-weight:600;ma
 .tag-ok{background:rgba(42,157,143,.1);color:var(--green)}
 .tag-bad{background:#fdecea;color:#e63946}
 </style>
-</head>
-<body>
-<div class="topbar"><strong>{{ request.cx_company.company_name }}</strong>
-  <a href="{% url 'cxapp_dashboard' %}">← Dashboard</a></div>
-<div class="wrap">
-  <div class="head">
-    <h1>Designations</h1>
+<div class="head">
+    
     {% if cx_is_owner %}<a href="{% url 'cxapp_designation_create' %}" class="btn">+ New Designation</a>{% endif %}
   </div>
   <table>
@@ -53,6 +42,4 @@ a.link{color:var(--green);text-decoration:none;font-size:13px;font-weight:600;ma
     <tr><td colspan="5">No designations yet.</td></tr>
     {% endfor %}
   </table>
-</div>
-</body>
-</html>
+{% endblock %}

@@ -35,17 +35,63 @@ class Company(models.Model):
     account = models.CharField(max_length=20, null=True, blank=True)
     ifsc = models.CharField(max_length=11, null=True, blank=True)
     branch_address = models.CharField(max_length=255, null=True, blank=True)
-    company_logo = models.ImageField(upload_to='company_logos/', null=True, blank=True)
     created_at = models.DateTimeField(default=date.today)
     created_by = models.CharField(max_length=50, null=True, blank=True)
     updated_at = models.DateTimeField(default=date.today)
     updated_by = models.CharField(max_length=50, null=True, blank=True)
+
+    # ── PDF letterhead preference ────────────────────────────────────────
+    # Lets each company choose how generated PDFs (salary slips, registers,
+    # returns, etc.) handle their letterhead — see Aapp.app.pdf_engine.
+    LETTERHEAD_MODE_CHOICES = [
+        ('drawn',      'Generated header/footer (no physical letterhead)'),
+        ('preprinted', 'Pre-printed stationery (blank margins only)'),
+        ('overlay',    'Digital letterhead overlay (background PDF)'),
+    ]
+    letterhead_mode = models.CharField(
+        max_length=15, choices=LETTERHEAD_MODE_CHOICES, default='drawn',
+        help_text='How PDFs handle this company\'s letterhead.',
+    )
+    letterhead_top_margin_mm = models.PositiveSmallIntegerField(
+        null=True, blank=True,
+        help_text='Blank top margin (mm) to match pre-printed stationery. '
+                   'Only used when letterhead_mode is preprinted/overlay.',
+    )
+    letterhead_bottom_margin_mm = models.PositiveSmallIntegerField(
+        null=True, blank=True,
+        help_text='Blank bottom margin (mm) to match pre-printed stationery.',
+    )
+    letterhead_background_pdf = models.FileField(
+        upload_to='letterheads/', null=True, blank=True,
+        help_text='PDF of the letterhead artwork — required when letterhead_mode is overlay.',
+    )
 
     def __str__(self):
         return self.company_name
 
     class Meta:
         db_table = 'Company'
+
+    def pdf_letterhead_kwargs(self):
+        """
+        Resolves this company's letterhead preference into the kwargs
+        build_pdf() expects, so callers don't need to know the details:
+
+            from Aapp.app.pdf_engine import build_pdf
+            pdf_bytes = build_pdf(story, company=company, doc_meta=meta,
+                                   **company.pdf_letterhead_kwargs())
+        """
+        kwargs = {'letterhead_mode': self.letterhead_mode}
+        margins = {}
+        if self.letterhead_top_margin_mm:
+            margins['top'] = self.letterhead_top_margin_mm
+        if self.letterhead_bottom_margin_mm:
+            margins['bottom'] = self.letterhead_bottom_margin_mm
+        if margins:
+            kwargs['margins'] = margins
+        if self.letterhead_mode == 'overlay' and self.letterhead_background_pdf:
+            kwargs['background_pdf_path'] = self.letterhead_background_pdf.path
+        return kwargs
 
     @property
     def full_address(self):

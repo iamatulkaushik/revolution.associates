@@ -1,0 +1,25 @@
+{% extends 'Cxapp/_base.html' %}
+{% block title %}Statutory IDs · {{ employee.name }}{% endblock %}
+{% block page_title %}Statutory IDs{% endblock %}
+{% block content %}
+<style>
+.wrap{max-width:480px;margin:0 auto;padding:32px 24px}
+.note{font-size:12.5px;color:#a67c00;background:#fff8e1;padding:10px 14px;border-radius:6px;margin-bottom:20px}
+.card{background:#fff;border-radius:12px;padding:28px;box-shadow:0 4px 20px rgba(15,32,39,.06)}
+.fg{margin-bottom:16px}
+.fg label{display:block;font-size:11.5px;font-weight:600;color:#6b7c93;text-transform:uppercase;margin-bottom:4px}
+.fg input{width:100%;font-size:14px;padding:9px 12px;border:1.5px solid #dde5ed;border-radius:7px;background:var(--cream)}
+.btn{padding:12px 24px;background:linear-gradient(135deg,#0f2027,#2a9d8f);color:#fff;border:none;
+  border-radius:8px;font-weight:600;cursor:pointer}
+</style>
+<p class="note">Recording an ID here does not trigger deductions — that depends on the company's own registration status.</p>
+  <div class="card">
+    <form method="post">
+      {% csrf_token %}
+      <div class="fg"><label>UAN</label>{{ form.uan_number }}</div>
+      <div class="fg"><label>ESI Number</label>{{ form.esi_number }}</div>
+      <div class="fg"><label>Labour ID</label>{{ form.labour_id }}</div>
+      <button type="submit" class="btn">Save</button>
+    </form>
+  </div>
+{% endblock %}

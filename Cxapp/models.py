@@ -19,15 +19,6 @@ start_date, pan, email1, mobile. Enforced in forms/views, not at the
 DB layer, since Sapp/Aapp still need normal field access to the same
 Company model.
 """
-# Imported here (not used directly) so Django's migration autodetector
-# discovers every model under the Cxapp app label from this entry point.
-from Cxapp.app.sub_user import CxSubUser, SUB_USER_ROLES, ROLE_PERMISSIONS  # noqa: E402,F401
-from Cxapp.app.designation import CxDesignation, CxDesignationComponent  # noqa: E402,F401
-from Cxapp.app.employee import (  # noqa: E402,F401
-    CxEmployee, CxEmployeeAddress, CxEmployeeContact, CxEmployeeStatutory,
-    CxEmployeeKYC, CxEmployeeBanking, CxEmployeeEmployment, CxEmployeeNominee,
-)
-from Cxapp.app.license import CxPlan  # noqa: E402,F401
 
 from django.db import models
 from django.contrib.auth.models import User
@@ -71,3 +62,14 @@ class CxOwnerProfile(models.Model):
         return MAX_SUB_USERS - self.sub_users.filter(is_active=True).count()
 
 
+# Imported here (not used directly) so Django's migration autodetector
+# discovers every model under the Cxapp app label from this entry point.
+from Cxapp.app.sub_user import CxSubUser, SUB_USER_ROLES, ROLE_PERMISSIONS  # noqa: E402,F401
+from Cxapp.app.designation import CxDesignation, CxDesignationComponent  # noqa: E402,F401
+from Cxapp.app.employee import (  # noqa: E402,F401
+    CxEmployee, CxEmployeeAddress, CxEmployeeContact, CxEmployeeStatutory,
+    CxEmployeeKYC, CxEmployeeBanking, CxEmployeeEmployment, CxEmployeeNominee,
+)
+from Cxapp.app.license import CxPlan  # noqa: E402,F401
+from Cxapp.app.attandance import CxAttendance, CxAttendanceMaternity  # noqa: E402,F401
+from Cxapp.app.process import CxSalary, CxSalaryLine  # noqa: E402,F401

@@ -1,0 +1,50 @@
+{% extends 'Cxapp/_base.html' %}
+{% block title %}Maternity Details · {{ record.employee.name }}{% endblock %}
+{% block page_title %}Maternity Details{% endblock %}
+{% block content %}
+<style>
+.wrap{max-width:600px;margin:0 auto;padding:32px 24px}
+.note{font-size:12.5px;color:#4a90c2;background:#eef6fb;padding:10px 14px;border-radius:6px;margin-bottom:20px}
+.card{background:#fff;border-radius:12px;padding:28px;box-shadow:0 4px 20px rgba(15,32,39,.06)}
+fieldset{border:none;margin-bottom:20px}
+legend{font-size:12px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.fg{margin-bottom:14px}
+.fg label{display:block;font-size:11px;font-weight:600;color:#6b7c93;text-transform:uppercase;margin-bottom:4px}
+.fg input{width:100%;font-size:14px;padding:8px 11px;border:1.5px solid #dde5ed;border-radius:7px;background:var(--cream)}
+.btn{padding:12px 24px;background:linear-gradient(135deg,#0f2027,#2a9d8f);color:#fff;border:none;
+  border-radius:8px;font-weight:600;cursor:pointer}
+</style>
+<p class="note">Restricted to Owner and HR — maternity data under the Maternity Benefit Act.</p>
+  <div class="card">
+    <form method="post">
+      {% csrf_token %}
+      <fieldset>
+        <legend>Maternity Details</legend>
+        <div class="row">
+          <div class="fg"><label>Expected Delivery Date</label>{{ form.expected_delivery_date }}</div>
+          <div class="fg"><label>Actual Delivery Date</label>{{ form.actual_delivery_date }}</div>
+        </div>
+        <div class="row">
+          <div class="fg"><label>Maternity Leave Start</label>{{ form.maternity_leave_start }}</div>
+          <div class="fg"><label>Maternity Leave End</label>{{ form.maternity_leave_end }}</div>
+        </div>
+        <div class="fg"><label>Actual Return Date</label>{{ form.actual_return_date }}</div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Maternity Benefits</legend>
+        <div class="row">
+          <div class="fg"><label>Benefit Days</label>{{ form.benefit_days }}</div>
+          <div class="fg"><label>Benefit Amount</label>{{ form.benefit_amount }}</div>
+        </div>
+        <div class="row">
+          <div class="fg"><label>Medical Bonus</label>{{ form.medical_bonus }}</div>
+          <div class="fg"><label>Nursing Breaks/day</label>{{ form.nursing_breaks }}</div>
+        </div>
+      </fieldset>
+
+      <button type="submit" class="btn">Save</button>
+    </form>
+  </div>
+{% endblock %}

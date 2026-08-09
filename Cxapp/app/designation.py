@@ -263,7 +263,7 @@ def _designation_list(request):
     designations = CxDesignation.objects.filter(
         company=request.cx_company, is_deleted=False
     ).order_by('designation_name')
-    return _render(request, 'Cxapp/designation_list.html', {'designations': designations})
+    return _render(request, 'Cxapp/designation/designation_list.html', {'designations': designations})
 
 
 def cxapp_designation_create(request):
@@ -285,7 +285,7 @@ def _designation_create(request):
     else:
         form = CxDesignationForm()
 
-    return _render(request, 'Cxapp/designation_form.html', {'form': form, 'is_new': True})
+    return _render(request, 'Cxapp/designation/designation_form.html', {'form': form, 'is_new': True})
 
 
 def cxapp_designation_edit(request, designation_id):
@@ -307,7 +307,7 @@ def _designation_edit(request, designation_id):
     else:
         form = CxDesignationForm(instance=designation)
 
-    return _render(request, 'Cxapp/designation_form.html', {
+    return _render(request, 'Cxapp/designation/designation_form.html', {
         'form': form, 'is_new': False, 'designation': designation,
     })
 
@@ -325,7 +325,7 @@ def _designation_delete(request, designation_id):
         designation.save(update_fields=['is_deleted', 'is_active'])
         _messages.success(request, f"'{designation.designation_name}' deleted.")
         return _redirect('cxapp_designation_list')
-    return _render(request, 'Cxapp/designation_delete.html', {'designation': designation})
+    return _render(request, 'Cxapp/designation/designation_delete.html', {'designation': designation})
 
 
 def cxapp_designation_components(request, designation_id):
@@ -354,7 +354,7 @@ def _designation_components(request, designation_id):
         c.resolved = c.resolved_amount(designation.basic_pay)
     compliance = designation.wage_code_compliance()
 
-    return _render(request, 'Cxapp/designation_components.html', {
+    return _render(request, 'Cxapp/designation/designation_components.html', {
         'designation': designation,
         'components': components,
         'form': form,

@@ -2,7 +2,7 @@ from django.urls import path
 
 from Cxapp.views import (
     cxapp_signup, cxapp_login, cxapp_logout, cxapp_dashboard,
-    cxapp_company_profile,
+    cxapp_company_profile, cxapp_districts_for_state,
 )
 from Cxapp.app.sub_user import (
     cxapp_sub_user_list, cxapp_sub_user_create, cxapp_sub_user_deactivate,
@@ -19,6 +19,18 @@ from Cxapp.app.employee import (
     cxapp_employee_nominee_add, cxapp_employee_nominee_delete,
 )
 from Cxapp.app.license import cxapp_plan_purchase
+from Cxapp.app.attandance import (
+    cxapp_attendance_list, cxapp_attendance_create, cxapp_attendance_edit,
+    cxapp_attendance_detail, cxapp_attendance_delete, cxapp_attendance_maternity_edit,
+)
+from Cxapp.app.process import (
+    cxapp_salary_list, cxapp_salary_process, cxapp_salary_bulk_process,
+    cxapp_salary_detail, cxapp_salary_reprocess,
+)
+from Cxapp.app.compliance import (
+    cxapp_compliance_dashboard, cxapp_epf_export, cxapp_esi_export, cxapp_labour_challan,
+)
+from Cxapp.app.statutory import cxapp_company_statutory
 
 # NOTE: Cxapp/urls.py is the ROOT urlconf for the 'cxapp' host in django-hosts.
 # Bare URL names (no namespace prefix) — same pattern as Aapp/Capp.
@@ -36,6 +48,10 @@ urlpatterns = [
 
     # ── Company profile ──────────────────────────────────────────────────────
     path('company/',   cxapp_company_profile, name='cxapp_company_profile'),
+    path('company/statutory/', cxapp_company_statutory, name='cxapp_company_statutory'),
+
+    # ── Shared cascading state/district filter ───────────────────────────────
+    path('api/districts/', cxapp_districts_for_state, name='cxapp_districts_for_state'),
 
     # ── Sub-users (owner only) — Cxapp/app/sub_user.py ───────────────────────
     path('sub-users/',                        cxapp_sub_user_list,       name='cxapp_sub_user_list'),
@@ -65,4 +81,25 @@ urlpatterns = [
 
     # ── License / Plan — Cxapp/app/license.py ────────────────────────────────
     path('plan/', cxapp_plan_purchase, name='cxapp_plan_purchase'),
+
+    # ── Attendance — Cxapp/app/attandance.py ─────────────────────────────────
+    path('attendance/',                                cxapp_attendance_list,           name='cxapp_attendance_list'),
+    path('attendance/new/',                            cxapp_attendance_create,         name='cxapp_attendance_create'),
+    path('attendance/<int:attendance_id>/',            cxapp_attendance_detail,         name='cxapp_attendance_detail'),
+    path('attendance/<int:attendance_id>/edit/',       cxapp_attendance_edit,           name='cxapp_attendance_edit'),
+    path('attendance/<int:attendance_id>/delete/',     cxapp_attendance_delete,         name='cxapp_attendance_delete'),
+    path('attendance/<int:attendance_id>/maternity/',  cxapp_attendance_maternity_edit, name='cxapp_attendance_maternity_edit'),
+
+    # ── Salary Processing — Cxapp/app/process.py ─────────────────────────────
+    path('salary/',                        cxapp_salary_list,          name='cxapp_salary_list'),
+    path('salary/process/',                cxapp_salary_process,       name='cxapp_salary_process'),
+    path('salary/bulk-process/',           cxapp_salary_bulk_process,  name='cxapp_salary_bulk_process'),
+    path('salary/<int:salary_id>/',        cxapp_salary_detail,        name='cxapp_salary_detail'),
+    path('salary/<int:salary_id>/reprocess/', cxapp_salary_reprocess,  name='cxapp_salary_reprocess'),
+
+    # ── Compliance Exports — Cxapp/app/compliance.py ─────────────────────────
+    path('compliance/',              cxapp_compliance_dashboard, name='cxapp_compliance_dashboard'),
+    path('compliance/epf/export/',   cxapp_epf_export,           name='cxapp_epf_export'),
+    path('compliance/esi/export/',   cxapp_esi_export,           name='cxapp_esi_export'),
+    path('compliance/labour/challan/', cxapp_labour_challan,     name='cxapp_labour_challan'),
 ]

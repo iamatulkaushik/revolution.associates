@@ -1,14 +1,8 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8"><title>{{ designation.designation_name }} — Components</title>
+{% extends 'Cxapp/_base.html' %}
+{% block title %}{{ designation.designation_name }} — Components{% endblock %}
+{% block page_title %}{{ designation.designation_name }}{% endblock %}
+{% block content %}
 <style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{--navy:#0f2027;--green:#2a9d8f;--cream:#f0f4f8;--red:#e63946;--gold:#e9c46a}
-body{font-family:'Ubuntu',system-ui,sans-serif;background:var(--cream);color:var(--navy)}
-.topbar{background:var(--navy);color:#fff;padding:16px 32px;display:flex;justify-content:space-between}
-.topbar a{color:#fff;text-decoration:none;font-size:13px;opacity:.8}
 .wrap{max-width:820px;margin:0 auto;padding:32px 24px}
 h1{font-size:22px;margin-bottom:4px}
 .sub{font-size:13px;color:#6b7c93;margin-bottom:20px}
@@ -40,13 +34,7 @@ th{background:var(--cream);text-transform:uppercase;font-size:11px;color:#6b7c93
 .btn{padding:11px 20px;background:linear-gradient(135deg,#0f2027,#2a9d8f);color:#fff;border:none;
   border-radius:8px;font-weight:600;cursor:pointer;margin-top:6px}
 </style>
-</head>
-<body>
-<div class="topbar"><strong>{{ designation.designation_name }}</strong>
-  <a href="{% url 'cxapp_designation_list' %}">← Designations</a></div>
-<div class="wrap">
-  <h1>{{ designation.designation_name }}</h1>
-  <p class="sub">Basic ₹{{ designation.basic_pay }} · DA ₹{{ designation.da }}</p>
+<p class="sub">Basic ₹{{ designation.basic_pay }} · DA ₹{{ designation.da }}</p>
 
   <div class="compliance {% if compliance.compliant %}ok{% else %}bad{% endif %}">
     <div class="row"><span>Wage Code Sec 2(y) — 50% Floor Check</span>
@@ -103,6 +91,4 @@ th{background:var(--cream);text-transform:uppercase;font-size:11px;color:#6b7c93
     </form>
   </div>
   {% endif %}
-</div>
-</body>
-</html>
+{% endblock %}

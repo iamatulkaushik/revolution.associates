@@ -1,27 +1,19 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Deactivate Sub User</title>
-  <style>
-    body{font-family:'Ubuntu',system-ui,sans-serif;background:#f0f4f8;color:#0f2027}
-    .wrap{max-width:420px;margin:60px auto;padding:28px;background:#fff;border-radius:12px;
+{% extends 'Cxapp/_base.html' %}
+{% block title %}Deactivate Sub User{% endblock %}
+{% block page_title %}Deactivate Sub User{% endblock %}
+{% block content %}
+<style>
+.wrap{max-width:420px;margin:60px auto;padding:28px;background:#fff;border-radius:12px;
       box-shadow:0 4px 20px rgba(15,32,39,.06)}
     .btn{padding:10px 18px;border:none;border-radius:8px;font-weight:600;cursor:pointer;margin-right:8px}
     .btn-danger{background:#e63946;color:#fff}
     .btn-cancel{background:#eef2f6;color:#0f2027;text-decoration:none;display:inline-block}
-  </style>
-</head>
-<body>
-  <div class="wrap">
-    <h2>Deactivate {{ sub_user.user.username }}?</h2>
+</style>
+<h2>Deactivate {{ sub_user.user.username }}?</h2>
     <p style="margin:12px 0;font-size:13.5px;color:#6b7c93">This sub-user will lose access immediately.</p>
     <form method="post">
       {% csrf_token %}
       <button type="submit" class="btn btn-danger">Deactivate</button>
       <a href="{% url 'cxapp_sub_user_list' %}" class="btn btn-cancel">Cancel</a>
     </form>
-  </div>
-</body>
-</html>
+{% endblock %}

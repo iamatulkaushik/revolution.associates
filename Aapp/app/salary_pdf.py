@@ -252,7 +252,7 @@ def salary_slip_pdf(salary_slip_obj):
         'doc_date': date.today(),
         'ref': f'EMP/{emp.employeecode}/{month}/{year}',
     }
-    return build_pdf(story, company=co, doc_meta=doc_meta)
+    return build_pdf(story, company=co, doc_meta=doc_meta, **co.pdf_letterhead_kwargs())
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -412,7 +412,7 @@ def salary_sheet_pdf(company, month, year):
         'title': f'Salary Register — {month_name} {year}',
         'doc_date': date.today(),
     }
-    return build_pdf(story, company=company, doc_meta=doc_meta)
+    return build_pdf(story, company=company, doc_meta=doc_meta, **company.pdf_letterhead_kwargs())
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -533,7 +533,7 @@ def salary_abstract_pdf(company, month, year):
         'title': f'Salary Abstract — {month_name} {year}',
         'doc_date': date.today(),
     }
-    return build_pdf(story, company=company, doc_meta=doc_meta)
+    return build_pdf(story, company=company, doc_meta=doc_meta, **company.pdf_letterhead_kwargs())
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -614,7 +614,7 @@ def letterhead_pdf(company, content_items, doc_meta=None):
             story.append(Spacer(1, 10 * mm))
             story.append(Table([labels], colWidths=col_w, style=ts))
 
-    return build_pdf(story, company=company, doc_meta=doc_meta or {'title': 'Document'})
+    return build_pdf(story, company=company, doc_meta=doc_meta or {'title': 'Document'}, **company.pdf_letterhead_kwargs())
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -703,4 +703,4 @@ def company_profile_pdf(company):
         'title': 'Company Pro',
         'doc_date': date.today(),
     }
-    return build_pdf(story, company=company, doc_meta=doc_meta)
+    return build_pdf(story, company=company, doc_meta=doc_meta, **company.pdf_letterhead_kwargs())

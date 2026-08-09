@@ -29,7 +29,8 @@ TABLE SPLIT — sensitivity-driven, not just "one big employee row":
                            PF nomination), HIGH sensitivity (contains
                            nominee Aadhaar), encrypted, 1:many
 
-Aadhaar/PAN/bank account use django_cryptography's `encrypt()` wrapper.
+Aadhaar/PAN/bank account use secure_crypto.py's `EncryptedCharField` (AES-256-GCM /
+XChaCha20-Poly1305 authenticated encryption, keyed off settings.FIELD_ENCRYPTION_KEY).
 Companion `_hash` columns (SHA-256, not reversible) are kept so the app
 can still filter/lookup by exact value without decrypting every row —
 same shadow-column strategy used elsewhere in this codebase.
@@ -41,9 +42,10 @@ from django import forms
 from django.db import models, transaction
 from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
-from django_cryptography.fields import encrypt
+from revolution.secure_crypto import EncryptedCharField
 
 from Sapp.app.state_district import State, District
+from Sapp.app.bank import bank_name
 from Cxapp.app.designation import CxDesignation
 from Cxapp.app.statutory_gates import get_company_gates
 
@@ -188,7 +190,8 @@ class CxEmployeeStatutory(models.Model):
 class CxEmployeeKYC(models.Model):
     """
     Identity documents. Aadhaar and PAN are encrypted at rest via
-    django_cryptography; companion `_hash` columns enable exact-match
+    secure_crypto.EncryptedCharField (AEAD, XChaCha20-Poly1305 by
+    default); companion `_hash` columns enable exact-match
     lookup/uniqueness without decrypting every row (shadow-column
     pattern, same as elsewhere in this codebase).
 
@@ -196,19 +199,19 @@ class CxEmployeeKYC(models.Model):
     """
     employee            = models.OneToOneField(CxEmployee, on_delete=models.CASCADE, related_name='kyc')
 
-    aadhar_number         = encrypt(models.CharField(max_length=12))
+    aadhar_number         = EncryptedCharField(max_length=500)
     aadhar_number_hash     = models.CharField(max_length=64, unique=True, editable=False)
 
-    pan_number            = encrypt(models.CharField(max_length=10, blank=True))
+    pan_number            = EncryptedCharField(max_length=500, blank=True, null=True)
     pan_number_hash        = models.CharField(max_length=64, blank=True, editable=False)
 
-    passport_number        = encrypt(models.CharField(max_length=20, blank=True))
+    passport_number        = EncryptedCharField(max_length=500, blank=True, null=True)
     passport_number_hash    = models.CharField(max_length=64, blank=True, editable=False)
 
-    driving_license_number = encrypt(models.CharField(max_length=20, blank=True))
+    driving_license_number = EncryptedCharField(max_length=500, blank=True, null=True)
     driving_license_number_hash = models.CharField(max_length=64, blank=True, editable=False)
 
-    voter_id               = encrypt(models.CharField(max_length=20, blank=True))
+    voter_id               = EncryptedCharField(max_length=500, blank=True, null=True)
     voter_id_hash           = models.CharField(max_length=64, blank=True, editable=False)
 
     class Meta:
@@ -232,9 +235,10 @@ class CxEmployeeKYC(models.Model):
 
 class CxEmployeeBanking(models.Model):
     employee       = models.OneToOneField(CxEmployee, on_delete=models.CASCADE, related_name='banking')
-    account_number  = encrypt(models.CharField(max_length=30))
+    account_number  = EncryptedCharField(max_length=500)
     account_number_hash = models.CharField(max_length=64, unique=True, editable=False)
-    bank_name       = models.CharField(max_length=255)
+    bank           = models.ForeignKey(bank_name, on_delete=models.PROTECT, related_name='cx_employee_banking',
+                                       verbose_name='Bank Name')
     bank_ifsc       = models.CharField(max_length=11)
     bank_address    = models.TextField(blank=True)
 
@@ -282,7 +286,7 @@ class CxEmployeeNominee(models.Model):
     """
     employee        = models.ForeignKey(CxEmployee, on_delete=models.CASCADE, related_name='nominees')
     nominee_name     = models.CharField(max_length=255)
-    aadhar_number     = encrypt(models.CharField(max_length=12))
+    aadhar_number     = EncryptedCharField(max_length=500)
     aadhar_number_hash = models.CharField(max_length=64, editable=False)
     relation         = models.CharField(max_length=20, choices=NOMINEE_RELATION_CHOICES)
     date_of_birth     = models.DateField()
@@ -334,6 +338,20 @@ class CxEmployeeAddressForm(forms.ModelForm):
         model = CxEmployeeAddress
         fields = ['address', 'state', 'district', 'pin', 'country']
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Scope district choices to the currently selected state so a
+        # stale full list never round-trips as valid on submit. Checks
+        # POST data first (form re-render after a validation error),
+        # then falls back to the bound instance's state (initial GET).
+        state_id = self.data.get(self.add_prefix('state')) if self.is_bound else None
+        if not state_id and self.instance and self.instance.pk and self.instance.state_id:
+            state_id = self.instance.state_id
+        if state_id:
+            self.fields['district'].queryset = District.objects.filter(state_id=state_id).order_by('name')
+        else:
+            self.fields['district'].queryset = District.objects.none()
+
 
 class CxEmployeeContactForm(forms.ModelForm):
     class Meta:
@@ -347,11 +365,17 @@ class CxEmployeeStatutoryForm(forms.ModelForm):
         fields = ['uan_number', 'esi_number', 'labour_id']
 
 
-class CxEmployeeKYCForm(forms.ModelForm):
-    class Meta:
-        model = CxEmployeeKYC
-        fields = ['aadhar_number', 'pan_number', 'passport_number',
-                  'driving_license_number', 'voter_id']
+class CxEmployeeKYCForm(forms.Form):
+    """
+    Plain Form, not ModelForm — EncryptedCharField sets editable=False,
+    which ModelForm refuses to include even when named explicitly.
+    Views assign cleaned_data onto the model instance manually.
+    """
+    aadhar_number           = forms.CharField(max_length=12)
+    pan_number              = forms.CharField(max_length=10, required=False)
+    passport_number         = forms.CharField(max_length=20, required=False)
+    driving_license_number  = forms.CharField(max_length=20, required=False)
+    voter_id                = forms.CharField(max_length=20, required=False)
 
     def clean_aadhar_number(self):
         value = self.cleaned_data['aadhar_number']
@@ -368,10 +392,12 @@ class CxEmployeeKYCForm(forms.ModelForm):
         return value
 
 
-class CxEmployeeBankingForm(forms.ModelForm):
-    class Meta:
-        model = CxEmployeeBanking
-        fields = ['account_number', 'bank_name', 'bank_ifsc', 'bank_address']
+class CxEmployeeBankingForm(forms.Form):
+    """Plain Form — see CxEmployeeKYCForm docstring."""
+    account_number = forms.CharField(max_length=30)
+    bank           = forms.ModelChoiceField(queryset=bank_name.objects.all().order_by('name'), label='Bank Name')
+    bank_ifsc      = forms.CharField(max_length=11)
+    bank_address   = forms.CharField(widget=forms.Textarea, required=False)
 
 
 class CxEmployeeEmploymentForm(forms.ModelForm):
@@ -388,14 +414,19 @@ class CxEmployeeEmploymentForm(forms.ModelForm):
         }
 
 
-class CxEmployeeNomineeForm(forms.ModelForm):
-    class Meta:
-        model = CxEmployeeNominee
-        fields = ['nominee_name', 'aadhar_number', 'relation', 'date_of_birth',
-                  'address', 'percentage']
-        widgets = {
-            'date_of_birth': forms.DateInput(attrs={'type': 'date'}),
-        }
+class CxEmployeeNomineeForm(forms.Form):
+    """
+    Plain Form — aadhar_number is encrypted/non-editable (see
+    CxEmployeeKYCForm docstring), so the whole form is kept consistent
+    as a plain Form rather than mixing ModelForm + manual field.
+    """
+    nominee_name  = forms.CharField(max_length=255)
+    aadhar_number = forms.CharField(max_length=12)
+    relation      = forms.ChoiceField(choices=NOMINEE_RELATION_CHOICES)
+    date_of_birth = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}))
+    address       = forms.CharField(widget=forms.Textarea, required=False)
+    percentage    = forms.DecimalField(max_digits=5, decimal_places=2,
+                                        help_text='Share of nomination, e.g. 50.00 for 50%')
 
     def clean_aadhar_number(self):
         value = self.cleaned_data['aadhar_number']
@@ -423,7 +454,7 @@ def _employee_list(request):
     employees = CxEmployee.objects.filter(
         company=request.cx_owner_profile, is_deleted=False
     ).select_related('designation').order_by('name')
-    return render(request, 'Cxapp/employee_list.html', {
+    return render(request, 'Cxapp/employee/employee_list.html', {
         'employees': employees,
         'can_manage': _can_manage_employees(request),
     })
@@ -454,7 +485,7 @@ def _employee_create(request):
     else:
         form = CxEmployeeForm(company=owner_profile)
 
-    return render(request, 'Cxapp/employee_form.html', {'form': form, 'is_new': True})
+    return render(request, 'Cxapp/employee/employee_form.html', {'form': form, 'is_new': True})
 
 
 def cxapp_employee_detail(request, employee_id):
@@ -483,12 +514,19 @@ def _employee_detail(request, employee_id):
         'deduction_eligibility': employee.statutory.deduction_eligibility() if hasattr(employee, 'statutory') else None,
         'can_manage': is_sensitive_allowed,
     }
-    return render(request, 'Cxapp/employee_detail.html', context)
+    return render(request, 'Cxapp/employee/employee_detail.html', context)
 
 
 def _section_edit(request, employee_id, form_cls, model_cls, template, related_name):
-    """Shared edit handler for the 1:1 side-tables (address/contact/etc.)."""
+    """
+    Shared edit handler for the 1:1 side-tables (address/contact/etc.).
+    Handles both ModelForm subclasses (address/contact/statutory/
+    employment) and plain Form subclasses (kyc/banking, since their
+    encrypted fields are non-editable and ModelForm rejects them).
+    """
     from Cxapp.views import cx_login_required
+
+    is_model_form = issubclass(form_cls, forms.ModelForm)
 
     @cx_login_required
     def _view(request, employee_id):
@@ -500,15 +538,32 @@ def _section_edit(request, employee_id, form_cls, model_cls, template, related_n
         instance = getattr(employee, related_name, None)
 
         if request.method == 'POST':
-            form = form_cls(request.POST, instance=instance)
+            if is_model_form:
+                form = form_cls(request.POST, instance=instance)
+            else:
+                form = form_cls(request.POST)
+
             if form.is_valid():
-                obj = form.save(commit=False)
+                if is_model_form:
+                    obj = form.save(commit=False)
+                else:
+                    obj = instance or model_cls(employee=employee)
+                    for field_name, value in form.cleaned_data.items():
+                        setattr(obj, field_name, value)
                 obj.employee = employee
                 obj.save()
                 messages.success(request, 'Saved.')
                 return redirect('cxapp_employee_detail', employee_id=employee.employee_id)
         else:
-            form = form_cls(instance=instance)
+            if is_model_form:
+                form = form_cls(instance=instance)
+            elif instance is not None:
+                # Encrypted fields decrypt transparently via the descriptor,
+                # so initial= can safely read plaintext off the instance.
+                initial = {f: getattr(instance, f) for f in form_cls.base_fields}
+                form = form_cls(initial=initial)
+            else:
+                form = form_cls()
 
         return render(request, template, {'form': form, 'employee': employee})
 
@@ -517,32 +572,32 @@ def _section_edit(request, employee_id, form_cls, model_cls, template, related_n
 
 def cxapp_employee_address_edit(request, employee_id):
     return _section_edit(request, employee_id, CxEmployeeAddressForm, CxEmployeeAddress,
-                          'Cxapp/employee_address_form.html', 'address')
+                          'Cxapp/employee/employee_address_form.html', 'address')
 
 
 def cxapp_employee_contact_edit(request, employee_id):
     return _section_edit(request, employee_id, CxEmployeeContactForm, CxEmployeeContact,
-                          'Cxapp/employee_contact_form.html', 'contact')
+                          'Cxapp/employee/employee_contact_form.html', 'contact')
 
 
 def cxapp_employee_statutory_edit(request, employee_id):
     return _section_edit(request, employee_id, CxEmployeeStatutoryForm, CxEmployeeStatutory,
-                          'Cxapp/employee_statutory_form.html', 'statutory')
+                          'Cxapp/employee/employee_statutory_form.html', 'statutory')
 
 
 def cxapp_employee_kyc_edit(request, employee_id):
     return _section_edit(request, employee_id, CxEmployeeKYCForm, CxEmployeeKYC,
-                          'Cxapp/employee_kyc_form.html', 'kyc')
+                          'Cxapp/employee/employee_kyc_form.html', 'kyc')
 
 
 def cxapp_employee_banking_edit(request, employee_id):
     return _section_edit(request, employee_id, CxEmployeeBankingForm, CxEmployeeBanking,
-                          'Cxapp/employee_banking_form.html', 'banking')
+                          'Cxapp/employee/employee_banking_form.html', 'banking')
 
 
 def cxapp_employee_employment_edit(request, employee_id):
     return _section_edit(request, employee_id, CxEmployeeEmploymentForm, CxEmployeeEmployment,
-                          'Cxapp/employee_employment_form.html', 'employment')
+                          'Cxapp/employee/employee_employment_form.html', 'employment')
 
 
 def cxapp_employee_nominee_add(request, employee_id):
@@ -566,15 +621,14 @@ def _nominee_add(request, employee_id):
                 form.add_error('percentage', f'Total nomination cannot exceed 100%. '
                                               f'Currently allocated: {existing_total}%.')
             else:
-                nominee = form.save(commit=False)
-                nominee.employee = employee
+                nominee = CxEmployeeNominee(employee=employee, **form.cleaned_data)
                 nominee.save()
                 messages.success(request, f"Nominee '{nominee.nominee_name}' added.")
                 return redirect('cxapp_employee_detail', employee_id=employee.employee_id)
     else:
         form = CxEmployeeNomineeForm()
 
-    return render(request, 'Cxapp/employee_nominee_form.html', {
+    return render(request, 'Cxapp/employee/employee_nominee_form.html', {
         'form': form, 'employee': employee,
         'allocated_percentage': CxEmployeeNominee.total_percentage(employee),
     })
