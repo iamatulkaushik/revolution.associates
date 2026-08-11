@@ -70,7 +70,10 @@ class License(models.Model):
         return f"{self.company.company_name} - {self.license_type} ({self.license_key})"
 
     class Meta:
-        db_table = 'licenses'
+        app_label = 'Sapp'
+        db_table = 'sa_licenses'
+        verbose_name = 'License'
+        verbose_name_plural = 'Licenses'
         ordering = ['-expiry_date']
 
     def is_expired(self):

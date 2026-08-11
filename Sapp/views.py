@@ -37,7 +37,13 @@ def base_home(request):
     from django.conf import settings
     parent_host = getattr(settings, 'PARENT_HOST', 'localhost:8000')
     associate_login_url = f'http://aapp.{parent_host}/login/'
-    return render(request, 'home.html', {'associate_login_url': associate_login_url})
+    company_login_url = f'http://capp.{parent_host}/login/'
+    cxowner_login_url = f'http://cxapp.{parent_host}/login/'
+    return render(request, 'home.html', {
+        'associate_login_url': associate_login_url,
+        'company_login_url': company_login_url,
+        'cxowner_login_url': cxowner_login_url
+    })
 
 
 class loginForm(AuthenticationForm):

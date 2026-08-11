@@ -13,6 +13,10 @@
 <style>
   @font-face{font-family:'Ubuntu';src:url('static/fonts/Ubuntu-R.ttf') format('truetype');font-display:swap}
   @font-face {
+    font-family: 'Infinitude';
+    src: url('static/fonts/Infinitude.ttf') format('truetype');
+  }
+  @font-face {
     font-family: 'Allerta';
     src: url('static/fonts/allerta.medium.ttf') format('truetype'),
         url('static/fonts/allerta.medium.otf') format('otf');
@@ -95,8 +99,8 @@
   .brand{ display:flex; align-items:center; gap:10px; font-weight:700; font-size:17px; }
   .brand-mark{
     width:34px; height:34px; border-radius:10px; background:var(--grad-brand);
-    display:grid; place-items:center; font-family:'Sora'; font-weight:800; color:#04211d; font-size:16px;
-    box-shadow:0 6px 18px -6px rgba(111,123,255,.7);
+    display:grid; place-items:center; font-family:'Infinitude'; font-weight:800; color:#04211d; font-size:36px;
+    box-shadow:0 6px 18px -6px rgba(111,123,255,.7);line-height:1; transform:translateY(-1px);
   }
   nav ul{ display:flex; gap:28px; list-style:none; }
   nav a{ font-size:14.5px; color:var(--ink-1); font-weight:500; transition:color .2s var(--ease); }
@@ -190,7 +194,7 @@
     border-radius:var(--radius-lg); padding:26px 10px;
   }
   .stat{ text-align:center; padding:6px 12px; }
-  .stat .num{ font-size:clamp(22px,3vw,32px); font-weight:700; font-family:'Sora'; }
+  .stat .num{ font-size:clamp(22px,3vw,32px); font-weight:700; font-family:'Ubuntu'; }
   .stat .label{ font-size:12.5px; color:var(--ink-2); margin-top:4px; }
   @media (max-width:760px){ .stat-strip{ grid-template-columns:repeat(2,1fr); } }
 
@@ -244,7 +248,7 @@
   .payslip-row:last-child{ border-bottom:none; }
   .payslip-row .v{ color:var(--ink-0); font-weight:600; }
   .payslip-total{ margin-top:14px; display:flex; justify-content:space-between; align-items:center; padding-top:14px; border-top:1px solid var(--glass-brd); }
-  .payslip-total .amt{ font-size:22px; font-weight:800; font-family:'Sora'; background:var(--grad-brand); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .payslip-total .amt{ font-size:22px; font-weight:800; font-family:'Ubuntu'; background:var(--grad-brand); -webkit-background-clip:text; background-clip:text; color:transparent; }
 
   /* ── Testimonial ──────────────────────────────────────── */
   .quote-card{
@@ -548,6 +552,9 @@
         <a href="#reviews">Reviews</a>
         <a href="{% url 'sapp_login' %}">Superadmin</a>
         <a href="{{ associate_login_url }}">Associate</a>
+        <a href="{{ employee_login_url }}">Employee</a>
+        <a href="{{ company_login_url }}">Company</a>
+        <a href="{{ cxowner_login_url }}">Direct Owner</a>
       </div>
       <div>© 2026 Revolution Associates. All rights reserved.</div>
     </div>

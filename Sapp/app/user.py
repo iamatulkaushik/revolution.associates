@@ -197,7 +197,10 @@ class SubUser(models.Model):
         return f'{self.user.username} - {self.associate.associate_id} ({self.role})'
 
     class Meta:
-        db_table = 'sub_users'
+        app_label = 'Sapp'
+        db_table = 'sa_sub_users'
+        verbose_name = 'Sub User'
+        verbose_name_plural = 'Sub Users'
         ordering = ['associate__associate_id', 'user__username']
 
     def clean(self):

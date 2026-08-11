@@ -15,7 +15,8 @@ class State(models.Model):
         return self.name
 
     class Meta:
-        db_table = "states"
+        app_label = 'Sapp'
+        db_table = "sa_states"
         verbose_name = "State"
         verbose_name_plural = "States"
     
@@ -29,7 +30,8 @@ class District(models.Model):
         return self.name
 
     class Meta:
-        db_table = "districts"
+        app_label = 'Sapp'
+        db_table = "sa_districts"
         verbose_name = "District"
         verbose_name_plural = "Districts"
 
@@ -92,7 +94,8 @@ class DistrictForm(ModelForm):
             "bihar": ["araria", "arwal", "aura", "banka", "begusarai", "bhagalpur", "bhojpur", "buxar", "darbhanga", "deo", "gaya", "gopalganj", "jamui", "jehanabad", "kaimur", "katihar", "khagaria", "kishanganj", "lakhisarai", "madhepura", "madhubani", "munger", "muzaffarpur", "nalanda", "nawada", "patna", "purnia", "rohtas", "saharsa", "samastipur", "saran", "sheikhpura", "sheohar", "sitamarhi", "siwan", "supaul", "vaishali"],
             "chandigarh": ["chandigarh"],
             "chhattisgarh": ["balod", "baloda bazar", "balrampur", "bastar", "bijapur", "bilaspur", "dantewada", "dhamtari", "durg", "gariaband", "janjgir-champa", "jashpur", "kabirdham", "kanker", "kondagaon", "korba", "korea", "mahasamund", "mungeli", "narayanpur", "raigarh", "raipur", "rajnandgaon", "sukma", "surajpur", "surguja"],
-            "dadar and nagar haveli and daman and diu": ["daman", "dadra and nagar haveli", "diu"],
+            "dadar and nagar haveli": ["dadar and nagar haveli"],
+            "daman and diu": ["daman", "diu"],
             "delhi": ["central delhi", "east delhi", "new delhi", "north delhi", "north east delhi", "north west delhi", "shahdara", "south delhi", "south east delhi", "south west delhi", "west delhi"],
             "goa": ["north goa", "south goa"],
             "gujarat": ["ahmedabad", "amreli", "anand", "aravalli", "banas kantha", "bharuch", "bhavnagar", "botad", "chhota udepur", "dang", "devbhoomi dwarka", "gandhinagar", "gir somnath", "jamnagar", "junagadh", "kheda", "kutch", "mahesana", "morbi", "narmada", "navsari", "panchmahal", "patan", "porbandar", "rajkot", "sabarkantha", "surat", "surendranagar", "tapi", "vadodara", "valsad"],

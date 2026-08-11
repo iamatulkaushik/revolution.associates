@@ -51,7 +51,8 @@ class CompanyOwnerProfile(models.Model):
                                          related_name='owner_profiles_created')
 
     class Meta:
-        db_table = 'company_owner_profile'
+        app_label = 'Capp'
+        db_table = 'ca_company_owner_profile'
         verbose_name = 'Company Owner'
         verbose_name_plural = 'Company Owners'
 

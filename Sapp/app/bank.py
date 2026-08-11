@@ -15,7 +15,8 @@ class bank_name(models.Model):
         return self.name
     
     class Meta:
-        db_table = "banks"
+        app_label = 'Sapp'
+        db_table = "sa_banks"
         verbose_name = "Bank Name"
         verbose_name_plural = "Bank Names"
 

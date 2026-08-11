@@ -71,7 +71,10 @@ class Company(models.Model):
         return self.company_name
 
     class Meta:
-        db_table = 'Company'
+        app_label = 'Sapp'
+        db_table = 'sa_Company'
+        verbose_name = 'Company'
+        verbose_name_plural = 'Companies'
 
     def pdf_letterhead_kwargs(self):
         """
@@ -147,7 +150,7 @@ class company_statury(models.Model):
         return f"Statutory Info for {self.company.company_name}"
 
     class Meta:
-        db_table = 'company_statury'
+        db_table = 'sa_company_statury'
         unique_together = ('company','epfo','esic','gst','shop_act','labour','psara')
         ordering = ['company']
 

@@ -6,7 +6,9 @@ urlpatterns = [
     # namespace in revolution/urls.py, redirect('dashboard') was resolving
     # to whichever app's URL was registered last, sending Associates into
     # this superadmin-only dashboard and triggering a 403 on every login.
+    path('', views.base_home, name="base_home"),
     path('signin/', views.login, name="sapp_login"),
+    path('login/', views.login, name="sapp_login"),
     path('logout/', views.logout, name="sapp_logout"),
     path('dashboard/', views.dashboard, name="sapp_dashboard"),
     path('company/list/', views.list_company, name="list_company"),

@@ -67,3 +67,7 @@ build/
 PRODUCTION_READINESS_REPORT.md
 req.txt
 requirements.txt
+Aapp/migrations
+Sapp/migrations
+Capp/migrations
+Cxapp/migrations
