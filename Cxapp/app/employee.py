@@ -45,7 +45,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from revolution.secure_crypto import EncryptedCharField
 
 from Sapp.app.state_district import State, District
-from Sapp.app.bank import bank_name
+from Sapp.app import bank
 from Cxapp.app.designation import CxDesignation
 from Cxapp.app.statutory_gates import get_company_gates
 
@@ -237,8 +237,8 @@ class CxEmployeeBanking(models.Model):
     employee       = models.OneToOneField(CxEmployee, on_delete=models.CASCADE, related_name='banking')
     account_number  = EncryptedCharField(max_length=500)
     account_number_hash = models.CharField(max_length=64, unique=True, editable=False)
-    bank           = models.ForeignKey(bank_name, on_delete=models.PROTECT, related_name='cx_employee_banking',
-                                       verbose_name='Bank Name')
+    bank           = models.ForeignKey(bank.bank_name, on_delete=models.PROTECT, related_name='cx_employee_banking',
+                                       verbose_name='Bank Name', null=True, blank=True)
     bank_ifsc       = models.CharField(max_length=11)
     bank_address    = models.TextField(blank=True)
 
@@ -395,7 +395,7 @@ class CxEmployeeKYCForm(forms.Form):
 class CxEmployeeBankingForm(forms.Form):
     """Plain Form — see CxEmployeeKYCForm docstring."""
     account_number = forms.CharField(max_length=30)
-    bank           = forms.ModelChoiceField(queryset=bank_name.objects.all().order_by('name'), label='Bank Name')
+    bank           = forms.ModelChoiceField(queryset=bank.bank_name.objects.all().order_by('name'), label='Bank Name')
     bank_ifsc      = forms.CharField(max_length=11)
     bank_address   = forms.CharField(widget=forms.Textarea, required=False)
 
@@ -473,7 +473,7 @@ def _employee_create(request):
     owner_profile = request.cx_owner_profile
 
     if request.method == 'POST':
-        form = CxEmployeeForm(request.POST, request.FILES, company=owner_profile)
+        form = CxEmployeeForm(request.POST, request.FILES, company=owner_profile.company)
         if form.is_valid():
             employee = form.save(commit=False)
             employee.company = owner_profile
@@ -483,7 +483,7 @@ def _employee_create(request):
             messages.success(request, f"Employee '{employee.name}' created. Continue with remaining details.")
             return redirect('cxapp_employee_detail', employee_id=employee.employee_id)
     else:
-        form = CxEmployeeForm(company=owner_profile)
+        form = CxEmployeeForm(company=owner_profile.company)
 
     return render(request, 'Cxapp/employee/employee_form.html', {'form': form, 'is_new': True})
 

@@ -163,7 +163,7 @@ def cxapp_company_profile(request):
         messages.success(request, 'Company profile updated.')
         return redirect('cxapp_company_profile')
 
-    return render(request, 'Cxapp/company_profile.html', {
+    return render(request, 'Cxapp/company/company_profile.html', {
         'company': company,
         'locked_fields': LOCKED_COMPANY_FIELDS,
     })

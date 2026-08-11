@@ -5,12 +5,31 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{% block title %}Revolution HRMS{% endblock %}</title>
+    <link rel="icon" type="image/ico" href="{% static 'favicon.ico' %}" />
+    <link
+      rel="prefetch"
+      href="{% static 'fonts/Infinitude.ttf' %}"
+      as="font"
+      type="font/ttf"
+      crossorigin
+    />
+    <link
+      rel="prefetch"
+      href="{% static 'fonts/Ubuntu-R.ttf' %}"
+      as="font"
+      type="font/ttf"
+      crossorigin
+    />
 <style>
+  @font-face {
+    font-family: 'Ubuntu';
+    src: url('{% static "fonts/Ubuntu-R.ttf" %}') format('truetype');
+  }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{--navy:#0f2027;--green:#2a9d8f;--gold:#e9c46a;--cream:#f0f4f8;--sidebar-w:240px}
 body{font-family:'Ubuntu',system-ui,sans-serif;background:var(--cream);color:var(--navy)}
 a{color:inherit}
-
+input[type="text"], select, textarea{font-family:'Ubuntu',sans-serif}
 /* ── Sidebar ── */
 .cx-sidebar{position:fixed;top:0;left:0;width:var(--sidebar-w);height:100vh;overflow-y:auto;
   background:linear-gradient(180deg,#0f2027 0%,#16323d 100%);color:#fff;display:flex;flex-direction:column;

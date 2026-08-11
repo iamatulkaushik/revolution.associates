@@ -256,7 +256,7 @@ input[type="date"],input[type="url"],input[type="tel"],
 input[type="number"],select,textarea{
   font-family:var(--font-body);font-size:14px;color:var(--c-text);
   background:var(--c-bg);border:1.5px solid var(--c-border);
-  border-radius:var(--r-sm);padding:9px var(--sp-3);min-width:
+  border-radius:var(--r-sm);padding:9px var(--sp-3);
   transition:border-color var(--ease),box-shadow var(--ease);outline:none;
 }
 input:focus,select:focus,textarea:focus{

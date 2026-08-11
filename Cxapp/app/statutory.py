@@ -76,7 +76,7 @@ def _company_statutory(request):
     from Cxapp.app.statutory_gates import get_company_gates
     gates = get_company_gates(company)
 
-    return render(request, 'Cxapp/company_statutory.html', {
+    return render(request, 'Cxapp/company/company_statutory.html', {
         'form': form,
         'gates': gates,
     })

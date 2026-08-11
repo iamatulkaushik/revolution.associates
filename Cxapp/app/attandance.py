@@ -238,7 +238,7 @@ def _attendance_list(request):
     if year:
         records = records.filter(attandance_year=year)
 
-    return render(request, 'Cxapp/attendance/attendance_list.html', {
+    return render(request, 'Cxapp/attandance/attendance_list.html', {
         'records': records,
         'month_choices': MONTH_CHOICES,
         'year_choices': YEAR_CHOICES,
@@ -274,7 +274,7 @@ def _attendance_create(request):
     else:
         form = CxAttendanceForm(company=owner_profile)
 
-    return render(request, 'Cxapp/attendance/attendance_form.html', {
+    return render(request, 'Cxapp/attandance/attendance_form.html', {
         'form': form, 'is_new': True,
         'month_choices': MONTH_CHOICES, 'year_choices': YEAR_CHOICES,
     })
@@ -303,7 +303,7 @@ def _attendance_edit(request, attendance_id):
     else:
         form = CxAttendanceForm(instance=record, company=request.cx_owner_profile)
 
-    return render(request, 'Cxapp/attendance/attendance_form.html', {
+    return render(request, 'Cxapp/attandance/attendance_form.html', {
         'form': form, 'is_new': False, 'record': record,
         'month_choices': MONTH_CHOICES, 'year_choices': YEAR_CHOICES,
     })
@@ -318,7 +318,7 @@ def _attendance_detail(request, attendance_id):
     record = get_object_or_404(CxAttendance, attendance_id=attendance_id, company=request.cx_owner_profile)
     can_see_maternity = _can_manage_maternity(request)
 
-    return render(request, 'Cxapp/attendance/attendance_detail.html', {
+    return render(request, 'Cxapp/attandance/attendance_detail.html', {
         'record': record,
         'maternity': getattr(record, 'maternity', None) if can_see_maternity else None,
         'can_manage': _can_manage_attendance(request),
