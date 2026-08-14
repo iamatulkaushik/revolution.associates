@@ -355,3 +355,115 @@ def _labour_challan(request):
         'total_employer_contribution': total_employer_contribution,
         'total_contribution': total_employee_contribution + total_employer_contribution,
     })
+
+
+# ── Income Tax (TDS) report — printable/PDF, Owner + HR only ──────────────────
+# Cxapp has no automatic TDS calculation (unlike Aapp) — Income Tax is a
+# manually configured deduction component on the designation (component
+# name containing "Income Tax" or "TDS"), gated on the company's TAN
+# being on file. This report sums those lines per employee for a period.
+
+def _is_income_tax_line(component_name):
+    name = (component_name or '').upper()
+    return 'INCOME TAX' in name or 'TDS' in name
+
+
+def cxapp_income_tax_report(request):
+    from Cxapp.views import cx_login_required
+    return cx_login_required(_income_tax_report)(request)
+
+
+def _income_tax_report(request):
+    if not _can_manage_compliance(request):
+        messages.error(request, 'You do not have permission to view Income Tax reports.')
+        return redirect('cxapp_dashboard')
+
+    gates = get_company_gates(request.cx_company)
+    if not gates.get('income_tax'):
+        messages.error(request, 'TAN not on file — cannot generate Income Tax report.')
+        return redirect('cxapp_compliance_dashboard')
+
+    salaries, month, year = _salaries_for_period(request)
+    if not month or not year:
+        messages.error(request, 'Choose a month and year to generate the report.')
+        return redirect('cxapp_compliance_dashboard')
+
+    tax_lines = []
+    total_tax = Decimal('0.00')
+    total_gross = Decimal('0.00')
+
+    for salary in salaries:
+        line = next((l for l in salary.lines.all() if _is_income_tax_line(l.component_name)), None)
+        if not line or line.resolved_amount <= 0:
+            continue
+        gross = salary.total_allowances
+        tax_lines.append({
+            'employee_code': salary.employee_code,
+            'name': salary.employee_name,
+            'pan': getattr(getattr(salary.employee, 'kyc', None), 'pan_number', '') or '—',
+            'gross_wages': gross,
+            'tax_deducted': line.resolved_amount,
+        })
+        total_tax += line.resolved_amount
+        total_gross += gross
+
+    if not tax_lines:
+        messages.error(request, 'No Income Tax deduction lines found for that period.')
+        return redirect('cxapp_compliance_dashboard')
+
+    context = {
+        'company': request.cx_company,
+        'month_label': dict(MONTH_CHOICES)[month],
+        'year': year,
+        'tax_lines': tax_lines,
+        'total_gross': total_gross,
+        'total_tax': total_tax,
+    }
+
+    if request.GET.get('format') == 'pdf':
+        return _income_tax_report_pdf(request, context)
+
+    return render(request, 'Cxapp/processing/income_tax_report.html', context)
+
+
+def _income_tax_report_pdf(request, context):
+    from datetime import date
+    from reportlab.lib.units import mm
+    from reportlab.platypus import Paragraph, Spacer, Table, TableStyle
+    from Aapp.app.pdf_engine import build_pdf, doc_styles, INR, table_style, NAVY, STEEL, WHITE
+
+    s = doc_styles()
+    company = context['company']
+    story = [
+        Paragraph('INCOME TAX (TDS) DEDUCTION REPORT', s['Title']),
+        Paragraph(f"{context['month_label']} {context['year']}", s['Subtitle']),
+        Spacer(1, 5 * mm),
+    ]
+
+    data = [['Emp. Code', 'Name', 'PAN', 'Gross Wages', 'Tax Deducted']]
+    for line in context['tax_lines']:
+        data.append([
+            line['employee_code'], line['name'], line['pan'],
+            INR(line['gross_wages']), INR(line['tax_deducted']),
+        ])
+    data.append(['', '', 'TOTAL', INR(context['total_gross']), INR(context['total_tax'])])
+
+    ts = table_style(header_bg=NAVY)
+    ts.add('ALIGN', (3, 1), (4, -1), 'RIGHT')
+    ts.add('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold')
+    ts.add('BACKGROUND', (0, -1), (-1, -1), STEEL)
+    ts.add('TEXTCOLOR', (0, -1), (-1, -1), WHITE)
+
+    story.append(Table(data, colWidths=[70, 130, 90, 90, 90], style=ts))
+
+    doc_meta = {
+        'title': f"Income Tax Report — {context['month_label']} {context['year']}",
+        'doc_date': date.today(),
+        'ref': f"TDS/{context['month_label']}/{context['year']}",
+    }
+    pdf_bytes = build_pdf(story, company=company, doc_meta=doc_meta, **company.pdf_letterhead_kwargs())
+
+    filename = f"Income_Tax_Report_{context['month_label']}_{context['year']}.pdf"
+    response = HttpResponse(pdf_bytes, content_type='application/pdf')
+    response['Content-Disposition'] = f'inline; filename="{filename}"'
+    return response

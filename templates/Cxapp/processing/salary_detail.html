@@ -28,6 +28,7 @@
       <p class="sub">{{ salary.get_salary_month_display }} {{ salary.salary_year }} · {{ salary.employee_code }} · {{ salary.designation.designation_name }}</p>
     </div>
     <div class="actions">
+      <a href="{% url 'cxapp_salary_slip_pdf' salary.salary_id %}" target="_blank" style="margin-right:12px">Download PDF</a>
       <form method="post" action="{% url 'cxapp_salary_reprocess' salary.salary_id %}">
         {% csrf_token %}
         <button type="submit" style="background:none;border:none;color:var(--green);font-size:12.5px;font-weight:600;cursor:pointer;text-decoration:underline">Reprocess</button>

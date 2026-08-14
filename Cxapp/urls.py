@@ -25,12 +25,16 @@ from Cxapp.app.attandance import (
 )
 from Cxapp.app.process import (
     cxapp_salary_list, cxapp_salary_process, cxapp_salary_bulk_process,
-    cxapp_salary_detail, cxapp_salary_reprocess,
+    cxapp_salary_detail, cxapp_salary_reprocess, cxapp_salary_slip_pdf,
 )
 from Cxapp.app.compliance import (
     cxapp_compliance_dashboard, cxapp_epf_export, cxapp_esi_export, cxapp_labour_challan,
+    cxapp_income_tax_report,
 )
 from Cxapp.app.statutory import cxapp_company_statutory
+from Cxapp.app.employee_portal import (
+    cxapp_emp_login, cxapp_emp_logout, cxapp_emp_dashboard, cxapp_emp_salary_slip_pdf,
+)
 
 # NOTE: Cxapp/urls.py is the ROOT urlconf for the 'cxapp' host in django-hosts.
 # Bare URL names (no namespace prefix) — same pattern as Aapp/Capp.
@@ -96,10 +100,20 @@ urlpatterns = [
     path('salary/bulk-process/',           cxapp_salary_bulk_process,  name='cxapp_salary_bulk_process'),
     path('salary/<int:salary_id>/',        cxapp_salary_detail,        name='cxapp_salary_detail'),
     path('salary/<int:salary_id>/reprocess/', cxapp_salary_reprocess,  name='cxapp_salary_reprocess'),
+    path('salary/<int:salary_id>/pdf/',       cxapp_salary_slip_pdf,   name='cxapp_salary_slip_pdf'),
 
     # ── Compliance Exports — Cxapp/app/compliance.py ─────────────────────────
     path('compliance/',              cxapp_compliance_dashboard, name='cxapp_compliance_dashboard'),
     path('compliance/epf/export/',   cxapp_epf_export,           name='cxapp_epf_export'),
     path('compliance/esi/export/',   cxapp_esi_export,           name='cxapp_esi_export'),
     path('compliance/labour/challan/', cxapp_labour_challan,     name='cxapp_labour_challan'),
+    path('compliance/income-tax/',     cxapp_income_tax_report,  name='cxapp_income_tax_report'),
+
+    # ── Employee self-service portal — PAN + password login ──────────────────
+    # Cxapp/app/employee_portal.py — separate session track, own salary
+    # slips only. Not part of the Owner/Sub-user auth/middleware chain.
+    path('employee/login/',    cxapp_emp_login,          name='cxapp_emp_login'),
+    path('employee/logout/',   cxapp_emp_logout,         name='cxapp_emp_logout'),
+    path('employee/',          cxapp_emp_dashboard,      name='cxapp_emp_dashboard'),
+    path('employee/salary/<int:salary_id>/pdf/', cxapp_emp_salary_slip_pdf, name='cxapp_emp_salary_slip_pdf'),
 ]

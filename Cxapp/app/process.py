@@ -424,3 +424,26 @@ def _salary_reprocess(request, salary_id):
         salary = CxSalary.process(salary.attendance, created_by=request.user.username)
         messages.success(request, 'Salary reprocessed with current designation/attendance data.')
     return redirect('cxapp_salary_detail', salary_id=salary.salary_id)
+
+
+# ── Salary slip PDF — Owner + HR only ──────────────────────────────────────────
+
+def cxapp_salary_slip_pdf(request, salary_id):
+    from Cxapp.views import cx_login_required
+    return cx_login_required(_salary_slip_pdf)(request, salary_id)
+
+
+def _salary_slip_pdf(request, salary_id):
+    from django.http import HttpResponse
+    from Cxapp.app.salary_pdf import cx_salary_slip_pdf
+
+    if not _can_manage_payroll(request):
+        messages.error(request, 'You do not have permission to view payslips.')
+        return redirect('cxapp_dashboard')
+
+    salary = get_object_or_404(CxSalary, salary_id=salary_id, company=request.cx_owner_profile)
+    pdf_bytes = cx_salary_slip_pdf(salary)
+    filename = f'Salary_Slip_{salary.employee_code}_{salary.salary_month}_{salary.salary_year}.pdf'
+    response = HttpResponse(pdf_bytes, content_type='application/pdf')
+    response['Content-Disposition'] = f'inline; filename="{filename}"'
+    return response

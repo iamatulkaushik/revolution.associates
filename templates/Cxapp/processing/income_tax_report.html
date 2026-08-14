@@ -1,0 +1,68 @@
+{% extends 'Cxapp/_base.html' %}
+{% block title %}Income Tax Report · {{ company.company_name }}{% endblock %}
+{% block page_title %}Income Tax (TDS) Deduction Report{% endblock %}
+{% block content %}
+<style>
+.no-print{background:var(--navy);color:#fff;padding:16px 32px;display:flex;justify-content:space-between}
+.no-print a,.no-print button{color:#fff;text-decoration:none;font-size:13px;opacity:.9;background:none;border:none;cursor:pointer}
+.wrap{max-width:900px;margin:0 auto;padding:32px 24px;background:#fff}
+.print-actions{display:flex;justify-content:flex-end;gap:10px;margin-bottom:16px}
+.print-actions button,.print-actions a{padding:9px 18px;border-radius:8px;font-size:13px;font-weight:600;
+  border:1.5px solid #dde5ed;background:#fff;color:var(--navy);cursor:pointer;text-decoration:none}
+.header{text-align:center;margin-bottom:24px;border-bottom:2px solid var(--navy);padding-bottom:16px}
+.header h1{font-size:20px;text-transform:uppercase;letter-spacing:.04em}
+.header .sub{font-size:13px;color:#6b7c93;margin-top:4px}
+.meta{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:24px;font-size:13.5px}
+.meta .lbl{color:#6b7c93;font-weight:600}
+table{width:100%;border-collapse:collapse;margin-bottom:20px}
+th,td{text-align:left;padding:8px 12px;font-size:13px;border:1px solid #dde5ed}
+th{background:var(--cream);text-transform:uppercase;font-size:10.5px;color:#6b7c93}
+td.num,th.num{text-align:right}
+.totals-row td{font-weight:700;background:var(--cream)}
+@media print {
+  .cx-sidebar,.cx-topbar,.print-actions{display:none !important}
+  .cx-content{margin-left:0 !important}
+  .wrap{box-shadow:none}
+}
+</style>
+<div class="print-actions">
+  <button onclick="window.print()">Print</button>
+  <a href="?export_month={{ request.GET.export_month }}&export_year={{ request.GET.export_year }}&format=pdf">Download PDF</a>
+  <a href="{% url 'cxapp_compliance_dashboard' %}">← Back</a>
+</div>
+<div class="header">
+  <h1>Income Tax (TDS) Deduction Report</h1>
+  <p class="sub">{{ company.company_name }} — {{ month_label }} {{ year }}</p>
+</div>
+
+<div class="meta">
+  <div><span class="lbl">Company:</span> {{ company.company_name }}</div>
+  <div><span class="lbl">TAN:</span> {{ company.tan|default:"—" }}</div>
+  <div><span class="lbl">Period:</span> {{ month_label }} {{ year }}</div>
+  <div><span class="lbl">Generated:</span> <span id="gen-date"></span></div>
+</div>
+
+<table>
+  <tr>
+    <th>Emp. Code</th><th>Employee Name</th><th>PAN</th>
+    <th class="num">Gross Wages</th><th class="num">Tax Deducted</th>
+  </tr>
+  {% for line in tax_lines %}
+  <tr>
+    <td>{{ line.employee_code }}</td>
+    <td>{{ line.name }}</td>
+    <td>{{ line.pan }}</td>
+    <td class="num">₹{{ line.gross_wages }}</td>
+    <td class="num">₹{{ line.tax_deducted }}</td>
+  </tr>
+  {% endfor %}
+  <tr class="totals-row">
+    <td colspan="3">Total ({{ tax_lines|length }} employee{{ tax_lines|length|pluralize }})</td>
+    <td class="num">₹{{ total_gross }}</td>
+    <td class="num">₹{{ total_tax }}</td>
+  </tr>
+</table>
+{% endblock %}
+{% block extra_body %}
+<script>document.getElementById('gen-date').textContent = new Date().toLocaleDateString('en-IN');</script>
+{% endblock %}

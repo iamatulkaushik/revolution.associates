@@ -8,10 +8,12 @@ etc.) set in Cxapp/context_processors.py from the sub-user's role
 permissions — owner sees everything, sub-users see only what their
 role grants.
 
-Company Profile and Plan Purchase are ALWAYS shown regardless of role
-or plan status, since Cxapp/middleware.py's ALWAYS_ALLOWED_NAMES keeps
-those two reachable even after trial/plan expiry — hiding them here
-would strand an expired owner with no visible way back in.
+Company Profile and Plan Purchase are OWNER ONLY (cx_is_owner) — both
+views are gated with @owner_only in Cxapp/views.py and
+Cxapp/app/license.py. They remain in Cxapp/middleware.py
+ALWAYS_ALLOWED_NAMES so an expired OWNER can still reach them past the
+license-expiry redirect; that allowlist is unrelated to the owner-only
+role check and does not grant sub-users access.
 {% endcomment %}
 <nav class="cx-sidebar">
   <div class="cx-sidebar-brand">
@@ -50,15 +52,24 @@ would strand an expired owner with no visible way back in.
   </div>
   {% endif %}
 
+  {% if cx_is_owner %}
   <div class="cx-sidebar-section">
     <div class="cx-sidebar-label">Company</div>
     <a href="{% url 'cxapp_company_profile' %}" class="cx-nav-item">Company Profile</a>
-    {% if cx_is_owner %}<a href="{% url 'cxapp_company_statutory' %}" class="cx-nav-item">Statutory Registrations</a>{% endif %}
+    <a href="{% url 'cxapp_company_statutory' %}" class="cx-nav-item">Statutory Registrations</a>
     <a href="{% url 'cxapp_plan_purchase' %}" class="cx-nav-item">
       Plan &amp; Billing
       {% if cx_plan_expired %}<span class="cx-nav-badge">!</span>{% endif %}
     </a>
   </div>
+  {% endif %}
+
+  {% if cx_can_wages %}
+  <div class="cx-sidebar-section">
+    <div class="cx-sidebar-label">Reports</div>
+    <a href="{% url 'cxapp_income_tax_report' %}" class="cx-nav-item">Income Tax Report</a>
+  </div>
+  {% endif %}
 
   <div class="cx-sidebar-footer">
     <a href="{% url 'cxapp_logout' %}" class="cx-nav-item cx-nav-logout">Logout</a>

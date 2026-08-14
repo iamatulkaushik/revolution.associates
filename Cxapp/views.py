@@ -147,14 +147,19 @@ def cxapp_dashboard(request):
 
 
 # ── Company profile (locked fields excluded) ──────────────────────────────────
+# Owner only — sub-users (HR, Front Desk, Operator, Recruitment) may not
+# view or edit company profile. Note: this view stays in
+# Cxapp/middleware.py ALWAYS_ALLOWED_NAMES so an expired owner can still
+# reach it; owner_only() runs independently of the license-expiry check.
 
-@cx_login_required
+@owner_only
 def cxapp_company_profile(request):
     company = request.cx_company
 
-    if request.method == 'POST' and getattr(request, 'cx_sub_user', None) is None:
+    if request.method == 'POST':
         for field in ('tagline1', 'address1', 'address2', 'address3', 'pin',
-                      'phone', 'phone2', 'mobile2', 'email2', 'website'):
+                      'phone', 'phone2', 'mobile2', 'email2', 'website',
+                      'tan', 'cin'):
             if field in LOCKED_COMPANY_FIELDS:
                 continue  # never touch locked fields
             setattr(company, field, request.POST.get(field, getattr(company, field, '')))

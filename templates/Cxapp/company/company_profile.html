@@ -34,6 +34,10 @@ input[type="text"]{font-family:'Ubuntu',sans-serif}
       <input type="text" name="pin" value="{{ company.pin|default:'' }}"></div>
     <div class="fg"><label>Website</label>
       <input type="text" name="website" value="{{ company.website|default:'' }}"></div>
+    <div class="fg"><label>TAN</label>
+      <input type="text" name="tan" value="{{ company.tan|default:'' }}" maxlength="10"></div>
+    <div class="fg"><label>CIN</label>
+      <input type="text" name="cin" value="{{ company.cin|default:'' }}" maxlength="21"></div>
 
     {% if cx_is_owner %}<button type="submit" class="btn">Save Changes</button>{% endif %}
   </form>

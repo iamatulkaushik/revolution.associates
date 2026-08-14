@@ -198,9 +198,13 @@ class CxPlan(models.Model):
 # reach the purchase page. See Cxapp/middleware.py ALWAYS_ALLOWED_NAMES.
 
 def cxapp_plan_purchase(request):
-    from Cxapp.views import cx_login_required
+    # Owner only — sub-users (HR, Front Desk, Operator, Recruitment) may
+    # not view or purchase plans. Stays in Cxapp/middleware.py
+    # ALWAYS_ALLOWED_NAMES so an expired owner can still reach it;
+    # owner_only() runs independently of the license-expiry check.
+    from Cxapp.views import owner_only
 
-    @cx_login_required
+    @owner_only
     def _view(request):
         plan = getattr(request.cx_owner_profile, 'plan', None)
         employee_count = request.cx_owner_profile.employees.filter(is_deleted=False).count()

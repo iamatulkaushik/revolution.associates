@@ -179,6 +179,12 @@ class CxAttendanceForm(forms.ModelForm):
         month = cleaned.get('attandance_month')
         year = cleaned.get('attandance_year')
         if employee and month and year:
+            doj = employee.date_of_joining
+            if doj and (year, month) < (doj.year, doj.month):
+                raise forms.ValidationError(
+                    f'{employee.name} joined on {doj.strftime("%d %b %Y")} — '
+                    f'cannot record attendance before that.'
+                )
             qs = CxAttendance.objects.filter(employee=employee, attandance_month=month, attandance_year=year)
             if self.instance.pk:
                 qs = qs.exclude(pk=self.instance.pk)
@@ -338,7 +344,7 @@ def _attendance_delete(request, attendance_id):
         record.delete()
         messages.success(request, 'Attendance record deleted.')
         return redirect('cxapp_attendance_list')
-    return render(request, 'Cxapp/attendance/attendance_delete.html', {'record': record})
+    return render(request, 'Cxapp/attandance/attendance_delete.html', {'record': record})
 
 
 def cxapp_attendance_maternity_edit(request, attendance_id):

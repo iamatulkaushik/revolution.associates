@@ -47,8 +47,8 @@ BLACK  = colors.black
 MUTED  = HexColor('#6B7C93')
 
 # ── Page margins ──────────────────────────────────────────────────────────────
-LEFT_M   = 18 * mm
-RIGHT_M  = 18 * mm
+LEFT_M   = 8 * mm
+RIGHT_M  = 8 * mm
 TOP_M    = 38 * mm   # space for letterhead header
 BOTTOM_M = 24 * mm  # space for footer
 
@@ -228,18 +228,22 @@ class LetterheadCanvas:
         self.canvas = rl_canvas.Canvas(filename, pagesize=pagesize, **kwargs)
         self.company = company or {}
         self.doc_meta = doc_meta or {}
-        self._saved_page_states = []
 
     def __getattr__(self, name):
         return getattr(self.canvas, name)
 
     def showPage(self):
-        self._saved_page_states.append(dict(self.canvas.__dict__))
         self._draw_letterhead(self.canvas._pageNumber)
         self.canvas.showPage()
 
     def save(self):
-        self._draw_letterhead(self.canvas._pageNumber)  # last page
+        # NOTE: SimpleDocTemplate calls showPage() once per completed page
+        # (that draws the letterhead and does the actual page break), then
+        # calls save() once at the very end. save() must only flush the
+        # PDF — it must NOT draw the letterhead again, since showPage()
+        # already did that for the current (last) page. Drawing here too
+        # used to draw onto a fresh page that showPage() had just started,
+        # producing a spurious blank trailing page on every document.
         self.canvas.save()
 
     def _draw_letterhead(self, page_num):
@@ -248,7 +252,7 @@ class LetterheadCanvas:
 
         # ── Header bar (navy gradient simulation) ──────────────────────────────
         c.setFillColor(NAVY)
-        c.rect(0, h - 28 * mm, w, 28 * mm, fill=1, stroke=0)
+        c.rect(0, h - 24 * mm, w, 24 * mm, fill=1, stroke=0)
 
         # Logo (if supplied)
         logo = self.company.get('logo_path')
@@ -266,52 +270,53 @@ class LetterheadCanvas:
         # Company name
         c.setFillColor(WHITE)
         c.setFont(_basefont, 15)
-        c.drawString(logo_right, h - 11 * mm, self.company.get('company_name', 'Company Name'))
+        c.drawString(logo_right, h - 8 * mm, self.company.get('company_name', 'Company Name'))
 
         # Tagline
-        tagline = self.company.get('tagline1', '')
+        tagline = self.company.get('tagline', '')
         if tagline:
             c.setFont(_basefont, 8.5)
             c.setFillColor(TEAL)
-            c.drawString(logo_right, h - 17 * mm, tagline)
+            c.drawString(logo_right, h - 12 * mm, tagline)
 
         # Right side of header — contact info
         c.setFont(_basefont, 7.5)
         c.setFillColor(CREAM)
         right_x = w - RIGHT_M
         y_line = h - 9 * mm
-        for text in [
-            self.company.get('email', ''),
-            self.company.get('mobile', ''),
-            self.company.get('address1', '') or self.company.get('address2', '') or self.company.get('address3', ''),
-        ]:
+        contact_bits = [
+            ' / '.join(p for p in [self.company.get('phone', ''), self.company.get('mobile', '')] if p),
+            self.company.get('address', ''),
+            self.company.get('email', '') + ' | ' + self.company.get('website', ''),
+        ]
+        for text in contact_bits:
             if text:
                 c.drawRightString(right_x, y_line, str(text)[:55])
                 y_line -= 5 * mm
 
         # ── Coral accent stripe ─────────────────────────────────────────────────
         c.setFillColor(CORAL)
-        c.rect(0, h - 29.5 * mm, w, 1.5 * mm, fill=1, stroke=0)
+        c.rect(0, h - 24.5 * mm, w, 1.5 * mm, fill=1, stroke=0)
 
         # ── Document meta bar (below header) ───────────────────────────────────
-        doc_title = self.doc_meta.get('title', '')
-        doc_num   = self.doc_meta.get('doc_number', '')
-        doc_date  = self.doc_meta.get('doc_date', date.today())
         doc_ref   = self.doc_meta.get('ref', '')
+        doc_num   = self.doc_meta.get('doc_number', '')
+        doc_title = self.doc_meta.get('title', '')
+        doc_date  = self.doc_meta.get('doc_date', date.today())
 
-        meta_y = h - 35 * mm
+        meta_y = h - 30 * mm
+        meta_right_parts = []
         c.setFillColor(NAVY)
         c.setFont(_basefont, 11)
         c.drawString(LEFT_M, meta_y, doc_title)
 
         c.setFont(_basefont, 8.5)
         c.setFillColor(MUTED)
-        meta_right_parts = []
+        if doc_ref:
+            meta_right_parts.append(f'Ref: {doc_ref}')
         if doc_num:
             meta_right_parts.append(f'No: {doc_num}')
         meta_right_parts.append(f'Date: {doc_date}')
-        if doc_ref:
-            meta_right_parts.append(f'Ref: {doc_ref}')
         c.drawRightString(right_x, meta_y, '   |   '.join(meta_right_parts))
 
         # Light rule under meta bar
@@ -330,6 +335,7 @@ class LetterheadCanvas:
         if self.company.get('pan'):     reg_parts.append(f'PAN: {self.company["pan"]}')
         if self.company.get('gstin'):   reg_parts.append(f'GSTIN: {self.company["gstin"]}')
         if self.company.get('cin'):     reg_parts.append(f'CIN: {self.company["cin"]}')
+        if self.company.get('tan'):     reg_parts.append(f'TAN: {self.company["tan"]}')
         if self.company.get('registration_no'):
             reg_parts.append(f'Reg: {self.company["registration_no"]}')
 
@@ -388,7 +394,8 @@ class PreprintedLetterheadCanvas:
         self.canvas.showPage()
 
     def save(self):
-        self._stamp_page_number(self.canvas._pageNumber)
+        # See LetterheadCanvas.save() note above — do not stamp again
+        # here, showPage() already stamped the final page.
         self.canvas.save()
 
     def _stamp_page_number(self, page_num):
@@ -584,10 +591,13 @@ def _model_to_dict(company):
         'tagline':         g('tagline1') or g('company_tagline'),
         'address':         f"{g('address1') or ''} {g('address2') or ''} {g('address3') or ''} {g('district_id') or ''}-{g('pin') or ''},{g('state_id') or ''}".strip(', '),
         'mobile':          g('mobile') or g('phone'),
+        'phone':           g('phone') or g('phone2'),
         'email':           g('email1') or g('email'),
+        'website':         g('website'),
         'pan':             g('pan'),
         'gstin':           g('gstin') or g('gst_no'),
         'cin':             g('cin'),
+        'tan':             g('tan'),
         'registration_no': g('registration_number') or g('factory_license_no'),
         'logo_path':       g('logo_path') or g('logo'),
     }
