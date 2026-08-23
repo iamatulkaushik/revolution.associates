@@ -17,6 +17,7 @@ from Cxapp.app.employee import (
     cxapp_employee_statutory_edit, cxapp_employee_kyc_edit,
     cxapp_employee_banking_edit, cxapp_employee_employment_edit,
     cxapp_employee_nominee_add, cxapp_employee_nominee_delete,
+    cxapp_employee_set_password,
 )
 from Cxapp.app.license import cxapp_plan_purchase
 from Cxapp.app.attandance import (
@@ -82,6 +83,7 @@ urlpatterns = [
     path('employees/<int:employee_id>/employment/',       cxapp_employee_employment_edit,   name='cxapp_employee_employment_edit'),
     path('employees/<int:employee_id>/nominees/new/',     cxapp_employee_nominee_add,       name='cxapp_employee_nominee_add'),
     path('employees/nominees/<int:nominee_id>/delete/',   cxapp_employee_nominee_delete,    name='cxapp_employee_nominee_delete'),
+    path('employees/<int:employee_id>/set-password/',     cxapp_employee_set_password,      name='cxapp_employee_set_password'),
 
     # ── License / Plan — Cxapp/app/license.py ────────────────────────────────
     path('plan/', cxapp_plan_purchase, name='cxapp_plan_purchase'),

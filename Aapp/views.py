@@ -134,7 +134,15 @@ def associate_profile(request):
 
 @login_required
 def create_branch(request):
-    companies = Company.objects.all()
+    user = request.user
+    if hasattr(user, 'associate_profile'):
+        companies = user.associate_profile.companyid.all()
+    elif hasattr(user, 'subuser_profile'):
+        companies = user.subuser_profile.companyid.all()
+    elif user.is_superuser:
+        companies = Company.objects.all()
+    else:
+        companies = Company.objects.none()
     selected_company = None
     branches = []
 
@@ -211,7 +219,17 @@ def branch_details(request):
 
 @login_required
 def get_user_companies(request):
-    companies = Company.objects.filter(shut_date__isnull=True).values('company_id', 'company_name')
+    user = request.user
+    if hasattr(user, 'associate_profile'):
+        companies = user.associate_profile.companyid.filter(shut_date__isnull=True)
+    elif hasattr(user, 'subuser_profile'):
+        companies = user.subuser_profile.companyid.filter(shut_date__isnull=True)
+    elif user.is_superuser:
+        companies = Company.objects.filter(shut_date__isnull=True)
+    else:
+        companies = Company.objects.none()
+
+    companies = companies.values('company_id', 'company_name')
     selected_id = request.session.get('selected_company_id')
     return JsonResponse({
         'companies': list(companies),

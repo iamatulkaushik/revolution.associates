@@ -76,6 +76,17 @@
 
     {% if can_manage %}
     <div class="card">
+      <h3>Employee Login</h3>
+      <div class="field-row">
+        <span class="lbl">Status</span>
+        <span>{% if has_login %}Login active{% else %}No login set{% endif %}</span>
+      </div>
+      <a class="btn" href="{% url 'cxapp_employee_set_password' employee.employee_id %}">
+        {% if has_login %}Reset Password{% else %}Generate Password{% endif %}
+      </a>
+    </div>
+
+    <div class="card">
       <h3>KYC <a href="{% url 'cxapp_employee_kyc_edit' employee.employee_id %}">{% if kyc %}Edit{% else %}Add{% endif %}</a></h3>
       {% if kyc %}
         <div class="field-row"><span class="lbl">Aadhaar</span><span>•••• •••• {{ kyc.aadhar_number|slice:"-4:" }}</span></div>

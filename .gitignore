@@ -44,6 +44,7 @@ env/
 ENV/
 .claude/
 .amazonq/
+build.sh
 
 # IDE / editor
 .vscode/

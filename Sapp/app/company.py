@@ -371,7 +371,15 @@ def create_company_associate(request):
 
 @login_required
 def list_company_associate(request):
-    companies = Company.objects.filter(shut_date__isnull=True)
+    user = request.user
+    if hasattr(user, 'associate_profile'):
+        companies = user.associate_profile.companyid.filter(shut_date__isnull=True)
+    elif hasattr(user, 'subuser_profile'):
+        companies = user.subuser_profile.companyid.filter(shut_date__isnull=True)
+    elif user.is_superuser:
+        companies = Company.objects.filter(shut_date__isnull=True)
+    else:
+        companies = Company.objects.none()
     return render(request, 'Aapp/company/list.html', {'companies': companies})
 
 @login_required

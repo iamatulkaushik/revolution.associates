@@ -78,15 +78,18 @@ class DistrictForm(ModelForm):
             district_instance.save()
         return district_instance
 
-    @receiver(post_migrate)
-    def create_default_states_and_districts(sender, app_config, **kwargs):
-        try:
-            StateModel = app_config.get_model('State')
-            DistrictModel = app_config.get_model('District')
-        except LookupError:
-            return
 
-        states_and_districts = {
+@receiver(post_migrate)
+def create_default_states_and_districts(sender, app_config, **kwargs):
+    if app_config.name != 'Sapp':
+        return
+    try:
+        StateModel = app_config.get_model('State')
+        DistrictModel = app_config.get_model('District')
+    except LookupError:
+        return
+
+    states_and_districts = {
             "andaman and nicobar islands": ["nicobar", "north and middle andaman", "south andaman"],
             "andhra pradesh": ["anantapur", "chittoor", "east godavari", "guntur", "krishna", "kurnool", "nellore", "prakasam", "srikakulam", "visakhapatnam", "vizianagaram", "west godavari"],
             "arunachal pradesh": ["anjaw", "changlang", "dibang valley", "east kameng", "east siang", "kurung kumey", "lepa rada", "lohit", "longding", "lower dibang valley", "lower subansiri", "namsai", "papum pare", "tawang", "tirap", "upper siang", "upper subansiri", "west kameng", "west siang"],
@@ -123,9 +126,9 @@ class DistrictForm(ModelForm):
             "uttar pradesh": ["agra", "aligarh", "ambedkar nagar", "amethi", "amroha", "aonla", "auraiya", "azamgarh", "baghpat", "bahraich", "ballia", "balrampur", "banda", "barabanki", "bareilly", "basti", "bhadohi", "bijnor", "bulandshahr", "chandauli", "chitrakoot", "deoria", "etah", "etawah", "faizabad", "farrukhabad", "fatehpur", "fikrabad", "gautam buddha nagar", "ghaziabad", "ghazipur", "gonda", "gorakhpur", "hamirpur", "hardoi", "hathras", "jalaun", "jaunpur", "jhansi", "kanpur dehat", "kanpur nagar", "kanshiram nagar", "kaushambi", "kheri", "lucknow", "maharajganj", "mahoba", "mainpuri", "mathura", "mau", "meerut", "mirzapur", "moradabad", "muzaffarnagar", "pilibhit", "pratapgarh", "rae bareli", "ramabai nagar", "rampur", "saharanpur", "sambhal", "shahjahanpur", "shamli", "siddharthnagar", "sitapur", "sonbhadra", "sultanpur", "unnao"],
             "uttarakhand": ["almora", "bageshwar", "chamoli", "champawat", "dehradun", "haridwar", "nainital", "pauri garhwal", "pitthoragarh", "rudraprayag", "tehri garhwal", "udham singh nagar", "uttarkashi"],
             "west bengal": ["alipurduar", "bankura", "basirhat", "birbhum", "cooch behar", "dakshin dinajpur", "darjeeling", "hooghly", "howrah", "jalpaiguri", "jhargram", "kalimpong", "kolkata", "malda", "murshidabad", "nadia", "north 24 parganas", "paschim medinipur", "purba medinipur", "purulia", "south 24 parganas", "uttar dinajpur"],
-                    }
+    }
 
-        for state_name, districts in states_and_districts.items():
-            state_obj, created = StateModel.objects.get_or_create(name=state_name)
-            for district_name in districts:
-                DistrictModel.objects.get_or_create(state=state_obj, name=district_name)
+    for state_name, districts in states_and_districts.items():
+        state_obj, created = StateModel.objects.get_or_create(name=state_name)
+        for district_name in districts:
+            DistrictModel.objects.get_or_create(state=state_obj, name=district_name)

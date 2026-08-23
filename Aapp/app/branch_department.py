@@ -74,7 +74,15 @@ class department_form(forms.ModelForm):
 
 @login_required
 def create_branch(request):
-    companies = Company.objects.all()
+    user = request.user
+    if hasattr(user, 'associate_profile'):
+        companies = user.associate_profile.companyid.all()
+    elif hasattr(user, 'subuser_profile'):
+        companies = user.subuser_profile.companyid.all()
+    elif user.is_superuser:
+        companies = Company.objects.all()
+    else:
+        companies = Company.objects.none()
     if request.method == 'POST':
         form = branch_form(request.POST)
         company_id = request.POST.get('companyid')

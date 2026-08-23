@@ -513,8 +513,47 @@ def _employee_detail(request, employee_id):
         'gates': employee.statutory_gates(),
         'deduction_eligibility': employee.statutory.deduction_eligibility() if hasattr(employee, 'statutory') else None,
         'can_manage': is_sensitive_allowed,
+        'has_login': hasattr(employee, 'auth'),
     }
     return render(request, 'Cxapp/employee/employee_detail.html', context)
+
+
+def cxapp_employee_set_password(request, employee_id):
+    from Cxapp.views import cx_login_required
+    return cx_login_required(_employee_set_password)(request, employee_id)
+
+
+def _employee_set_password(request, employee_id):
+    """
+    Owner + HR only — sets/resets the employee's login password
+    (PAN + password login, see Cxapp/app/employee_portal.py). Password
+    is generated here and shown once; it is never stored or displayed
+    again after this response.
+    """
+    if not _can_manage_employees(request):
+        messages.error(request, 'You do not have permission to manage employee logins.')
+        return redirect('cxapp_employee_detail', employee_id=employee_id)
+
+    from Cxapp.app.employee_portal import CxEmployeeAuth
+    import secrets, string
+
+    employee = get_object_or_404(CxEmployee, employee_id=employee_id, company=request.cx_owner_profile)
+
+    if request.method == 'POST':
+        alphabet = string.ascii_uppercase + string.ascii_lowercase + string.digits
+        raw_password = ''.join(secrets.choice(alphabet) for _ in range(10))
+
+        auth, _ = CxEmployeeAuth.objects.get_or_create(employee=employee)
+        auth.set_password(raw_password)
+        auth.is_active = True
+        auth.save()
+
+        return render(request, 'Cxapp/employee/employee_password_generated.html', {
+            'employee': employee,
+            'raw_password': raw_password,
+        })
+
+    return render(request, 'Cxapp/employee/employee_password_confirm.html', {'employee': employee})
 
 
 def _section_edit(request, employee_id, form_cls, model_cls, template, related_name):
