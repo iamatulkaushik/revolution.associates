@@ -1,0 +1,35 @@
+{% extends 'Cxapp/_base.html' %}
+{% block title %}Expense Claims{% endblock %}
+{% block page_title %}Expense Claims{% endblock %}
+{% block content %}
+<div class="wrap" style="max-width:960px;margin:0 auto;padding:32px 24px">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+    <h2>Expense Claims</h2>
+    <a href="{% url 'cxapp_create_expense_claim' %}" class="btn" style="padding:10px 18px;background:#2a9d8f;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">Submit Claim</a>
+</div>
+<table style="width:100%;border-collapse:collapse;background:#fff">
+    <tr><th>Emp Code</th><th>Name</th><th>Category</th><th>Amount</th><th>Date</th><th>Exempt</th><th>Status</th><th></th></tr>
+    {% for c in claims %}
+    <tr>
+        <td>{{ c.employee.employee_code }}</td>
+        <td>{{ c.employee.name }}</td>
+        <td>{{ c.get_category_display }}</td>
+        <td>Rs. {{ c.amount }}</td>
+        <td>{{ c.expense_date }}</td>
+        <td>{% if c.is_tax_exempt %}Yes{% else %}No{% endif %}</td>
+        <td>{{ c.get_status_display }}</td>
+        <td>
+            {% if c.status == 'pending' %}
+            <a href="{% url 'cxapp_approve_expense_claim' c.expense_id %}">Approve</a> |
+            <a href="{% url 'cxapp_reject_expense_claim' c.expense_id %}">Reject</a>
+            {% elif c.bill_file %}
+            <a href="{{ c.bill_file.url }}">View Bill</a>
+            {% endif %}
+        </td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="8">No expense claims submitted yet.</td></tr>
+    {% endfor %}
+</table>
+</div>
+{% endblock %}

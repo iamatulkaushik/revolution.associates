@@ -1,0 +1,54 @@
+{% extends 'Aapp/base.html' %}
+{% block title %}FnF Settlement Detail{% endblock %}
+{% block content %}
+<div class="main-content">
+<h2>Full &amp; Final Settlement — {{ settlement.employee.name }}</h2>
+
+{% if messages %}
+{% for message in messages %}
+<div class="{% if message.tags == 'error' %}error{% else %}success{% endif %}">{{ message }}</div>
+{% endfor %}
+{% endif %}
+
+<table class="data-table">
+    <tr><td><strong>Last Working Day</strong></td><td>{{ settlement.last_working_day }}</td></tr>
+    <tr><td><strong>Status</strong></td><td>{{ settlement.get_status_display }}</td></tr>
+</table>
+
+<h3>Earnings</h3>
+<table class="data-table">
+    <tr><td>Pending Salary</td><td>Rs. {{ settlement.pending_salary }}</td></tr>
+    <tr><td>Leave Encashment ({{ settlement.leave_encashment_days }} days)</td><td>Rs. {{ settlement.leave_encashment_amount }}</td></tr>
+    <tr><td>Notice Pay / Recovery</td><td>Rs. {{ settlement.notice_pay_recovery }}</td></tr>
+    <tr><td>Gratuity</td><td>Rs. {{ settlement.gratuity_amount }}</td></tr>
+    <tr><td><strong>Total Earnings</strong></td><td><strong>Rs. {{ settlement.total_earnings }}</strong></td></tr>
+</table>
+
+<h3>Recoveries</h3>
+<table class="data-table">
+    <tr><td>Loan Outstanding</td><td>Rs. {{ settlement.loan_outstanding_recovery }}</td></tr>
+    <tr><td>Advance Outstanding</td><td>Rs. {{ settlement.advance_outstanding_recovery }}</td></tr>
+    <tr><td>Asset Recovery</td><td>Rs. {{ settlement.asset_recovery_amount }}</td></tr>
+    <tr><td>Other Deductions</td><td>Rs. {{ settlement.other_deductions }}</td></tr>
+    <tr><td><strong>Total Recoveries</strong></td><td><strong>Rs. {{ settlement.total_recoveries }}</strong></td></tr>
+</table>
+
+<h3>Net Settlement Amount: Rs. {{ settlement.net_settlement_amount }}</h3>
+
+<p>
+    <a href="{{ download_url }}" class="button">Download Settlement PDF</a>
+    {% if settlement.status == 'draft' %}
+        <a href="{% url 'finalize_fnf_settlement' settlement.settlement_id %}" class="button">Finalize</a>
+    {% endif %}
+</p>
+
+<h3>Certificates</h3>
+<p>
+    <a href="{{ cert_urls.experience }}" class="button">Experience Certificate</a>
+    <a href="{{ cert_urls.last_pay }}" class="button">Last Pay Certificate</a>
+    <a href="{{ cert_urls.character }}" class="button">Character Certificate</a>
+</p>
+
+<p><a href="{% url 'list_fnf_settlements' %}" class="button">Back to Settlements</a></p>
+</div>
+{% endblock %}

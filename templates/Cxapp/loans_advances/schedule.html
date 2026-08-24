@@ -1,0 +1,14 @@
+{% extends 'Cxapp/_base.html' %}
+{% block title %}{{ record_type }} Schedule{% endblock %}
+{% block page_title %}{{ record_type }} Schedule{% endblock %}
+{% block content %}
+<div class="wrap" style="max-width:700px;margin:0 auto;padding:32px 24px">
+<h3>{{ loan.employee.name }} — Rs. {{ loan.total_payable }} total payable</h3>
+<table style="width:100%;border-collapse:collapse;background:#fff">
+    <tr><th>Instalment</th><th>Month</th><th>Year</th><th>Amount</th></tr>
+    {% for row in schedule %}
+    <tr><td>{{ row.instalment_no }}</td><td>{{ row.month }}</td><td>{{ row.year }}</td><td>Rs. {{ row.amount }}</td></tr>
+    {% endfor %}
+</table>
+</div>
+{% endblock %}

@@ -1,0 +1,26 @@
+{% extends 'Cxapp/_base.html' %}
+{% block title %}FnF Settlements · {{ cx_company.company_name }}{% endblock %}
+{% block page_title %}Full & Final Settlements{% endblock %}
+{% block content %}
+<div class="wrap" style="max-width:960px;margin:0 auto;padding:32px 24px">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+    <h2>Full &amp; Final Settlements</h2>
+    <a href="{% url 'cxapp_create_fnf' %}" class="btn" style="padding:10px 18px;background:#2a9d8f;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">Initiate Settlement</a>
+</div>
+<table style="width:100%;border-collapse:collapse;background:#fff">
+    <tr><th>Emp Code</th><th>Name</th><th>Last Working Day</th><th>Net Amount</th><th>Status</th><th></th></tr>
+    {% for s in settlements %}
+    <tr>
+        <td>{{ s.employee.employee_code }}</td>
+        <td>{{ s.employee.name }}</td>
+        <td>{{ s.last_working_day }}</td>
+        <td>Rs. {{ s.net_settlement_amount }}</td>
+        <td>{{ s.get_status_display }}</td>
+        <td><a href="{% url 'cxapp_view_fnf' s.settlement_id %}">View</a></td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="6">No settlements initiated yet.</td></tr>
+    {% endfor %}
+</table>
+</div>
+{% endblock %}

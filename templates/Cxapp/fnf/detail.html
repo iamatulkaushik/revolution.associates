@@ -1,0 +1,49 @@
+{% extends 'Cxapp/_base.html' %}
+{% block title %}FnF Settlement Detail{% endblock %}
+{% block page_title %}Settlement — {{ settlement.employee.name }}{% endblock %}
+{% block content %}
+<div class="wrap" style="max-width:700px;margin:0 auto;padding:32px 24px">
+{% if messages %}{% for message in messages %}<div>{{ message }}</div>{% endfor %}{% endif %}
+
+<table style="width:100%;border-collapse:collapse;background:#fff">
+    <tr><td><strong>Last Working Day</strong></td><td>{{ settlement.last_working_day }}</td></tr>
+    <tr><td><strong>Status</strong></td><td>{{ settlement.get_status_display }}</td></tr>
+</table>
+
+<h3>Earnings</h3>
+<table style="width:100%;border-collapse:collapse;background:#fff">
+    <tr><td>Pending Salary</td><td>Rs. {{ settlement.pending_salary }}</td></tr>
+    <tr><td>Leave Encashment ({{ settlement.leave_encashment_days }} days)</td><td>Rs. {{ settlement.leave_encashment_amount }}</td></tr>
+    <tr><td>Notice Pay/Recovery</td><td>Rs. {{ settlement.notice_pay_recovery }}</td></tr>
+    <tr><td>Gratuity</td><td>Rs. {{ settlement.gratuity_amount }}</td></tr>
+    <tr><td><strong>Total Earnings</strong></td><td><strong>Rs. {{ settlement.total_earnings }}</strong></td></tr>
+</table>
+
+<h3>Recoveries</h3>
+<table style="width:100%;border-collapse:collapse;background:#fff">
+    <tr><td>Loan Outstanding</td><td>Rs. {{ settlement.loan_outstanding_recovery }}</td></tr>
+    <tr><td>Advance Outstanding</td><td>Rs. {{ settlement.advance_outstanding_recovery }}</td></tr>
+    <tr><td>Asset Recovery</td><td>Rs. {{ settlement.asset_recovery_amount }}</td></tr>
+    <tr><td>Other Deductions</td><td>Rs. {{ settlement.other_deductions }}</td></tr>
+    <tr><td><strong>Total Recoveries</strong></td><td><strong>Rs. {{ settlement.total_recoveries }}</strong></td></tr>
+</table>
+
+<h3>Net Settlement Amount: Rs. {{ settlement.net_settlement_amount }}</h3>
+
+<p>
+    <a href="{% url 'cxapp_download_fnf' settlement.settlement_id %}" class="btn">Download PDF</a>
+    {% if settlement.status == 'draft' %}
+        <a href="{% url 'cxapp_finalize_fnf' settlement.settlement_id %}" class="btn">Finalize</a>
+    {% endif %}
+</p>
+
+<h3>Certificates</h3>
+<p>
+    <a href="{% url 'cxapp_download_fnf_certificate' settlement.settlement_id 'experience' %}">Experience Certificate</a> |
+    <a href="{% url 'cxapp_download_fnf_certificate' settlement.settlement_id 'last_pay' %}">Last Pay Certificate</a> |
+    <a href="{% url 'cxapp_download_fnf_certificate' settlement.settlement_id 'character' %}">Character Certificate</a>
+</p>
+
+<p><a href="{% url 'cxapp_list_fnf' %}">Back to Settlements</a></p>
+</div>
+{% endblock %}

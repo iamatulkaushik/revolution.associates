@@ -1,0 +1,24 @@
+{% extends 'Aapp/base.html' %}
+{% block title %}Daily Attendance{% endblock %}
+{% block content %}
+<div class="main-content">
+<h2>Daily Attendance (Biometric) — {{ month }}/{{ year }}</h2>
+<p><a href="{{ download_url }}" class="button">Download PDF Sheet</a></p>
+<table class="data-table">
+    <tr><th>Emp Code</th><th>Name</th><th>Date</th><th>First In</th><th>Last Out</th><th>Late (min)</th><th>Early (min)</th><th>OT (hrs)</th><th>LOP</th></tr>
+    {% for r in rows %}
+    <tr>
+        <td>{{ r.employee.employeecode }}</td>
+        <td>{{ r.employee.name }}</td>
+        <td>{{ r.attendance_date }}</td>
+        <td>{{ r.first_in|default:"-" }}</td>
+        <td>{{ r.last_out|default:"-" }}</td>
+        <td>{{ r.late_minutes }}</td>
+        <td>{{ r.early_leaving_minutes }}</td>
+        <td>{{ r.overtime_hours }}</td>
+        <td>{% if r.is_lop %}Yes{% else %}-{% endif %}</td>
+    </tr>
+    {% endfor %}
+</table>
+</div>
+{% endblock %}

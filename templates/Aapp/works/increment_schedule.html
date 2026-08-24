@@ -1,0 +1,23 @@
+{% extends 'Aapp/base.html' %}
+{% block title %}Increment Schedule{% endblock %}
+{% block content %}
+<div class="main-content">
+<h2>Increment Order — {{ increment.employee.name }}</h2>
+
+<table class="data-table">
+    <tr><td><strong>Effective From</strong></td><td>{{ increment.effective_from_month }}/{{ increment.effective_from_year }}</td></tr>
+    <tr><td><strong>Old Basic Pay</strong></td><td>Rs. {{ increment.old_basicpay }}</td></tr>
+    <tr><td><strong>New Basic Pay</strong></td><td>Rs. {{ increment.new_basicpay }}</td></tr>
+    <tr><td><strong>Increase</strong></td><td>Rs. {{ increment.basic_increase }} ({{ increment.increase_percent }}%)</td></tr>
+    <tr><td><strong>Old HRA</strong></td><td>Rs. {{ increment.old_hra }}</td></tr>
+    <tr><td><strong>New HRA</strong></td><td>Rs. {{ increment.new_hra }}</td></tr>
+    <tr><td><strong>Reason</strong></td><td>{{ increment.reason }}</td></tr>
+    <tr><td><strong>Status</strong></td><td>{{ increment.get_status_display }}</td></tr>
+</table>
+
+<p>
+    <a href="{{ download_url }}" class="button">Download PDF</a>
+    <a href="{% url 'list_increments' %}" class="button">Back to Increments</a>
+</p>
+</div>
+{% endblock %}

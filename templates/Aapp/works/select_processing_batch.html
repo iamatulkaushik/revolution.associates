@@ -1,0 +1,22 @@
+{% extends 'Aapp/base.html' %}
+{% block title %}Select Salary Batch{% endblock %}
+{% block content %}
+<div class="main-content">
+<h2>Select Processed Salary Batch — {{ company.company_name }}</h2>
+
+{% if messages %}{% for message in messages %}<div class="{% if message.tags == 'error' %}error{% else %}success{% endif %}">{{ message }}</div>{% endfor %}{% endif %}
+
+<table class="data-table">
+    <tr><th>Month/Year</th><th>Status</th><th>Action</th></tr>
+    {% for b in batches %}
+    <tr>
+        <td>{{ b.month }}/{{ b.year }}</td>
+        <td>{{ b.status }}</td>
+        <td><a href="{% url 'create_bank_batch' b.processing_id %}" class="button">Generate Bank File</a></td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="3">No processed salary batches found.</td></tr>
+    {% endfor %}
+</table>
+</div>
+{% endblock %}

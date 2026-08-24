@@ -1,0 +1,19 @@
+{% extends 'Cxapp/_base.html' %}
+{% block title %}Arrear Detail{% endblock %}
+{% block page_title %}Arrear — {{ arrear.employee.name }}{% endblock %}
+{% block content %}
+<div class="wrap" style="max-width:600px;margin:0 auto;padding:32px 24px">
+<table style="width:100%;border-collapse:collapse;background:#fff">
+    <tr><td><strong>Arrear Period</strong></td><td>{{ arrear.arrear_month }}/{{ arrear.arrear_year }}</td></tr>
+    <tr><td><strong>Payout Month</strong></td><td>{{ arrear.payout_month }}/{{ arrear.payout_year }}</td></tr>
+    <tr><td><strong>Gross Shortfall</strong></td><td>Rs. {{ arrear.gross_shortfall }}</td></tr>
+</table>
+<h3>Statutory Recompute</h3>
+<table style="width:100%;border-collapse:collapse;background:#fff">
+    <tr><td>EPF Recompute</td><td>Rs. {{ arrear.epf_recompute }}</td></tr>
+    <tr><td>ESI Recompute</td><td>Rs. {{ arrear.esi_recompute }}</td></tr>
+    <tr><td><strong>Net Arrear Payable</strong></td><td><strong>Rs. {{ arrear.net_arrear_payable }}</strong></td></tr>
+</table>
+<p><a href="{% url 'cxapp_list_arrears' %}">Back to Arrears</a></p>
+</div>
+{% endblock %}

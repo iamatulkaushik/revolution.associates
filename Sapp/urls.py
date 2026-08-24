@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from Sapp.app.audit_trail import audit_log_list, audit_log_detail
 urlpatterns = [
     # Renamed to sapp_* — 'login'/'logout'/'dashboard' collided with the
     # same names in Aapp.urls. Since both apps are include()'d without a
@@ -50,4 +51,8 @@ urlpatterns = [
     path('license/list/', views.list_licenses, name="list_licenses"),
     path('license/alter/<int:license_id>/', views.alter_license, name="alter_license"),
     path('license/revoke-suspend/<int:license_id>/', views.revoke_suspend_license, name="revoke_suspend_license"),
+
+    # Audit Trail (Sapp-only)
+    path('audit/', audit_log_list, name="audit_log_list"),
+    path('audit/<int:log_id>/', audit_log_detail, name="audit_log_detail"),
 ]

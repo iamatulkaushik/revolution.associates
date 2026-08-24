@@ -134,6 +134,8 @@ class company_statury(models.Model):
     labour = models.CharField(max_length=15, null=True, blank=True)
     labour_from = models.DateField(null=True, blank=True)
     labour_to = models.DateField(null=True, blank=True)
+    pt_number = models.CharField(max_length=15, null=True, blank=True)
+    pt_date = models.DateField(null=True, blank=True)
     psara = models.CharField(max_length=15, null=True, blank=True)
     psara_from = models.DateField(null=True, blank=True)
     psara_to = models.DateField(null=True, blank=True)

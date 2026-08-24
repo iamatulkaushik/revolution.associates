@@ -91,6 +91,37 @@ STANDARD_COMPLIANCE_CALENDAR = [
 ]
 
 
+def seed_pt_compliance_item(company, state, year):
+    """
+    PT return frequency and form vary by state — unlike
+    STANDARD_COMPLIANCE_CALENDAR (Haryana-fixed), so this is a separate
+    opt-in helper called once a company's PT state is known, not part
+    of the fixed seed list. Monthly PT challan is the common pattern
+    across most PT-levying states; call once per company per year.
+    Idempotent via get_or_create on (company, act_name, period_covered).
+    """
+    from datetime import date
+    import calendar as _cal
+
+    created = 0
+    for month in range(1, 13):
+        last_day = _cal.monthrange(year, month)[1]
+        _, was_created = StatutoryReturnTracker.objects.get_or_create(
+            company=company,
+            act_name=f"{state.name.title()} Professional Tax Act",
+            form_number='PT Challan',
+            period_covered=f"{_cal.month_abbr[month]} {year}",
+            defaults={
+                'return_description': 'Monthly Professional Tax Payment',
+                'frequency': 'monthly',
+                'due_date': date(year, month, min(last_day, 20)),
+            },
+        )
+        if was_created:
+            created += 1
+    return created
+
+
 # ── Form ─────────────────────────────────────────────────────────────────────
 
 class StatutoryReturnTrackerForm(forms.ModelForm):

@@ -130,8 +130,13 @@ class CxSalary(models.Model):
         if attendance.working_day and expected_days > 0:
             proration = min(Decimal('1.00'), Decimal(attendance.working_day) / expected_days)
 
-        basic_pay = designation.basic_pay or Decimal('0.00')
-        da = designation.da or Decimal('0.00')
+        # Increment override (employee-level) takes priority over the
+        # shared designation pay scale; falls back to designation if no
+        # active increment applies for this month.
+        from Cxapp.app.increment import get_effective_basic_da
+        basic_pay, da = get_effective_basic_da(
+            employee, designation, attendance.attandance_month, attendance.attandance_year
+        )
 
         prorated_basic = _q(basic_pay * proration)
         prorated_da = _q(da * proration)
@@ -200,7 +205,61 @@ class CxSalary(models.Model):
                     'resolved_amount': amount, 'is_prorated': False,
                 })
 
+        # Overtime pay — from biometric daily attendance aggregation.
+        # Zero if no biometric device/shift set up for this employee
+        # (get_overtime_hours_for_month returns 0 in that case).
+        from Cxapp.app.biometric import get_overtime_hours_for_month, _calculate_overtime
+        ot_hours = get_overtime_hours_for_month(
+            employee, attendance.attandance_month, attendance.attandance_year
+        )
+        if ot_hours > 0:
+            ot_amount = _calculate_overtime(basic_pay, ot_hours)
+            total_allowances += ot_amount
+            lines.append({
+                'component_name': 'Overtime Pay', 'component_type': CxSalaryLine.TYPE_ALLOWANCE,
+                'resolved_amount': ot_amount, 'is_prorated': False,
+            })
+
+        # Loans & Advances — auto-deduction from the amortization
+        # schedule, same as Aapp's salary_processing.py. Added after
+        # statutory deductions so both appear as distinct line items.
+        from Cxapp.app.loans_advances import (
+            get_total_loan_deduction_for_month, get_total_advance_deduction_for_month
+        )
+        loan_ded = get_total_loan_deduction_for_month(
+            employee, attendance.attandance_month, attendance.attandance_year
+        )
+        advance_ded = get_total_advance_deduction_for_month(
+            employee, attendance.attandance_month, attendance.attandance_year
+        )
+        if loan_ded > 0:
+            total_deductions += loan_ded
+            lines.append({
+                'component_name': 'Loan Recovery', 'component_type': CxSalaryLine.TYPE_DEDUCTION,
+                'resolved_amount': loan_ded, 'is_prorated': False,
+            })
+        if advance_ded > 0:
+            total_deductions += advance_ded
+            lines.append({
+                'component_name': 'Advance Recovery', 'component_type': CxSalaryLine.TYPE_DEDUCTION,
+                'resolved_amount': advance_ded, 'is_prorated': False,
+            })
+
         total_amount = total_allowances - total_deductions
+
+        # Tax-exempt approved expense reimbursements — added after
+        # total_deductions since they bypass the EPF/ESI wage base
+        # entirely, same treatment as Aapp's salary_processing.py.
+        from Cxapp.app.expense_management import get_approved_reimbursement_for_month
+        reimbursement = get_approved_reimbursement_for_month(
+            employee, attendance.attandance_month, attendance.attandance_year
+        )
+        if reimbursement > 0:
+            total_amount += reimbursement
+            lines.append({
+                'component_name': 'Expense Reimbursement', 'component_type': CxSalaryLine.TYPE_ALLOWANCE,
+                'resolved_amount': reimbursement, 'is_prorated': False,
+            })
 
         with transaction.atomic():
             existing = cls.objects.filter(attendance=attendance).first()

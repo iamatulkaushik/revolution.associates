@@ -33,6 +33,16 @@ from Aapp.app.wage_compliance import MinimumWagesAnnualReturn, PaymentOfWagesAnn
 from Aapp.app.epf_esi import EpfNomination, EpfMonthlyEcr, EsiFamilyMember, EsiContributionReturn
 from Aapp.app.labour_welfare import LabourWelfareFundContribution
 from Aapp.app.compliance_tracker import StatutoryReturnTracker
+from Aapp.app.loans_advances import Loan, Advance
+from Aapp.app.increment import Increment
+from Aapp.app.arrear import Arrear
+from Aapp.app.fnf_settlement import FnFSettlement
+from Aapp.app.biometric_device import BiometricDevice, EmployeeDeviceMapping
+from Aapp.app.shift import Shift, EmployeeShiftAssignment
+from Aapp.app.punch_log import DailyAttendance
+from Aapp.app.banking import BankPaymentBatch
+from Aapp.app.asset_management import Asset, AssetAssignment, AssetRecovery
+from Aapp.app.expense_management import ExpenseClaim
 
 # Fields never shown in the auto-generated form or list; set by the view.
 AUDIT_FIELDS = {'created_by', 'updated_by', 'created_at', 'updated_at'}
@@ -127,6 +137,33 @@ REGISTRY = [
     Entry('epf-ecr', EpfMonthlyEcr, 'company', 'EPF Monthly ECR', 'EPF / ESI'),
     Entry('esi-family', EsiFamilyMember, 'company', 'ESI Family Member', 'EPF / ESI'),
     Entry('esi-return', EsiContributionReturn, 'company', 'ESI Contribution Return', 'EPF / ESI'),
+
+    # ── Loans & Advances ─────────────────────────────────────────────────
+    Entry('loans', Loan, 'company', 'Employee Loans', 'Loans & Advances'),
+    Entry('advances', Advance, 'company', 'Employee Advances', 'Loans & Advances'),
+
+    # ── Increment & Arrear ───────────────────────────────────────────────
+    Entry('increments', Increment, 'company', 'Employee Increments', 'Increment & Arrear'),
+    Entry('arrears', Arrear, 'company', 'Employee Arrears', 'Increment & Arrear'),
+
+    # ── Full & Final Settlement ──────────────────────────────────────────
+    Entry('fnf-settlements', FnFSettlement, 'company', 'Full & Final Settlements', 'FnF Settlement'),
+
+    # ── Biometric / RFID Attendance ──────────────────────────────────────
+    Entry('biometric-devices', BiometricDevice, 'company', 'Biometric/RFID Devices', 'Biometric Attendance'),
+    Entry('device-mappings', EmployeeDeviceMapping, 'device__company', 'Employee Device Mappings', 'Biometric Attendance'),
+    Entry('shifts', Shift, 'company', 'Shifts', 'Biometric Attendance'),
+    Entry('shift-assignments', EmployeeShiftAssignment, 'employee__CompanyID', 'Shift Assignments', 'Biometric Attendance'),
+    Entry('daily-attendance', DailyAttendance, 'company', 'Daily Attendance (Biometric)', 'Biometric Attendance'),
+
+    # ── Banking (NEFT/RTGS/IMPS) ─────────────────────────────────────────
+    Entry('bank-payment-batches', BankPaymentBatch, 'company', 'Bank Payment Batches', 'Banking'),
+
+    # ── Assets & Expenses ────────────────────────────────────────────────
+    Entry('assets', Asset, 'company', 'Assets', 'Assets & Expenses'),
+    Entry('asset-assignments', AssetAssignment, 'asset__company', 'Asset Assignments', 'Assets & Expenses'),
+    Entry('asset-recoveries', AssetRecovery, 'company', 'Asset Recoveries', 'Assets & Expenses'),
+    Entry('expense-claims', ExpenseClaim, 'company', 'Expense Claims', 'Assets & Expenses'),
 
     # ── Labour Welfare Fund ──────────────────────────────────────────────
     Entry('lwf-contribution', LabourWelfareFundContribution, 'company', 'Labour Welfare Fund Contribution', 'Labour Welfare'),

@@ -1,0 +1,31 @@
+{% extends "Sapp/base.html" %}
+{% block title %}Audit Entry Detail{% endblock %}
+{% block content %}
+<div class="main-content">
+<h2>Audit Entry #{{ entry.log_id }}</h2>
+
+<table class="data-table">
+    <tr><td><strong>Timestamp</strong></td><td>{{ entry.occurred_at }}</td></tr>
+    <tr><td><strong>Table</strong></td><td>{{ entry.get_table_name_display }}</td></tr>
+    <tr><td><strong>Record ID</strong></td><td>{{ entry.record_id }}</td></tr>
+    <tr><td><strong>Action</strong></td><td>{{ entry.get_action_display }}</td></tr>
+    <tr><td><strong>Changed By</strong></td><td>{{ entry.changed_by_username|default:"system" }}</td></tr>
+    <tr><td><strong>IP Address</strong></td><td>{{ entry.ip_address|default:"-" }}</td></tr>
+    <tr><td><strong>Cause</strong></td><td>{{ entry.cause|default:"-" }}</td></tr>
+</table>
+
+<h3>Field Changes</h3>
+{% if entry.field_changes %}
+<table class="data-table">
+    <tr><th>Field</th><th>Old Value</th><th>New Value</th></tr>
+    {% for field, change in entry.field_changes.items %}
+    <tr><td>{{ field }}</td><td>{{ change.old }}</td><td>{{ change.new }}</td></tr>
+    {% endfor %}
+</table>
+{% else %}
+<p>No field-level diff recorded (new record or delete event).</p>
+{% endif %}
+
+<p><a href="{% url 'audit_log_list' %}" class="button">Back to Audit Trail</a></p>
+</div>
+{% endblock %}

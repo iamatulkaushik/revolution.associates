@@ -1,0 +1,32 @@
+{% extends "Sapp/base.html" %}
+{% block title %}Audit Trail{% endblock %}
+{% block content %}
+<div class="main-content">
+<h2>Audit Trail</h2>
+<p>Sapp-only view — logs changes to Designation, Salary, and Attendance tables.</p>
+
+<form method="get">
+    <select name="table" onchange="this.form.submit()">
+        <option value="">All Tables</option>
+        {% for value, label in watched_tables %}
+        <option value="{{ value }}" {% if table_filter == value %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+    </select>
+</form>
+
+<table class="data-table">
+    <tr>
+        <th>Timestamp</th><th>Table</th><th>Record ID</th><th>Action</th>
+        <th>Changed By</th><th>IP Address</th><th>Fields Changed</th>
+    </tr>
+    {% for row in rows %}
+    <tr>
+        {% for cell in row.cells %}<td>{{ cell }}</td>{% endfor %}
+    </tr>
+    {% empty %}
+    <tr><td colspan="7">No audit entries yet.</td></tr>
+    {% endfor %}
+</table>
+<p><em>Showing latest 500 entries. Older entries can be exported via the reports module.</em></p>
+</div>
+{% endblock %}
