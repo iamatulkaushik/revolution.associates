@@ -219,4 +219,3 @@ For project ownership, collaboration, or deployment support, contact the reposit
 ## Notes
 
 This project is actively structured around HR, payroll, and compliance workflows and is best viewed as a business software platform rather than a generic starter app. The codebase includes a broad set of operational modules for human resource and statutory management.
-```
