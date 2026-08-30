@@ -20,6 +20,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.views.decorators.debug import sensitive_post_parameters
 
+from Sapp.app.password_reset import handle_reset_request, handle_reset_confirm
+
 logger = logging.getLogger(__name__)
 
 
@@ -96,6 +98,26 @@ def capp_logout(request):
     auth_logout(request)
     logger.info("Owner logout: user='%s'", username)
     return redirect('capp_login')
+
+
+def capp_password_reset_request(request):
+    return handle_reset_request(
+        request,
+        template='Capp/password_reset_request.html',
+        subdomain='capp',
+        confirm_url_name='capp_password_reset_confirm',
+        subject_line='Reset your password — Revolution Associates',
+        text_template='Capp/email/password_reset.txt',
+        login_url_name='capp_login',
+    )
+
+
+def capp_password_reset_confirm(request, uidb64, token):
+    return handle_reset_confirm(
+        request, uidb64, token,
+        template='Capp/password_reset_confirm.html',
+        login_url_name='capp_login',
+    )
 
 
 # ── Dashboard ─────────────────────────────────────────────────────────────────

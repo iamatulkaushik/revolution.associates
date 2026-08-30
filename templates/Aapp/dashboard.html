@@ -48,6 +48,48 @@
       <a href="{% url 'add_esi_return' %}" class="button">ESI Return</a>
       <a href="{% url 'add_lwf' %}" class="button">LWF Contribution</a>
       <a href="{% url 'seed_compliance_calendar' %}" class="button btn-primary">Seed Compliance</a>
+      <a href="{% url 'list_loans' %}" class="button">Loans</a>
+      <a href="{% url 'list_advances' %}" class="button">Advances</a>
+      <a href="{% url 'list_increments' %}" class="button">Increments</a>
+      <a href="{% url 'list_arrears' %}" class="button">Arrears</a>
+      <a href="{% url 'list_fnf_settlements' %}" class="button">FnF Settlements</a>
+      <a href="{% url 'list_biometric_devices' %}" class="button">Biometric Devices</a>
+      <a href="{% url 'list_shifts' %}" class="button">Shifts</a>
+      <a href="{% url 'list_bank_batches' %}" class="button">Bank Payment Files</a>
+      <a href="{% url 'list_assets' %}" class="button">Assets</a>
+      <a href="{% url 'list_expense_claims' %}" class="button">Expense Claims</a>
+      <a href="{% url 'select_employee_for_form16' %}" class="button">Form 16</a>
+    </div>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom:var(--sp-5)">
+  <div class="card-header">
+    <h3>Payroll Extensions</h3>
+  </div>
+  <div class="card-body">
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:var(--sp-3)">
+      <a href="{% url 'create_loan' %}" class="button">+ Loan</a>
+      <a href="{% url 'create_advance' %}" class="button">+ Advance</a>
+      <a href="{% url 'create_increment' %}" class="button">+ Increment</a>
+      <a href="{% url 'create_arrear' %}" class="button">+ Arrear</a>
+      <a href="{% url 'create_fnf_settlement' %}" class="button">+ FnF Settlement</a>
+      <a href="{% url 'create_asset_recovery' %}" class="button">+ Asset Recovery</a>
+      <a href="{% url 'create_expense_claim' %}" class="button">+ Expense Claim</a>
+      <a href="{% url 'select_processing_for_bank_file' %}" class="button">+ Bank Payment File</a>
+    </div>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom:var(--sp-5)">
+  <div class="card-header">
+    <h3>Attendance &amp; Shifts</h3>
+  </div>
+  <div class="card-body">
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:var(--sp-3)">
+      <a href="{% url 'create_shift' %}" class="button">+ Shift</a>
+      <a href="{% url 'assign_shift' %}" class="button">Assign Shift</a>
+      <a href="{% url 'create_biometric_device' %}" class="button">+ Biometric Device</a>
     </div>
   </div>
 </div>

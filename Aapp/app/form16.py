@@ -230,3 +230,71 @@ def deductions_report_pdf(company, month, year):
         'doc_date': date.today().strftime('%d-%m-%Y'),
     }
     return build_pdf(story, company=company, doc_meta=doc_meta)
+
+
+# =====================================================================
+# VIEWS
+# =====================================================================
+
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.shortcuts import render, redirect
+from django.http import HttpResponse
+from django.urls import reverse
+
+from Aapp.app.income_tax import current_financial_year
+
+
+def _company(request):
+    from Sapp.app.company import Company
+    cid = request.session.get('selected_company_id')
+    return Company.objects.filter(company_id=cid).first() if cid else None
+
+
+@login_required
+def select_employee_for_form16(request):
+    company = _company(request)
+    if not company:
+        messages.warning(request, 'Please select a company first.')
+        return redirect('aapp_dashboard')
+
+    from Aapp.app.employee import employee as employee_model
+    employees = employee_model.objects.filter(CompanyID=company).exclude(
+        pan_number__isnull=True
+    ).exclude(pan_number='')
+    fy = current_financial_year()
+
+    return render(request, 'Aapp/works/select_employee_form16.html', {
+        'employees': employees, 'company': company, 'default_fy': fy,
+    })
+
+
+@login_required
+def download_form16(request, employee_id, financial_year):
+    from django.shortcuts import get_object_or_404
+    from Aapp.app.employee import employee as employee_model
+
+    company = _company(request)
+    emp = get_object_or_404(employee_model, pk=employee_id, CompanyID=company)
+
+    pdf_bytes = form16_pdf(emp, financial_year)
+    if pdf_bytes is None:
+        messages.error(request, 'Cannot generate Form 16 — company TAN or employee PAN missing, or no salary data on file for this year.')
+        return redirect('select_employee_for_form16')
+
+    return HttpResponse(pdf_bytes, content_type='application/pdf', headers={
+        'Content-Disposition': f'attachment; filename="form16_{emp.employeecode}_{financial_year}.pdf"'
+    })
+
+
+@login_required
+def download_deductions_report(request, month, year):
+    company = _company(request)
+    if not company:
+        messages.warning(request, 'Please select a company first.')
+        return redirect('aapp_dashboard')
+
+    pdf_bytes = deductions_report_pdf(company, month, year)
+    return HttpResponse(pdf_bytes, content_type='application/pdf', headers={
+        'Content-Disposition': f'attachment; filename="it_deductions_{month}_{year}.pdf"'
+    })

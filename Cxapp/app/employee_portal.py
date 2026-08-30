@@ -122,6 +122,97 @@ def cxapp_emp_logout(request):
     return redirect('cxapp_emp_login')
 
 
+# ── Password reset (PAN + registered email, no django.contrib.auth.User) ──────
+# Employees aren't a User, so Sapp.app.password_reset doesn't apply here.
+# Identity is PAN (hashed lookup, same pattern as login above); the reset
+# link additionally requires the email on file to match, since PAN alone
+# isn't secret enough to gate a password change.
+
+from django.conf import settings as _settings
+from django.core.signing import TimestampSigner, BadSignature, SignatureExpired
+from django.core.mail import send_mail as _send_mail
+from django.contrib.auth.password_validation import validate_password as _validate_password
+from django.core.exceptions import ValidationError as _ValidationError
+
+_EMP_RESET_SALT = 'cxapp.emp_password_reset'
+_EMP_RESET_MAX_AGE = 60 * 60 * 2  # 2 hours
+_emp_reset_signer = TimestampSigner(salt=_EMP_RESET_SALT)
+
+
+def cxapp_emp_password_reset_request(request):
+    if request.method == 'POST':
+        pan = request.POST.get('pan', '').strip()
+        email = request.POST.get('email', '').strip()
+        pan_hash = _hash_value(pan)
+
+        from Cxapp.app.employee import CxEmployeeKYC
+        kyc = CxEmployeeKYC.objects.filter(pan_number_hash=pan_hash).select_related('employee').first()
+        employee = kyc.employee if kyc else None
+        contact_email = getattr(getattr(employee, 'contact', None), 'email', '') if employee else ''
+
+        if employee and contact_email and contact_email.lower() == email.lower() and hasattr(employee, 'auth'):
+            try:
+                token = _emp_reset_signer.sign(str(employee.employee_id))
+                parent_host = getattr(_settings, 'PARENT_HOST', 'localhost:8000')
+                scheme = 'https' if request.is_secure() else 'http'
+                link = f'{scheme}://cxapp.{parent_host}/employee/reset/{token}/'
+                _send_mail(
+                    subject='Reset your password — Revolution Associates',
+                    message=f'Click the link below to reset your password.\n\n{link}\n\n'
+                            f'This link expires in 2 hours.',
+                    from_email=_settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[contact_email],
+                    fail_silently=False,
+                )
+            except Exception:
+                logging.getLogger('Cxapp').exception(
+                    "Failed to send employee password reset email: employee_id='%s'",
+                    getattr(employee, 'employee_id', None))
+
+        # Same message regardless of match — don't reveal registration status.
+        messages.success(request, 'If those details match our records, a reset link has been sent.')
+        return redirect('cxapp_emp_login')
+
+    return render(request, 'Cxapp/employee_portal/password_reset_request.html')
+
+
+def cxapp_emp_password_reset_confirm(request, token):
+    try:
+        employee_id = _emp_reset_signer.unsign(token, max_age=_EMP_RESET_MAX_AGE)
+    except SignatureExpired:
+        messages.error(request, 'This reset link has expired. Please request a new one.')
+        return redirect('cxapp_emp_password_reset_request')
+    except BadSignature:
+        messages.error(request, 'Invalid reset link.')
+        return redirect('cxapp_emp_login')
+
+    employee = CxEmployee.objects.filter(employee_id=employee_id, is_deleted=False).first()
+    auth = getattr(employee, 'auth', None) if employee else None
+    if not auth:
+        messages.error(request, 'Invalid reset link.')
+        return redirect('cxapp_emp_login')
+
+    if request.method == 'POST':
+        password1 = request.POST.get('password1', '')
+        password2 = request.POST.get('password2', '')
+        if password1 != password2:
+            messages.error(request, 'Passwords do not match.')
+            return render(request, 'Cxapp/employee_portal/password_reset_confirm.html')
+        try:
+            _validate_password(password1)
+        except _ValidationError as e:
+            for err in e.messages:
+                messages.error(request, err)
+            return render(request, 'Cxapp/employee_portal/password_reset_confirm.html')
+
+        auth.set_password(password1)
+        auth.save(update_fields=['password_hash'])
+        messages.success(request, 'Password updated. Please log in.')
+        return redirect('cxapp_emp_login')
+
+    return render(request, 'Cxapp/employee_portal/password_reset_confirm.html')
+
+
 # ── Employee dashboard: own salary slips only ──────────────────────────────────
 
 @emp_login_required

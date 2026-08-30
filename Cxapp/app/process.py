@@ -130,13 +130,8 @@ class CxSalary(models.Model):
         if attendance.working_day and expected_days > 0:
             proration = min(Decimal('1.00'), Decimal(attendance.working_day) / expected_days)
 
-        # Increment override (employee-level) takes priority over the
-        # shared designation pay scale; falls back to designation if no
-        # active increment applies for this month.
-        from Cxapp.app.increment import get_effective_basic_da
-        basic_pay, da = get_effective_basic_da(
-            employee, designation, attendance.attandance_month, attendance.attandance_year
-        )
+        basic_pay = designation.basic_pay or Decimal('0.00')
+        da = designation.da or Decimal('0.00')
 
         prorated_basic = _q(basic_pay * proration)
         prorated_da = _q(da * proration)
@@ -205,61 +200,7 @@ class CxSalary(models.Model):
                     'resolved_amount': amount, 'is_prorated': False,
                 })
 
-        # Overtime pay — from biometric daily attendance aggregation.
-        # Zero if no biometric device/shift set up for this employee
-        # (get_overtime_hours_for_month returns 0 in that case).
-        from Cxapp.app.biometric import get_overtime_hours_for_month, _calculate_overtime
-        ot_hours = get_overtime_hours_for_month(
-            employee, attendance.attandance_month, attendance.attandance_year
-        )
-        if ot_hours > 0:
-            ot_amount = _calculate_overtime(basic_pay, ot_hours)
-            total_allowances += ot_amount
-            lines.append({
-                'component_name': 'Overtime Pay', 'component_type': CxSalaryLine.TYPE_ALLOWANCE,
-                'resolved_amount': ot_amount, 'is_prorated': False,
-            })
-
-        # Loans & Advances — auto-deduction from the amortization
-        # schedule, same as Aapp's salary_processing.py. Added after
-        # statutory deductions so both appear as distinct line items.
-        from Cxapp.app.loans_advances import (
-            get_total_loan_deduction_for_month, get_total_advance_deduction_for_month
-        )
-        loan_ded = get_total_loan_deduction_for_month(
-            employee, attendance.attandance_month, attendance.attandance_year
-        )
-        advance_ded = get_total_advance_deduction_for_month(
-            employee, attendance.attandance_month, attendance.attandance_year
-        )
-        if loan_ded > 0:
-            total_deductions += loan_ded
-            lines.append({
-                'component_name': 'Loan Recovery', 'component_type': CxSalaryLine.TYPE_DEDUCTION,
-                'resolved_amount': loan_ded, 'is_prorated': False,
-            })
-        if advance_ded > 0:
-            total_deductions += advance_ded
-            lines.append({
-                'component_name': 'Advance Recovery', 'component_type': CxSalaryLine.TYPE_DEDUCTION,
-                'resolved_amount': advance_ded, 'is_prorated': False,
-            })
-
         total_amount = total_allowances - total_deductions
-
-        # Tax-exempt approved expense reimbursements — added after
-        # total_deductions since they bypass the EPF/ESI wage base
-        # entirely, same treatment as Aapp's salary_processing.py.
-        from Cxapp.app.expense_management import get_approved_reimbursement_for_month
-        reimbursement = get_approved_reimbursement_for_month(
-            employee, attendance.attandance_month, attendance.attandance_year
-        )
-        if reimbursement > 0:
-            total_amount += reimbursement
-            lines.append({
-                'component_name': 'Expense Reimbursement', 'component_type': CxSalaryLine.TYPE_ALLOWANCE,
-                'resolved_amount': reimbursement, 'is_prorated': False,
-            })
 
         with transaction.atomic():
             existing = cls.objects.filter(attendance=attendance).first()
@@ -506,3 +447,55 @@ def _salary_slip_pdf(request, salary_id):
     response = HttpResponse(pdf_bytes, content_type='application/pdf')
     response['Content-Disposition'] = f'inline; filename="{filename}"'
     return response
+
+
+# ── Email payslips — Owner + HR only ────────────────────────────────────────────
+
+def cxapp_email_salary_slip(request, salary_id):
+    from Cxapp.views import cx_login_required
+    return cx_login_required(_email_salary_slip)(request, salary_id)
+
+
+def _email_salary_slip(request, salary_id):
+    from Cxapp.app.payslip_email import send_cx_payslip_email
+
+    if not _can_manage_payroll(request):
+        messages.error(request, 'You do not have permission to email payslips.')
+        return redirect('cxapp_dashboard')
+
+    salary = get_object_or_404(CxSalary, salary_id=salary_id, company=request.cx_owner_profile)
+    success, reason = send_cx_payslip_email(salary)
+    if success:
+        messages.success(request, f'Payslip emailed to {salary.employee.contact.email}.')
+    else:
+        messages.error(request, f'Could not email payslip: {reason}.')
+
+    return redirect('cxapp_salary_detail', salary_id=salary.salary_id)
+
+
+def cxapp_email_all_slips(request, month, year):
+    from Cxapp.views import cx_login_required
+    return cx_login_required(_email_all_slips)(request, month, year)
+
+
+def _email_all_slips(request, month, year):
+    from Cxapp.app.payslip_email import send_bulk_cx_payslip_emails
+
+    if not _can_manage_payroll(request):
+        messages.error(request, 'You do not have permission to email payslips.')
+        return redirect('cxapp_dashboard')
+
+    results = send_bulk_cx_payslip_emails(request.cx_owner_profile, month, year)
+    sent = sum(1 for r in results if r['success'])
+    failed = [r for r in results if not r['success']]
+
+    if sent:
+        messages.success(request, f'Emailed {sent} payslip(s) successfully.')
+    if failed:
+        failed_names = ', '.join(f"{r['name']} ({r['reason']})" for r in failed[:5])
+        more = f" and {len(failed) - 5} more" if len(failed) > 5 else ''
+        messages.warning(request, f'{len(failed)} payslip(s) not sent: {failed_names}{more}.')
+    if not results:
+        messages.error(request, 'No salary records found for the selected period.')
+
+    return redirect('cxapp_salary_list')

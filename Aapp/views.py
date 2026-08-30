@@ -13,6 +13,7 @@ from Aapp.app.branch_department import branch, department
 from Sapp.app.company import Company
 from Sapp.app.user import UserProfile, associateuser, SubUser, can_user_access_system
 from Sapp.app.license import License
+from Sapp.app.password_reset import handle_reset_request, handle_reset_confirm
 
 logger = logging.getLogger(__name__)
 
@@ -63,6 +64,26 @@ def logout(request):
     logger.info("Associate logout: user='%s'", username)
     messages.success(request, 'Logged out successfully.')
     return redirect('home')
+
+
+def associate_password_reset_request(request):
+    return handle_reset_request(
+        request,
+        template='associate_password_reset_request.html',
+        subdomain='aapp',
+        confirm_url_name='associate_password_reset_confirm',
+        subject_line='Reset your password — Revolution Associates',
+        text_template='Aapp/email/password_reset.txt',
+        login_url_name='associate_login',
+    )
+
+
+def associate_password_reset_confirm(request, uidb64, token):
+    return handle_reset_confirm(
+        request, uidb64, token,
+        template='associate_password_reset_confirm.html',
+        login_url_name='associate_login',
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -134,7 +155,15 @@ def associate_profile(request):
 
 @login_required
 def create_branch(request):
-    companies = Company.objects.all()
+    user = request.user
+    if hasattr(user, 'associate_profile'):
+        companies = user.associate_profile.companyid.all()
+    elif hasattr(user, 'subuser_profile'):
+        companies = user.subuser_profile.companyid.all()
+    elif user.is_superuser:
+        companies = Company.objects.all()
+    else:
+        companies = Company.objects.none()
     selected_company = None
     branches = []
 
@@ -211,7 +240,17 @@ def branch_details(request):
 
 @login_required
 def get_user_companies(request):
-    companies = Company.objects.filter(shut_date__isnull=True).values('company_id', 'company_name')
+    user = request.user
+    if hasattr(user, 'associate_profile'):
+        companies = user.associate_profile.companyid.filter(shut_date__isnull=True)
+    elif hasattr(user, 'subuser_profile'):
+        companies = user.subuser_profile.companyid.filter(shut_date__isnull=True)
+    elif user.is_superuser:
+        companies = Company.objects.filter(shut_date__isnull=True)
+    else:
+        companies = Company.objects.none()
+
+    companies = companies.values('company_id', 'company_name')
     selected_id = request.session.get('selected_company_id')
     return JsonResponse({
         'companies': list(companies),

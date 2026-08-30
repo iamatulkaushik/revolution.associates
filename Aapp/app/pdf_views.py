@@ -23,7 +23,7 @@ Wire into Aapp/urls.py:
 import logging
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, Http404
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
 from django.contrib import messages
 
 from Aapp.app.salary_pdf import (
@@ -376,3 +376,58 @@ def download_all_slips(request, month, year):
 
     fname = f'All_Salary_Slips_{company.company_name.replace(" ", "_")}_{month}_{year}.pdf'
     return _pdf_response(pdf_bytes, fname)
+
+
+# ── 8. Email payslips ─────────────────────────────────────────────────────────
+
+@login_required
+def email_salary_slip(request, wages_id):
+    """
+    POST /wages/<wages_id>/email-slip/
+    Emails one employee's payslip PDF to their registered email.
+    """
+    from Aapp.app.salary_processing import salary_slip
+    from Aapp.app.payslip_email import send_payslip_email
+
+    company = _company(request)
+    if not company:
+        raise Http404('No company selected.')
+
+    rec = get_object_or_404(salary_slip, id=wages_id, company_id=company)
+    success, reason = send_payslip_email(rec)
+    if success:
+        messages.success(request, f'Payslip emailed to {rec.employee_id.email}.')
+    else:
+        messages.error(request, f'Could not email payslip: {reason}.')
+
+    return redirect(request.META.get('HTTP_REFERER', 'aapp_dashboard'))
+
+
+@login_required
+def email_all_slips(request, month, year):
+    """
+    POST /wages/email-all-slips/<month>/<year>/
+    Emails payslips to every employee with a wage record and an email
+    on file for the selected company/month/year. Shows a summary of
+    successes/failures rather than a single blanket message.
+    """
+    from Aapp.app.payslip_email import send_bulk_payslip_emails
+
+    company = _company(request)
+    if not company:
+        raise Http404('No company selected.')
+
+    results = send_bulk_payslip_emails(company, month, year)
+    sent = sum(1 for r in results if r['success'])
+    failed = [r for r in results if not r['success']]
+
+    if sent:
+        messages.success(request, f'Emailed {sent} payslip(s) successfully.')
+    if failed:
+        failed_names = ', '.join(f"{r['name']} ({r['reason']})" for r in failed[:5])
+        more = f" and {len(failed) - 5} more" if len(failed) > 5 else ''
+        messages.warning(request, f'{len(failed)} payslip(s) not sent: {failed_names}{more}.')
+    if not results:
+        messages.error(request, 'No wage records found for the selected period.')
+
+    return redirect(request.META.get('HTTP_REFERER', 'aapp_dashboard'))

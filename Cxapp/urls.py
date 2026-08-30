@@ -1,7 +1,9 @@
 from django.urls import path
 
+from Cxapp.app.email_verify import cxapp_resend_verification, cxapp_verify_email
 from Cxapp.views import (
     cxapp_signup, cxapp_login, cxapp_logout, cxapp_dashboard,
+    cxapp_password_reset_request, cxapp_password_reset_confirm,
     cxapp_company_profile, cxapp_districts_for_state,
 )
 from Cxapp.app.sub_user import (
@@ -17,6 +19,7 @@ from Cxapp.app.employee import (
     cxapp_employee_statutory_edit, cxapp_employee_kyc_edit,
     cxapp_employee_banking_edit, cxapp_employee_employment_edit,
     cxapp_employee_nominee_add, cxapp_employee_nominee_delete,
+    cxapp_employee_set_password,
 )
 from Cxapp.app.license import cxapp_plan_purchase
 from Cxapp.app.attandance import (
@@ -65,6 +68,7 @@ from Cxapp.app.statutory import cxapp_company_statutory
 from Cxapp.app.employee_portal import (
     cxapp_emp_login, cxapp_emp_logout, cxapp_emp_dashboard, cxapp_emp_salary_slip_pdf,
 )
+from Sapp.app.password_reset import handle_reset_request, handle_reset_confirm
 
 # NOTE: Cxapp/urls.py is the ROOT urlconf for the 'cxapp' host in django-hosts.
 # Bare URL names (no namespace prefix) — same pattern as Aapp/Capp.
@@ -76,6 +80,10 @@ urlpatterns = [
     path('signup/',    cxapp_signup,  name='cxapp_signup'),
     path('login/',     cxapp_login,   name='cxapp_login'),
     path('logout/',    cxapp_logout,  name='cxapp_logout'),
+    path('verify-email/<str:token>/', cxapp_verify_email, name='cxapp_verify_email'),
+    path('resend-verification/', cxapp_resend_verification, name='cxapp_resend_verification'),
+    path('reset-password/', cxapp_password_reset_request, name='cxapp_password_reset_request'),
+    path('reset/<str:uidb64>/<str:token>/', cxapp_password_reset_confirm, name='cxapp_password_reset_confirm'),
 
     # ── Dashboard ─────────────────────────────────────────────────────────────
     path('dashboard/', cxapp_dashboard, name='cxapp_dashboard'),
@@ -112,6 +120,7 @@ urlpatterns = [
     path('employees/<int:employee_id>/employment/',       cxapp_employee_employment_edit,   name='cxapp_employee_employment_edit'),
     path('employees/<int:employee_id>/nominees/new/',     cxapp_employee_nominee_add,       name='cxapp_employee_nominee_add'),
     path('employees/nominees/<int:nominee_id>/delete/',   cxapp_employee_nominee_delete,    name='cxapp_employee_nominee_delete'),
+    path('employees/<int:employee_id>/set-password/',     cxapp_employee_set_password,      name='cxapp_employee_set_password'),
 
     # ── License / Plan — Cxapp/app/license.py ────────────────────────────────
     path('plan/', cxapp_plan_purchase, name='cxapp_plan_purchase'),

@@ -21,10 +21,12 @@ from django.shortcuts import render, redirect
 from django.views.decorators.debug import sensitive_post_parameters
 
 from Sapp.app.company import Company
+from Sapp.app.password_reset import handle_reset_confirm, handle_reset_request
 from Sapp.app.state_district import District
 from Cxapp.models import CxOwnerProfile, LOCKED_COMPANY_FIELDS, MAX_SUB_USERS
 from Cxapp.forms import CxSignupForm
 from Cxapp.app.license import CxPlan
+from Cxapp.app.email_verify import send_verification_email
 
 logger = logging.getLogger(__name__)
 
@@ -88,8 +90,10 @@ def cxapp_signup(request):
                     mobile=data['mobile'],
                 )
                 CxPlan.start_trial(owner_profile)
+            send_verification_email(request, owner_profile)
             auth_login(request, user)
-            messages.success(request, f"Welcome, {company.company_name}! Your company account is ready.")
+            messages.success(request, f"Welcome, {company.company_name}! Your company account is ready. "
+                                       f"Please check your email to verify your account.")
             return redirect('cxapp_dashboard')
     else:
         form = CxSignupForm()
@@ -134,6 +138,26 @@ def cxapp_login(request):
 def cxapp_logout(request):
     auth_logout(request)
     return redirect('cxapp_login')
+
+
+def cxapp_password_reset_request(request):
+    return handle_reset_request(
+        request,
+        template='Cxapp/password_reset_request.html',
+        subdomain='cxapp',
+        confirm_url_name='cxapp_password_reset_confirm',
+        subject_line='Reset your password — Revolution Associates',
+        text_template='Cxapp/email/password_reset.txt',
+        login_url_name='cxapp_login',
+    )
+
+
+def cxapp_password_reset_confirm(request, uidb64, token):
+    return handle_reset_confirm(
+        request, uidb64, token,
+        template='Cxapp/password_reset_confirm.html',
+        login_url_name='cxapp_login',
+    )
 
 
 # ── Dashboard ─────────────────────────────────────────────────────────────────

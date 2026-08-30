@@ -124,6 +124,7 @@ from Aapp.app.pdf_views import (
     download_salary_slip, download_salary_sheet,
     download_salary_abstract, download_company_profile,
     download_letterhead_doc, download_all_slips,
+    email_salary_slip, email_all_slips,
 )
 
 from Aapp.app.compliance_tracker import (
@@ -196,6 +197,8 @@ urlpatterns = [
     path('', views.associate_base_home, name='home'),
     path('login/', views.associate_login, name='associate_login'),
     path('logout/', views.logout, name='logout'),
+    path('reset-password/', views.associate_password_reset_request, name='associate_password_reset_request'),
+    path('reset/<str:uidb64>/<str:token>/', views.associate_password_reset_confirm, name='associate_password_reset_confirm'),
     path('dashboard/', views.associate_dashboard, name='aapp_dashboard'),
     path('profile/', views.associate_profile, name='associate_profile'),
 
