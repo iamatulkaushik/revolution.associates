@@ -19,7 +19,6 @@ from Cxapp.app.employee import (
     cxapp_employee_statutory_edit, cxapp_employee_kyc_edit,
     cxapp_employee_banking_edit, cxapp_employee_employment_edit,
     cxapp_employee_nominee_add, cxapp_employee_nominee_delete,
-    cxapp_employee_set_password,
 )
 from Cxapp.app.license import cxapp_plan_purchase
 from Cxapp.app.attandance import (
@@ -29,6 +28,7 @@ from Cxapp.app.attandance import (
 from Cxapp.app.process import (
     cxapp_salary_list, cxapp_salary_process, cxapp_salary_bulk_process,
     cxapp_salary_detail, cxapp_salary_reprocess, cxapp_salary_slip_pdf,
+    cxapp_email_salary_slip, cxapp_email_all_slips,
 )
 from Cxapp.app.loans_advances import (
     cxapp_list_loans, cxapp_create_loan, cxapp_view_loan_schedule,
@@ -67,11 +67,17 @@ from Cxapp.app.compliance import (
 from Cxapp.app.statutory import cxapp_company_statutory
 from Cxapp.app.employee_portal import (
     cxapp_emp_login, cxapp_emp_logout, cxapp_emp_dashboard, cxapp_emp_salary_slip_pdf,
+    cxapp_emp_password_reset_request, cxapp_emp_password_reset_confirm,
 )
-from Sapp.app.password_reset import handle_reset_request, handle_reset_confirm
 
 # NOTE: Cxapp/urls.py is the ROOT urlconf for the 'cxapp' host in django-hosts.
 # Bare URL names (no namespace prefix) — same pattern as Aapp/Capp.
+#
+# cxapp_employee_set_password was previously imported/routed here but the
+# view was never implemented in Cxapp/app/employee.py — removed until it
+# exists (it was breaking every route in this urlconf). See memory note:
+# "Interface for Owner/HR to set employee portal passwords" — still on
+# the roadmap, not yet built.
 
 urlpatterns = [
 
@@ -120,7 +126,6 @@ urlpatterns = [
     path('employees/<int:employee_id>/employment/',       cxapp_employee_employment_edit,   name='cxapp_employee_employment_edit'),
     path('employees/<int:employee_id>/nominees/new/',     cxapp_employee_nominee_add,       name='cxapp_employee_nominee_add'),
     path('employees/nominees/<int:nominee_id>/delete/',   cxapp_employee_nominee_delete,    name='cxapp_employee_nominee_delete'),
-    path('employees/<int:employee_id>/set-password/',     cxapp_employee_set_password,      name='cxapp_employee_set_password'),
 
     # ── License / Plan — Cxapp/app/license.py ────────────────────────────────
     path('plan/', cxapp_plan_purchase, name='cxapp_plan_purchase'),
@@ -139,6 +144,9 @@ urlpatterns = [
     path('salary/bulk-process/',           cxapp_salary_bulk_process,  name='cxapp_salary_bulk_process'),
     path('salary/<int:salary_id>/',        cxapp_salary_detail,        name='cxapp_salary_detail'),
     path('salary/<int:salary_id>/reprocess/', cxapp_salary_reprocess,  name='cxapp_salary_reprocess'),
+    path('salary/<int:salary_id>/pdf/',       cxapp_salary_slip_pdf,   name='cxapp_salary_slip_pdf'),
+    path('salary/<int:salary_id>/email/',     cxapp_email_salary_slip, name='cxapp_email_salary_slip'),
+    path('salary/email-all/<int:month>/<int:year>/', cxapp_email_all_slips, name='cxapp_email_all_slips'),
 
     # ── Loans & Advances — Cxapp/app/loans_advances.py ───────────────────────
     path('loans/',                          cxapp_list_loans,           name='cxapp_list_loans'),
@@ -192,7 +200,6 @@ urlpatterns = [
     path('expenses/add/',                   cxapp_create_expense_claim,    name='cxapp_create_expense_claim'),
     path('expenses/approve/<int:expense_id>/', cxapp_approve_expense_claim, name='cxapp_approve_expense_claim'),
     path('expenses/reject/<int:expense_id>/',  cxapp_reject_expense_claim,  name='cxapp_reject_expense_claim'),
-    path('salary/<int:salary_id>/pdf/',       cxapp_salary_slip_pdf,   name='cxapp_salary_slip_pdf'),
 
     # ── Compliance Exports — Cxapp/app/compliance.py ─────────────────────────
     path('compliance/',              cxapp_compliance_dashboard, name='cxapp_compliance_dashboard'),
@@ -208,4 +215,6 @@ urlpatterns = [
     path('employee/logout/',   cxapp_emp_logout,         name='cxapp_emp_logout'),
     path('employee/',          cxapp_emp_dashboard,      name='cxapp_emp_dashboard'),
     path('employee/salary/<int:salary_id>/pdf/', cxapp_emp_salary_slip_pdf, name='cxapp_emp_salary_slip_pdf'),
+    path('employee/reset-password/', cxapp_emp_password_reset_request, name='cxapp_emp_password_reset_request'),
+    path('employee/reset/<str:token>/', cxapp_emp_password_reset_confirm, name='cxapp_emp_password_reset_confirm'),
 ]

@@ -328,6 +328,14 @@ urlpatterns = [
     # ════════════════════════════════════════════════════════════════════════
     path('wages/', list_wages, name='list_wages'),
 
+    # ── Payslip PDF download & email (views existed, were never routed) ─────
+    path('wages/<int:wages_id>/slip.pdf/', download_salary_slip, name='download_salary_slip'),
+    path('wages/sheet/<int:month>/<int:year>/pdf/', download_salary_sheet, name='download_salary_sheet'),
+    path('wages/abstract/<int:month>/<int:year>/pdf/', download_salary_abstract, name='download_salary_abstract'),
+    path('wages/all-slips/<int:month>/<int:year>/pdf/', download_all_slips, name='download_all_slips'),
+    path('wages/<int:wages_id>/email-slip/', email_salary_slip, name='email_salary_slip'),
+    path('wages/email-all-slips/<int:month>/<int:year>/', email_all_slips, name='email_all_slips'),
+
     path('wages/fines/', list_fines, name='list_fines'),
     path('wages/fines/add/', add_fine, name='add_fine'),
     path('wages/fines/delete/<int:fine_id>/', delete_fine, name='delete_fine'),
