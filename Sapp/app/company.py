@@ -134,8 +134,6 @@ class company_statury(models.Model):
     labour = models.CharField(max_length=15, null=True, blank=True)
     labour_from = models.DateField(null=True, blank=True)
     labour_to = models.DateField(null=True, blank=True)
-    pt_number = models.CharField(max_length=15, null=True, blank=True)
-    pt_date = models.DateField(null=True, blank=True)
     psara = models.CharField(max_length=15, null=True, blank=True)
     psara_from = models.DateField(null=True, blank=True)
     psara_to = models.DateField(null=True, blank=True)
@@ -357,7 +355,7 @@ def create_company_associate(request):
             default_state = State.objects.first()
             default_district = District.objects.filter(state=default_state).first() if default_state else None
             
-            Company.objects.create(
+            new_company = Company.objects.create(
                 company_name=company_name,
                 start_date=start_date,
                 mobile=mobile,
@@ -366,6 +364,13 @@ def create_company_associate(request):
                 state_id=default_state,
                 district_id=default_district
             )
+
+            user = request.user
+            if hasattr(user, 'associate_profile'):
+                user.associate_profile.companyid.add(new_company)
+            elif hasattr(user, 'subuser_profile'):
+                user.subuser_profile.companyid.add(new_company)
+
             messages.success(request, f"Company '{company_name}' created successfully.")
             return redirect('list_company_associate')
     
@@ -373,7 +378,15 @@ def create_company_associate(request):
 
 @login_required
 def list_company_associate(request):
-    companies = Company.objects.filter(shut_date__isnull=True)
+    user = request.user
+    if hasattr(user, 'associate_profile'):
+        companies = user.associate_profile.companyid.filter(shut_date__isnull=True)
+    elif hasattr(user, 'subuser_profile'):
+        companies = user.subuser_profile.companyid.filter(shut_date__isnull=True)
+    elif user.is_superuser:
+        companies = Company.objects.filter(shut_date__isnull=True)
+    else:
+        companies = Company.objects.none()
     return render(request, 'Aapp/company/list.html', {'companies': companies})
 
 @login_required
