@@ -14,6 +14,8 @@
     {% endif %}
     <a href="{% url 'export_salary_register' batch.id %}" class="button">Export Register (Excel)</a>
     <a href="{% url 'export_bank_advice' batch.id %}" class="button">Bank Advice (Excel)</a>
+    <a href="{% url 'download_all_slips' batch.month batch.year %}" class="button">Download All Slips (PDF)</a>
+    <a href="{% url 'email_all_slips' batch.month batch.year %}" class="button" onclick="return confirm('Email payslips to every employee in this batch with an email on file?')">Email All Payslips</a>
     <a href="{% url 'salary_dashboard' %}" class="button">← Back</a>
   </div>
 </div>
@@ -86,7 +88,11 @@
           <td>₹{{ slip.professional_tax }}</td>
           <td>₹{{ slip.total_deductions }}</td>
           <td><strong>₹{{ slip.net_pay }}</strong></td>
-          <td><a href="{% url 'view_salary_slip' slip.id %}" class="action-edit">View</a></td>
+          <td>
+            <a href="{% url 'view_salary_slip' slip.id %}" class="action-edit">View</a>
+            · <a href="{% url 'download_salary_slip' slip.id %}" class="action-edit">PDF</a>
+            · <a href="{% url 'email_salary_slip' slip.id %}" class="action-edit" onclick="return confirm('Email this payslip to {{ slip.employee_id.email|default:"the employee" }}?')">Email</a>
+          </td>
         </tr>
         {% endfor %}
       </tbody>

@@ -176,6 +176,9 @@ from Aapp.app.asset_management import (
 from Aapp.app.expense_management import (
     list_expense_claims, create_expense_claim, approve_expense_claim, reject_expense_claim,
 )
+from Aapp.app.form16 import (
+    select_employee_for_form16, download_form16, download_deductions_report,
+)
 
 
 def get_districts(request, state_id):
@@ -335,6 +338,10 @@ urlpatterns = [
     path('wages/all-slips/<int:month>/<int:year>/pdf/', download_all_slips, name='download_all_slips'),
     path('wages/<int:wages_id>/email-slip/', email_salary_slip, name='email_salary_slip'),
     path('wages/email-all-slips/<int:month>/<int:year>/', email_all_slips, name='email_all_slips'),
+
+    # ── Company Profile & Letterhead docs (views existed, never routed) ─────
+    path('company/profile.pdf/', download_company_profile, name='download_company_profile'),
+    path('letterhead/<str:doc_type>/', download_letterhead_doc, name='download_letterhead_doc'),
 
     path('wages/fines/', list_fines, name='list_fines'),
     path('wages/fines/add/', add_fine, name='add_fine'),
@@ -538,4 +545,9 @@ urlpatterns = [
     path('expenses/add/', create_expense_claim, name='create_expense_claim'),
     path('expenses/approve/<int:expense_id>/', approve_expense_claim, name='approve_expense_claim'),
     path('expenses/reject/<int:expense_id>/', reject_expense_claim, name='reject_expense_claim'),
+
+    # ── Income Tax / Form 16 — Aapp/app/form16.py (views existed, never routed) ──
+    path('form16/', select_employee_for_form16, name='select_employee_for_form16'),
+    path('form16/<int:employee_id>/<str:financial_year>/', download_form16, name='download_form16'),
+    path('form16/deductions-report/<int:month>/<int:year>/', download_deductions_report, name='download_deductions_report'),
 ]
