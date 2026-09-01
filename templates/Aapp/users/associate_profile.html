@@ -59,6 +59,44 @@
             </form>
         </div>
         <div class="quickupdate">
+            <h2>Public Profile</h2><hr>
+            <p style="color:#999; font-size:13px;">Controls your public marketing page at
+                <code>reas.host/associates/{{ associate.slug|default:"your-slug" }}/</code>
+                {% if associate.is_public_profile and associate.slug %}
+                — <a href="/associates/{{ associate.slug }}/" target="_blank">View live page</a>
+                {% endif %}
+            </p>
+            <form method="post" enctype="multipart/form-data" action="{% url 'associate_public_profile_update' %}">
+                {% csrf_token %}
+                <label style="display:inline-block; width: 100px;">Make Public</label>
+                <input type="checkbox" name="is_public_profile" {% if associate.is_public_profile %}checked{% endif %}><br><br>
+                <label style="display:inline-block; width: 100px;">Slug</label>
+                <input type="text" name="slug" style="width: 200px;" value="{{ associate.slug }}" placeholder="e.g. rk-associates"><br><br>
+                <label style="display:inline-block; width: 100px;">Display Name</label>
+                <input type="text" name="public_display_name" style="width: 250px;" value="{{ associate.public_display_name }}"><br><br>
+                <label style="display:inline-block; width: 100px;">Contact Email</label>
+                <input type="email" name="contact_email" style="width: 250px;" value="{{ associate.contact_email }}"><br><br>
+                <label style="display:inline-block; width: 100px;">Contact Phone</label>
+                <input type="tel" name="contact_phone" style="width: 200px;" value="{{ associate.contact_phone }}"><br><br>
+                <label>Bio</label>
+                <textarea name="bio" rows="3" placeholder="Short public description">{{ associate.bio }}</textarea><br><br>
+                <label style="display:inline-block; width: 100px;">Logo</label>
+                {% if associate.logo %}<img src="{{ associate.logo.url }}" style="height:40px; vertical-align:middle; margin-right:10px;">{% endif %}
+                <input type="file" name="logo" accept="image/*"><br><br>
+                <label style="display:inline-block; width: 100px;">Office Images</label>
+                <input type="file" name="office_images" accept="image/*" multiple>
+                <br><br>
+                <button type="submit" class="button">Save Public Profile</button>
+            </form>
+            {% if associate.office_images.all %}
+            <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:15px;">
+                {% for img in associate.office_images.all %}
+                <img src="{{ img.image.url }}" style="width:100px; height:80px; object-fit:cover; border-radius:6px;">
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        <div class="quickupdate">
             <h2>License Details ({{ licenses.count }})</h2><hr>
             {% if licenses %}
                 <table class="data-table">

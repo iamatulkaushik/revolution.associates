@@ -11,7 +11,7 @@ from django.http import JsonResponse
 
 from Aapp.app.branch_department import branch, department
 from Sapp.app.company import Company
-from Sapp.app.user import UserProfile, associateuser, SubUser, can_user_access_system
+from Sapp.app.user import UserProfile, associateuser, SubUser, can_user_access_system, AssociateOfficeImage
 from Sapp.app.license import License
 from Sapp.app.password_reset import handle_reset_request, handle_reset_confirm
 
@@ -147,6 +147,40 @@ def associate_profile(request):
         'active_subusers': active_subusers,
         'companies': companies,
     })
+
+@login_required
+def associate_public_profile_update(request):
+    try:
+        associate = associateuser.objects.get(user=request.user)
+    except associateuser.DoesNotExist:
+        messages.error(request, 'Associate profile not found.')
+        return redirect('aapp_dashboard')
+
+    if request.method == 'POST':
+        try:
+            associate.is_public_profile = bool(request.POST.get('is_public_profile'))
+            slug = request.POST.get('slug', '').strip()
+            if slug:
+                associate.slug = slug
+            associate.public_display_name = request.POST.get('public_display_name', '').strip()
+            associate.contact_email = request.POST.get('contact_email', '').strip()
+            associate.contact_phone = request.POST.get('contact_phone', '').strip()
+            associate.bio = request.POST.get('bio', '').strip()
+
+            if request.FILES.get('logo'):
+                associate.logo = request.FILES['logo']
+
+            associate.save()
+
+            for img in request.FILES.getlist('office_images'):
+                AssociateOfficeImage.objects.create(associate=associate, image=img)
+
+            messages.success(request, 'Public profile updated successfully!')
+        except Exception as e:
+            logger.exception("Public profile update error for user='%s': %s", request.user.username, e)
+            messages.error(request, f'Error updating public profile: {e}')
+
+    return redirect('associate_profile')
 
 
 # ---------------------------------------------------------------------------

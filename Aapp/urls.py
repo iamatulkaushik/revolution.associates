@@ -204,6 +204,8 @@ urlpatterns = [
     path('reset/<str:uidb64>/<str:token>/', views.associate_password_reset_confirm, name='associate_password_reset_confirm'),
     path('dashboard/', views.associate_dashboard, name='aapp_dashboard'),
     path('profile/', views.associate_profile, name='associate_profile'),
+    path('profile/public/', views.associate_public_profile_update, name='associate_public_profile_update'),
+
 
     # ── Branch & Department ──────────────────────────────────────────────────
     path('branch/create/', create_branch, name='create_branch'),

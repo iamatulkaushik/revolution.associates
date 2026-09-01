@@ -92,6 +92,15 @@ class associateuser(models.Model):
     suspension_end_time = models.DateTimeField(null=True, blank=True)
     suspension_reason = models.TextField(blank=True, null=True)
 
+    # Public profile page
+    slug = models.SlugField(max_length=100, unique=True, null=True, blank=True)
+    is_public_profile = models.BooleanField(default=False)
+    public_display_name = models.CharField(max_length=150, blank=True)
+    bio = models.TextField(max_length=1000, blank=True)
+    logo = models.ImageField(upload_to='associate_logos/', null=True, blank=True)
+    contact_email = models.EmailField(blank=True)
+    contact_phone = models.CharField(max_length=15, blank=True)
+
     def __str__(self):
         return f'{self.user.username} - {self.associate_id}'
 
@@ -172,6 +181,33 @@ class associateuser(models.Model):
 
     def get_active_subusers_count(self):
         return self.sub_users.filter(is_active=True).count()
+
+    def get_compliance_accuracy(self):
+        """% of statutory returns filed on time across all companies."""
+        from Aapp.app.compliance_tracker import StatutoryReturnTracker
+        qs = StatutoryReturnTracker.objects.filter(company__in=self.companyid.all())
+        total = qs.count()
+        if total == 0:
+            return None
+        on_time = qs.filter(
+            filing_status='filed',
+            filed_date__lte=models.F('due_date')
+        ).count()
+        return round((on_time / total) * 100, 1)
+
+
+class AssociateOfficeImage(models.Model):
+    associate = models.ForeignKey(associateuser, on_delete=models.CASCADE, related_name='office_images')
+    image = models.ImageField(upload_to='associate_office_images/')
+    caption = models.CharField(max_length=200, blank=True)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'associate_office_images'
+        ordering = ['-uploaded_at']
+
+    def __str__(self):
+        return f'{self.associate.associate_id} - {self.caption or "office image"}'
 
 
 class SubUser(models.Model):
