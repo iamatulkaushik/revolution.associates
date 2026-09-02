@@ -1,7 +1,9 @@
 from django.urls import path
 
+from Cxapp.app.email_verify import cxapp_resend_verification, cxapp_verify_email
 from Cxapp.views import (
     cxapp_signup, cxapp_login, cxapp_logout, cxapp_dashboard,
+    cxapp_password_reset_request, cxapp_password_reset_confirm,
     cxapp_company_profile, cxapp_districts_for_state,
 )
 from Cxapp.app.sub_user import (
@@ -27,6 +29,37 @@ from Cxapp.app.attandance import (
 from Cxapp.app.process import (
     cxapp_salary_list, cxapp_salary_process, cxapp_salary_bulk_process,
     cxapp_salary_detail, cxapp_salary_reprocess, cxapp_salary_slip_pdf,
+    cxapp_email_salary_slip, cxapp_email_all_slips,
+)
+from Cxapp.app.loans_advances import (
+    cxapp_list_loans, cxapp_create_loan, cxapp_view_loan_schedule,
+    cxapp_list_advances, cxapp_create_advance, cxapp_view_advance_schedule,
+)
+from Cxapp.app.fnf_settlement import (
+    cxapp_list_fnf, cxapp_create_fnf, cxapp_view_fnf, cxapp_finalize_fnf,
+    cxapp_download_fnf, cxapp_download_fnf_certificate,
+)
+from Cxapp.app.increment import (
+    cxapp_list_increments, cxapp_create_increment, cxapp_view_increment,
+)
+from Cxapp.app.arrear import (
+    cxapp_list_arrears, cxapp_create_arrear, cxapp_view_arrear,
+)
+from Cxapp.app.banking import (
+    cxapp_list_bank_batches, cxapp_select_salary_for_bank_file, cxapp_create_bank_batch,
+    cxapp_download_bank_csv, cxapp_download_bank_xlsx,
+)
+from Cxapp.app.biometric import (
+    cxapp_list_devices, cxapp_create_device, cxapp_list_device_mappings, cxapp_create_device_mapping,
+    cxapp_list_shifts, cxapp_create_shift, cxapp_assign_shift, ingest_punch,
+)
+from Cxapp.app.asset_management import (
+    cxapp_list_assets, cxapp_create_asset, cxapp_assign_asset,
+    cxapp_list_asset_recoveries, cxapp_create_asset_recovery,
+)
+from Cxapp.app.expense_management import (
+    cxapp_list_expense_claims, cxapp_create_expense_claim,
+    cxapp_approve_expense_claim, cxapp_reject_expense_claim,
 )
 from Cxapp.app.compliance import (
     cxapp_compliance_dashboard, cxapp_epf_export, cxapp_esi_export, cxapp_labour_challan,
@@ -35,10 +68,17 @@ from Cxapp.app.compliance import (
 from Cxapp.app.statutory import cxapp_company_statutory
 from Cxapp.app.employee_portal import (
     cxapp_emp_login, cxapp_emp_logout, cxapp_emp_dashboard, cxapp_emp_salary_slip_pdf,
+    cxapp_emp_password_reset_request, cxapp_emp_password_reset_confirm,
 )
 
 # NOTE: Cxapp/urls.py is the ROOT urlconf for the 'cxapp' host in django-hosts.
 # Bare URL names (no namespace prefix) — same pattern as Aapp/Capp.
+#
+# cxapp_employee_set_password was previously imported/routed here but the
+# view was never implemented in Cxapp/app/employee.py — removed until it
+# exists (it was breaking every route in this urlconf). See memory note:
+# "Interface for Owner/HR to set employee portal passwords" — still on
+# the roadmap, not yet built.
 
 urlpatterns = [
 
@@ -47,6 +87,10 @@ urlpatterns = [
     path('signup/',    cxapp_signup,  name='cxapp_signup'),
     path('login/',     cxapp_login,   name='cxapp_login'),
     path('logout/',    cxapp_logout,  name='cxapp_logout'),
+    path('verify-email/<str:token>/', cxapp_verify_email, name='cxapp_verify_email'),
+    path('resend-verification/', cxapp_resend_verification, name='cxapp_resend_verification'),
+    path('reset-password/', cxapp_password_reset_request, name='cxapp_password_reset_request'),
+    path('reset/<str:uidb64>/<str:token>/', cxapp_password_reset_confirm, name='cxapp_password_reset_confirm'),
 
     # ── Dashboard ─────────────────────────────────────────────────────────────
     path('dashboard/', cxapp_dashboard, name='cxapp_dashboard'),
@@ -103,6 +147,61 @@ urlpatterns = [
     path('salary/<int:salary_id>/',        cxapp_salary_detail,        name='cxapp_salary_detail'),
     path('salary/<int:salary_id>/reprocess/', cxapp_salary_reprocess,  name='cxapp_salary_reprocess'),
     path('salary/<int:salary_id>/pdf/',       cxapp_salary_slip_pdf,   name='cxapp_salary_slip_pdf'),
+    path('salary/<int:salary_id>/email/',     cxapp_email_salary_slip, name='cxapp_email_salary_slip'),
+    path('salary/email-all/<int:month>/<int:year>/', cxapp_email_all_slips, name='cxapp_email_all_slips'),
+
+    # ── Loans & Advances — Cxapp/app/loans_advances.py ───────────────────────
+    path('loans/',                          cxapp_list_loans,           name='cxapp_list_loans'),
+    path('loans/add/',                      cxapp_create_loan,          name='cxapp_create_loan'),
+    path('loans/<int:loan_id>/schedule/',   cxapp_view_loan_schedule,   name='cxapp_view_loan_schedule'),
+    path('advances/',                       cxapp_list_advances,        name='cxapp_list_advances'),
+    path('advances/add/',                   cxapp_create_advance,       name='cxapp_create_advance'),
+    path('advances/<int:advance_id>/schedule/', cxapp_view_advance_schedule, name='cxapp_view_advance_schedule'),
+
+    # ── Full & Final Settlement — Cxapp/app/fnf_settlement.py ────────────────
+    path('fnf/',                            cxapp_list_fnf,             name='cxapp_list_fnf'),
+    path('fnf/add/',                        cxapp_create_fnf,           name='cxapp_create_fnf'),
+    path('fnf/<int:settlement_id>/',        cxapp_view_fnf,             name='cxapp_view_fnf'),
+    path('fnf/<int:settlement_id>/finalize/', cxapp_finalize_fnf,       name='cxapp_finalize_fnf'),
+    path('fnf/<int:settlement_id>/download/', cxapp_download_fnf,       name='cxapp_download_fnf'),
+    path('fnf/<int:settlement_id>/certificate/<str:cert_type>/', cxapp_download_fnf_certificate, name='cxapp_download_fnf_certificate'),
+
+    # ── Increment & Arrear — Cxapp/app/increment.py, Cxapp/app/arrear.py ─────
+    path('increments/',                     cxapp_list_increments,      name='cxapp_list_increments'),
+    path('increments/add/',                 cxapp_create_increment,     name='cxapp_create_increment'),
+    path('increments/<int:increment_id>/',  cxapp_view_increment,       name='cxapp_view_increment'),
+    path('arrears/',                        cxapp_list_arrears,         name='cxapp_list_arrears'),
+    path('arrears/add/',                    cxapp_create_arrear,        name='cxapp_create_arrear'),
+    path('arrears/<int:arrear_id>/',        cxapp_view_arrear,          name='cxapp_view_arrear'),
+
+    # ── Banking (NEFT/RTGS/IMPS) — Cxapp/app/banking.py ──────────────────────
+    path('banking/batches/',                cxapp_list_bank_batches,           name='cxapp_list_bank_batches'),
+    path('banking/select-batch/',           cxapp_select_salary_for_bank_file, name='cxapp_select_salary_for_bank_file'),
+    path('banking/generate/<int:month>/<int:year>/', cxapp_create_bank_batch, name='cxapp_create_bank_batch'),
+    path('banking/download/<int:batch_id>/csv/',  cxapp_download_bank_csv,  name='cxapp_download_bank_csv'),
+    path('banking/download/<int:batch_id>/xlsx/', cxapp_download_bank_xlsx, name='cxapp_download_bank_xlsx'),
+
+    # ── Biometric/RFID Attendance — Cxapp/app/biometric.py ───────────────────
+    path('biometric/devices/',                    cxapp_list_devices,          name='cxapp_list_devices'),
+    path('biometric/devices/add/',                cxapp_create_device,         name='cxapp_create_device'),
+    path('biometric/devices/<int:device_id>/mappings/',     cxapp_list_device_mappings,   name='cxapp_list_device_mappings'),
+    path('biometric/devices/<int:device_id>/mappings/add/', cxapp_create_device_mapping,  name='cxapp_create_device_mapping'),
+    path('biometric/ingest/',                     ingest_punch,                name='cxapp_ingest_punch'),
+    path('shifts/',                               cxapp_list_shifts,           name='cxapp_list_shifts'),
+    path('shifts/add/',                           cxapp_create_shift,          name='cxapp_create_shift'),
+    path('shifts/assign/',                        cxapp_assign_shift,          name='cxapp_assign_shift'),
+
+    # ── Assets & Expenses — Cxapp/app/asset_management.py, Cxapp/app/expense_management.py ──
+    path('assets/',                         cxapp_list_assets,             name='cxapp_list_assets'),
+    path('assets/add/',                     cxapp_create_asset,            name='cxapp_create_asset'),
+    path('assets/assign/<int:asset_id>/',   cxapp_assign_asset,            name='cxapp_assign_asset'),
+    path('assets/recoveries/',              cxapp_list_asset_recoveries,   name='cxapp_list_asset_recoveries'),
+    path('assets/recoveries/add/',          cxapp_create_asset_recovery,   name='cxapp_create_asset_recovery'),
+
+    path('expenses/',                       cxapp_list_expense_claims,     name='cxapp_list_expense_claims'),
+    path('expenses/add/',                   cxapp_create_expense_claim,    name='cxapp_create_expense_claim'),
+    path('expenses/approve/<int:expense_id>/', cxapp_approve_expense_claim, name='cxapp_approve_expense_claim'),
+    path('expenses/reject/<int:expense_id>/',  cxapp_reject_expense_claim,  name='cxapp_reject_expense_claim'),
 
     # ── Compliance Exports — Cxapp/app/compliance.py ─────────────────────────
     path('compliance/',              cxapp_compliance_dashboard, name='cxapp_compliance_dashboard'),
@@ -118,4 +217,6 @@ urlpatterns = [
     path('employee/logout/',   cxapp_emp_logout,         name='cxapp_emp_logout'),
     path('employee/',          cxapp_emp_dashboard,      name='cxapp_emp_dashboard'),
     path('employee/salary/<int:salary_id>/pdf/', cxapp_emp_salary_slip_pdf, name='cxapp_emp_salary_slip_pdf'),
+    path('employee/reset-password/', cxapp_emp_password_reset_request, name='cxapp_emp_password_reset_request'),
+    path('employee/reset/<str:token>/', cxapp_emp_password_reset_confirm, name='cxapp_emp_password_reset_confirm'),
 ]

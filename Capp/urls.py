@@ -1,6 +1,7 @@
 from django.urls import path
 from Capp.views import (
     capp_login, capp_logout, capp_dashboard,
+    capp_password_reset_request, capp_password_reset_confirm,
     capp_employee_list, capp_employee_detail,
     capp_attendance_list, capp_overtime_list,
     capp_wages_list, capp_salary_slip_select,
@@ -21,6 +22,8 @@ urlpatterns = [
     path('',          capp_login,    name='capp_login'),
     path('login/',    capp_login,    name='capp_login'),
     path('logout/',   capp_logout,   name='capp_logout'),
+    path('reset-password/', capp_password_reset_request, name='capp_password_reset_request'),
+    path('reset/<str:uidb64>/<str:token>/', capp_password_reset_confirm, name='capp_password_reset_confirm'),
 
     # ── Dashboard ─────────────────────────────────────────────────────────────
     path('dashboard/', capp_dashboard, name='capp_dashboard'),

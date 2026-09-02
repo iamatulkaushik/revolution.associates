@@ -124,11 +124,60 @@ from Aapp.app.pdf_views import (
     download_salary_slip, download_salary_sheet,
     download_salary_abstract, download_company_profile,
     download_letterhead_doc, download_all_slips,
+    email_salary_slip, email_all_slips,
 )
 
 from Aapp.app.compliance_tracker import (
     compliance_dashboard, list_compliance_items, add_compliance_item,
     alter_compliance_item, mark_compliance_filed, seed_compliance_calendar,
+)
+
+from Aapp.app.loans_advances import (
+    list_loans, create_loan, alter_loan, view_loan_schedule, download_loan_schedule,
+    list_advances, create_advance, alter_advance, view_advance_schedule, download_advance_schedule,
+)
+
+from Aapp.app.increment import (
+    list_increments, create_increment, view_increment_schedule, download_increment_schedule,
+)
+
+from Aapp.app.arrear import (
+    list_arrears, create_arrear, view_arrear_schedule, download_arrear_schedule,
+)
+
+from Aapp.app.fnf_settlement import (
+    list_fnf_settlements, create_fnf_settlement, view_fnf_settlement,
+    finalize_fnf_settlement, download_fnf_settlement, download_fnf_certificate,
+)
+
+from Aapp.app.biometric_device import (
+    list_biometric_devices, create_biometric_device,
+    list_device_mappings, create_device_mapping,
+)
+
+from Aapp.app.shift import (
+    list_shifts, create_shift, alter_shift, assign_shift,
+)
+
+from Aapp.app.punch_log import (
+    ingest_punch, download_punch_sheet, view_daily_attendance,
+)
+
+from Aapp.app.banking import (
+    list_bank_batches, select_processing_for_bank_file, create_bank_batch,
+    download_bank_csv, download_bank_xlsx,
+)
+
+from Aapp.app.asset_management import (
+    list_assets, create_asset, alter_asset, assign_asset,
+    list_asset_recoveries, create_asset_recovery,
+)
+
+from Aapp.app.expense_management import (
+    list_expense_claims, create_expense_claim, approve_expense_claim, reject_expense_claim,
+)
+from Aapp.app.form16 import (
+    select_employee_for_form16, download_form16, download_deductions_report,
 )
 
 
@@ -151,8 +200,12 @@ urlpatterns = [
     path('', views.associate_base_home, name='home'),
     path('login/', views.associate_login, name='associate_login'),
     path('logout/', views.logout, name='logout'),
+    path('reset-password/', views.associate_password_reset_request, name='associate_password_reset_request'),
+    path('reset/<str:uidb64>/<str:token>/', views.associate_password_reset_confirm, name='associate_password_reset_confirm'),
     path('dashboard/', views.associate_dashboard, name='aapp_dashboard'),
     path('profile/', views.associate_profile, name='associate_profile'),
+    path('profile/public/', views.associate_public_profile_update, name='associate_public_profile_update'),
+
 
     # ── Branch & Department ──────────────────────────────────────────────────
     path('branch/create/', create_branch, name='create_branch'),
@@ -279,6 +332,18 @@ urlpatterns = [
     # Form I (Fines), Form II (Deductions)
     # ════════════════════════════════════════════════════════════════════════
     path('wages/', list_wages, name='list_wages'),
+
+    # ── Payslip PDF download & email (views existed, were never routed) ─────
+    path('wages/<int:wages_id>/slip.pdf/', download_salary_slip, name='download_salary_slip'),
+    path('wages/sheet/<int:month>/<int:year>/pdf/', download_salary_sheet, name='download_salary_sheet'),
+    path('wages/abstract/<int:month>/<int:year>/pdf/', download_salary_abstract, name='download_salary_abstract'),
+    path('wages/all-slips/<int:month>/<int:year>/pdf/', download_all_slips, name='download_all_slips'),
+    path('wages/<int:wages_id>/email-slip/', email_salary_slip, name='email_salary_slip'),
+    path('wages/email-all-slips/<int:month>/<int:year>/', email_all_slips, name='email_all_slips'),
+
+    # ── Company Profile & Letterhead docs (views existed, never routed) ─────
+    path('company/profile.pdf/', download_company_profile, name='download_company_profile'),
+    path('letterhead/<str:doc_type>/', download_letterhead_doc, name='download_letterhead_doc'),
 
     path('wages/fines/', list_fines, name='list_fines'),
     path('wages/fines/add/', add_fine, name='add_fine'),
@@ -421,4 +486,70 @@ urlpatterns = [
     path('compliance/items/alter/<int:tracker_id>/', alter_compliance_item, name='alter_compliance_item'),
     path('compliance/items/mark-filed/<int:tracker_id>/', mark_compliance_filed, name='mark_compliance_filed'),
     path('compliance/seed/', seed_compliance_calendar, name='seed_compliance_calendar'),
+
+    path('loans/', list_loans, name='list_loans'),
+    path('loans/add/', create_loan, name='create_loan'),
+    path('loans/alter/<int:loan_id>/', alter_loan, name='alter_loan'),
+    path('loans/schedule/<int:loan_id>/', view_loan_schedule, name='view_loan_schedule'),
+    path('loans/schedule/<int:loan_id>/download/', download_loan_schedule, name='download_loan_schedule'),
+
+    path('advances/', list_advances, name='list_advances'),
+    path('advances/add/', create_advance, name='create_advance'),
+    path('advances/alter/<int:advance_id>/', alter_advance, name='alter_advance'),
+    path('advances/schedule/<int:advance_id>/', view_advance_schedule, name='view_advance_schedule'),
+    path('advances/schedule/<int:advance_id>/download/', download_advance_schedule, name='download_advance_schedule'),
+
+    path('increments/', list_increments, name='list_increments'),
+    path('increments/add/', create_increment, name='create_increment'),
+    path('increments/schedule/<int:increment_id>/', view_increment_schedule, name='view_increment_schedule'),
+    path('increments/schedule/<int:increment_id>/download/', download_increment_schedule, name='download_increment_schedule'),
+
+    path('arrears/', list_arrears, name='list_arrears'),
+    path('arrears/add/', create_arrear, name='create_arrear'),
+    path('arrears/schedule/<int:arrear_id>/', view_arrear_schedule, name='view_arrear_schedule'),
+    path('arrears/schedule/<int:arrear_id>/download/', download_arrear_schedule, name='download_arrear_schedule'),
+
+    path('fnf/', list_fnf_settlements, name='list_fnf_settlements'),
+    path('fnf/add/', create_fnf_settlement, name='create_fnf_settlement'),
+    path('fnf/<int:settlement_id>/', view_fnf_settlement, name='view_fnf_settlement'),
+    path('fnf/<int:settlement_id>/finalize/', finalize_fnf_settlement, name='finalize_fnf_settlement'),
+    path('fnf/<int:settlement_id>/download/', download_fnf_settlement, name='download_fnf_settlement'),
+    path('fnf/<int:settlement_id>/certificate/<str:cert_type>/', download_fnf_certificate, name='download_fnf_certificate'),
+
+    path('biometric/devices/', list_biometric_devices, name='list_biometric_devices'),
+    path('biometric/devices/add/', create_biometric_device, name='create_biometric_device'),
+    path('biometric/devices/<int:device_id>/mappings/', list_device_mappings, name='list_device_mappings'),
+    path('biometric/devices/<int:device_id>/mappings/add/', create_device_mapping, name='create_device_mapping'),
+    path('biometric/ingest/', ingest_punch, name='ingest_punch'),  # daemon-facing, API-key auth not session auth
+
+    path('shifts/', list_shifts, name='list_shifts'),
+    path('shifts/add/', create_shift, name='create_shift'),
+    path('shifts/alter/<int:shift_id>/', alter_shift, name='alter_shift'),
+    path('shifts/assign/', assign_shift, name='assign_shift'),
+
+    path('attendance/daily/<int:month>/<int:year>/', view_daily_attendance, name='view_daily_attendance'),
+    path('attendance/daily/<int:month>/<int:year>/download/', download_punch_sheet, name='download_punch_sheet'),
+
+    path('banking/batches/', list_bank_batches, name='list_bank_batches'),
+    path('banking/select-batch/', select_processing_for_bank_file, name='select_processing_for_bank_file'),
+    path('banking/generate/<int:processing_id>/', create_bank_batch, name='create_bank_batch'),
+    path('banking/download/<int:batch_id>/csv/', download_bank_csv, name='download_bank_csv'),
+    path('banking/download/<int:batch_id>/xlsx/', download_bank_xlsx, name='download_bank_xlsx'),
+
+    path('assets/', list_assets, name='list_assets'),
+    path('assets/add/', create_asset, name='create_asset'),
+    path('assets/alter/<int:asset_id>/', alter_asset, name='alter_asset'),
+    path('assets/assign/<int:asset_id>/', assign_asset, name='assign_asset'),
+    path('assets/recoveries/', list_asset_recoveries, name='list_asset_recoveries'),
+    path('assets/recoveries/add/', create_asset_recovery, name='create_asset_recovery'),
+
+    path('expenses/', list_expense_claims, name='list_expense_claims'),
+    path('expenses/add/', create_expense_claim, name='create_expense_claim'),
+    path('expenses/approve/<int:expense_id>/', approve_expense_claim, name='approve_expense_claim'),
+    path('expenses/reject/<int:expense_id>/', reject_expense_claim, name='reject_expense_claim'),
+
+    # ── Income Tax / Form 16 — Aapp/app/form16.py (views existed, never routed) ──
+    path('form16/', select_employee_for_form16, name='select_employee_for_form16'),
+    path('form16/<int:employee_id>/<str:financial_year>/', download_form16, name='download_form16'),
+    path('form16/deductions-report/<int:month>/<int:year>/', download_deductions_report, name='download_deductions_report'),
 ]

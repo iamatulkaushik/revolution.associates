@@ -447,3 +447,55 @@ def _salary_slip_pdf(request, salary_id):
     response = HttpResponse(pdf_bytes, content_type='application/pdf')
     response['Content-Disposition'] = f'inline; filename="{filename}"'
     return response
+
+
+# ── Email payslips — Owner + HR only ────────────────────────────────────────────
+
+def cxapp_email_salary_slip(request, salary_id):
+    from Cxapp.views import cx_login_required
+    return cx_login_required(_email_salary_slip)(request, salary_id)
+
+
+def _email_salary_slip(request, salary_id):
+    from Cxapp.app.payslip_email import send_cx_payslip_email
+
+    if not _can_manage_payroll(request):
+        messages.error(request, 'You do not have permission to email payslips.')
+        return redirect('cxapp_dashboard')
+
+    salary = get_object_or_404(CxSalary, salary_id=salary_id, company=request.cx_owner_profile)
+    success, reason = send_cx_payslip_email(salary)
+    if success:
+        messages.success(request, f'Payslip emailed to {salary.employee.contact.email}.')
+    else:
+        messages.error(request, f'Could not email payslip: {reason}.')
+
+    return redirect('cxapp_salary_detail', salary_id=salary.salary_id)
+
+
+def cxapp_email_all_slips(request, month, year):
+    from Cxapp.views import cx_login_required
+    return cx_login_required(_email_all_slips)(request, month, year)
+
+
+def _email_all_slips(request, month, year):
+    from Cxapp.app.payslip_email import send_bulk_cx_payslip_emails
+
+    if not _can_manage_payroll(request):
+        messages.error(request, 'You do not have permission to email payslips.')
+        return redirect('cxapp_dashboard')
+
+    results = send_bulk_cx_payslip_emails(request.cx_owner_profile, month, year)
+    sent = sum(1 for r in results if r['success'])
+    failed = [r for r in results if not r['success']]
+
+    if sent:
+        messages.success(request, f'Emailed {sent} payslip(s) successfully.')
+    if failed:
+        failed_names = ', '.join(f"{r['name']} ({r['reason']})" for r in failed[:5])
+        more = f" and {len(failed) - 5} more" if len(failed) > 5 else ''
+        messages.warning(request, f'{len(failed)} payslip(s) not sent: {failed_names}{more}.')
+    if not results:
+        messages.error(request, 'No salary records found for the selected period.')
+
+    return redirect('cxapp_salary_list')

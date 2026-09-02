@@ -43,6 +43,15 @@ th{background:var(--cream);text-transform:uppercase;font-size:11px;color:#6b7c93
     <button type="submit">Filter</button>
   </form>
 
+  {% if selected_month and selected_year %}
+  <div class="actions" style="margin-bottom:16px">
+    <a href="{% url 'cxapp_email_all_slips' selected_month selected_year %}" class="btn secondary"
+       onclick="return confirm('Email payslips to every employee with an email on file for this month?')">
+      Email All Payslips ({{ selected_month }}/{{ selected_year }})
+    </a>
+  </div>
+  {% endif %}
+
   <table>
     <tr><th>Employee</th><th>Code</th><th>Month/Year</th><th>Allowances</th><th>Deductions</th><th>Net Pay</th><th></th></tr>
     {% for s in salaries %}
@@ -53,7 +62,12 @@ th{background:var(--cream);text-transform:uppercase;font-size:11px;color:#6b7c93
       <td>₹{{ s.total_allowances }}</td>
       <td>₹{{ s.total_deductions }}</td>
       <td class="amount">₹{{ s.total_amount }}</td>
-      <td><a href="{% url 'cxapp_salary_detail' s.salary_id %}" class="link">View →</a></td>
+      <td>
+        <a href="{% url 'cxapp_salary_detail' s.salary_id %}" class="link">View →</a>
+        · <a href="{% url 'cxapp_salary_slip_pdf' s.salary_id %}" class="link">PDF</a>
+        · <a href="{% url 'cxapp_email_salary_slip' s.salary_id %}" class="link"
+             onclick="return confirm('Email this payslip?')">Email</a>
+      </td>
     </tr>
     {% empty %}
     <tr><td colspan="7">No salary records processed yet.</td></tr>

@@ -1,0 +1,42 @@
+{% extends 'Aapp/base.html' %}
+{% block title %}{{ record_type }} Schedule{% endblock %}
+{% block content %}
+<div class="main-content">
+<h2>{{ record_type }} Schedule — {{ loan.employee.name }}</h2>
+
+<table class="data-table">
+    <tr><td><strong>Principal Amount</strong></td><td>Rs. {{ loan.principal_amount }}</td></tr>
+    <tr><td><strong>Interest Rate (Annual)</strong></td><td>{{ loan.interest_rate_annual }}%</td></tr>
+    <tr><td><strong>Total Payable</strong></td><td>Rs. {{ loan.total_payable }}</td></tr>
+    <tr><td><strong>Deduction Mode</strong></td><td>{{ loan.get_deduction_mode_display }}</td></tr>
+    <tr><td><strong>Status</strong></td><td>{{ loan.get_status_display }}</td></tr>
+</table>
+
+<h3>Amortization Schedule</h3>
+<table class="data-table">
+    <tr>
+        <th>Instalment #</th>
+        <th>Month</th>
+        <th>Year</th>
+        <th>Amount</th>
+    </tr>
+    {% for row in schedule %}
+    <tr>
+        <td>{{ row.instalment_no }}</td>
+        <td>{{ row.month }}</td>
+        <td>{{ row.year }}</td>
+        <td>Rs. {{ row.amount }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<p>
+    <a href="{{ download_url }}" class="button">Download PDF</a>
+    {% if record_type == 'Loan' %}
+        <a href="{% url 'list_loans' %}" class="button">Back to Loans</a>
+    {% else %}
+        <a href="{% url 'list_advances' %}" class="button">Back to Advances</a>
+    {% endif %}
+</p>
+</div>
+{% endblock %}

@@ -1,0 +1,18 @@
+{% extends 'Cxapp/_base.html' %}
+{% block title %}Select Salary Month{% endblock %}
+{% block page_title %}Select Processed Salary Month{% endblock %}
+{% block content %}
+<div class="wrap" style="max-width:700px;margin:0 auto;padding:32px 24px">
+<table style="width:100%;border-collapse:collapse;background:#fff">
+    <tr><th>Month/Year</th><th></th></tr>
+    {% for b in batches %}
+    <tr>
+        <td>{{ b.salary_month }}/{{ b.salary_year }}</td>
+        <td><a href="{% url 'cxapp_create_bank_batch' b.salary_month b.salary_year %}" class="btn">Generate Bank File</a></td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="2">No processed salary batches found.</td></tr>
+    {% endfor %}
+</table>
+</div>
+{% endblock %}

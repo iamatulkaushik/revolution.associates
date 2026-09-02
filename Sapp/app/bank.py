@@ -39,51 +39,41 @@ class bank_form(ModelForm):
         if commit:
             bank_instance.save()
         return bank_instance
-    
-    @receiver(post_migrate)
-    def create_indian_banks(sender, app_config, **kwargs):
-        try:
-            Bank = app_config.get_model('bank_name')
-        except LookupError:
-            return
 
-        banks = [
-            "State Bank of India",
-            "HDFC Bank",
-            "ICICI Bank",
-            "Axis Bank",
-            "Kotak Mahindra Bank",
-            "IndusInd Bank",
-            "Punjab National Bank",
-            "Bank of Baroda",
-            "Canara Bank",
-            "Union Bank of India",
-            "IDBI Bank",
-            "Indian Bank",
-            "Central Bank of India",
-            "Bank of India",
-            "UCO Bank",
-            "Punjab & Sind Bank",
-            "RBL Bank",
-            "Federal Bank",
-            "South Indian Bank",
-            "Karur Vysya Bank",
-            "DCB Bank",
-            "Karnataka Bank",
-            "Jammu & Kashmir Bank",
-            "AU Small Finance Bank",
-            "Equitas Small Finance Bank",
-            "Ujjivan Small Finance Bank",
-            "ESAF Small Finance Bank",
-            "IDFC First Bank",
-            "Yes Bank",
-            "Nainital Bank",
-            "Bank of Maharashtra",
-            "Indian Overseas Bank",
-            "Bandhan Bank",
-            "Jana Small Finance Bank",
-        ]
 
-        for name in banks:
-            if name:
-                Bank.objects.get_or_create(name=name)
+INDIAN_BANKS = [
+    "State Bank of India",
+    "HDFC Bank",
+    "ICICI Bank",
+    "Axis Bank",
+    "Kotak Mahindra Bank",
+    "IndusInd Bank",
+    "Punjab National Bank",
+    "Bank of Baroda",
+    "Canara Bank",
+    "Union Bank of India",
+    "IDBI Bank",
+    "Indian Bank",
+    "Central Bank of India",
+    "Bank of India",
+    "UCO Bank",
+    "Punjab & Sind Bank",
+    "RBL Bank",
+    "Federal Bank",
+    "South Indian Bank",
+    "Karur Vysya Bank",
+    "DCB Bank",
+    "Karnataka Bank",
+    "Jammu & Kashmir Bank",
+    "AU Small Finance Bank",
+    "Equitas Small Finance Bank",
+    "Ujjivan Small Finance Bank",
+    "ESAF Small Finance Bank",
+    "IDFC First Bank",
+    "Yes Bank",
+    "Nainital Bank",
+    "Bank of Maharashtra",
+    "Indian Overseas Bank",
+    "Bandhan Bank",
+    "Jana Small Finance Bank",
+]

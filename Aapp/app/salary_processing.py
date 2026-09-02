@@ -139,11 +139,7 @@ PF_WAGE_CEILING = Decimal('15000')       # Max basic for PF calculation
 ESI_WAGE_CEILING = Decimal('21000')      # Max gross for ESI applicability
 STANDARD_WORKING_HOURS = Decimal('8')    # Hours per day, for OT rate derivation
 
-PT_STATES = {                            # Professional Tax slabs (fallback only —
-    'Maharashtra': [(10000, 200), (Decimal('inf'), 200)],  # designation.ed_professionaltax takes priority)
-    'Karnataka': [(15000, 200), (Decimal('inf'), 200)],
-    'Haryana': [(Decimal('inf'), 0)],    # Haryana currently levies no state PT
-}
+PT_STATES_DEPRECATED = {}  # kept only for reference; real slabs now in Sapp.app.professional_tax.PTSlab
 
 
 # =====================================================================
@@ -244,19 +240,33 @@ def _calculate_labour_welfare(ed_lw_per, er_lw_per, gross):
     return _decimal_round(employee_lw), _decimal_round(employer_lw)
 
 
-def _calculate_pt(gross, state_name, designation_pt):
+def _calculate_pt(gross, state_obj, designation_pt, company):
     """
     Professional Tax. The designation's own configured rate/amount
-    (ed_professionaltax) takes priority; falls back to a state slab lookup
-    only if the designation leaves it at 0.
+    (ed_professionaltax) takes priority; falls back to the real
+    multi-state PTSlab lookup only if the designation leaves it at 0.
+
+    Fail-closed: no company PT registration on file (gates['pt']) means
+    zero PT regardless of state slabs existing — same pattern as
+    EPF/ESI/Labour. Caller must check gates['pt'] before relying on the
+    slab fallback; designation-level override still applies either way
+    since that's an explicit per-employee configured amount, not a
+    state-slab-driven default.
     """
     if designation_pt and designation_pt > 0:
         return Decimal(str(designation_pt))
-    slabs = PT_STATES.get(state_name, [])
-    for limit, tax in slabs:
-        if gross <= limit:
-            return Decimal(tax)
-    return Decimal('0')
+
+    if not company or not state_obj:
+        return Decimal('0')
+
+    from Aapp.app.statutory_gates import get_company_gates
+    from Sapp.app.professional_tax import get_pt_amount
+
+    gates = get_company_gates(company)
+    if not gates['pt']:
+        return Decimal('0')
+
+    return Decimal(str(get_pt_amount(state_obj, gross)))
 
 
 def _calculate_overtime(basic, overtime_hours):
@@ -321,15 +331,21 @@ def calculate_employee_salary(employee_obj, desig, month, year, company=None):
         basic_for_statutory = daily_rate * working_days  # notional monthly basic for PF ceiling logic
         overtime_amt = _calculate_overtime(daily_rate * Decimal('30'), overtime_hours_gated)
     else:
-        basic = Decimal(str(desig.basicpay))
+        # Increment override (employee-level) takes priority over the
+        # shared designation pay scale; falls back to designation if no
+        # active increment applies for this month.
+        from Aapp.app.increment import get_effective_pay
+        effective_pay = get_effective_pay(employee_obj, desig, month, year)
+
+        basic = effective_pay['basicpay']
         basic_earned = _decimal_round(basic * proration)
-        hra_earned = _decimal_round(Decimal(str(desig.hra)) * proration)
-        da_earned = _decimal_round(Decimal(str(desig.da)) * proration)
-        conv_earned = _decimal_round(Decimal(str(desig.conveyance)) * proration)
+        hra_earned = _decimal_round(effective_pay['hra'] * proration)
+        da_earned = _decimal_round(effective_pay['da'] * proration)
+        conv_earned = _decimal_round(effective_pay['conveyance'] * proration)
         medical_earned = _decimal_round(Decimal(str(desig.medicalallowance)) * proration)
         lunch_earned = _decimal_round(Decimal(str(desig.lunchallowance)) * proration)
         cca_earned = _decimal_round(Decimal(str(desig.cca)) * proration)
-        special_earned = _decimal_round(Decimal(str(desig.specialallowance)) * proration)
+        special_earned = _decimal_round(effective_pay['specialallowance'] * proration)
         travel_earned = _decimal_round(Decimal(str(desig.travelallowance)) * proration)
         washing_earned = _decimal_round(Decimal(str(desig.washingallowance)) * proration)
         cycle_earned = _decimal_round(Decimal(str(desig.cycleallowance)) * proration)
@@ -387,25 +403,60 @@ def calculate_employee_salary(employee_obj, desig, month, year, company=None):
         lw_emp, lw_empr = Decimal('0'), Decimal('0')
 
     # Professional Tax — designation's own configured amount takes
-    # priority; falls back to employee's state slab only if not set.
-    state_name = ''
+    # priority; falls back to multi-state PTSlab lookup keyed on the
+    # employee's state, gated on company PT registration.
+    state_obj = None
     try:
         state_obj = employee_obj.perm_state or employee_obj.temp_state
-        if state_obj:
-            state_name = state_obj.name
     except Exception:
         pass
-    pt = _calculate_pt(gross, state_name, desig.ed_professionaltax)
+    pt = _calculate_pt(gross, state_obj, desig.ed_professionaltax, company)
 
-    # Income tax withholding requires the company to hold a TAN
-    # (Tax Deduction Account Number) — no TAN means no TDS can be filed.
-    it = (
-        _decimal_round(Decimal(str(desig.ed_income_tax)) * proration)
-        if gates['income_tax'] else Decimal('0')
+    # Income tax (TDS) — requires BOTH company TAN on file (gates) AND
+    # employee PAN on file (fail-closed inside calculate_monthly_tds,
+    # per pt_upgrades.md: "if no PAN no deduction"). Falls back to the
+    # designation's flat ed_income_tax rate only if no EmployeeTaxProfile
+    # has been declared for the current FY (keeps older records working).
+    it = Decimal('0')
+    if gates['income_tax'] and getattr(employee_obj, 'pan_number', None):
+        from Aapp.app.income_tax import (
+            EmployeeTaxProfile, calculate_monthly_tds, current_financial_year
+        )
+        fy = current_financial_year(date(year, month, 1))
+        tax_profile = EmployeeTaxProfile.objects.filter(
+            employee=employee_obj, financial_year=fy
+        ).first()
+
+        if tax_profile:
+            projected_annual_gross = gross * Decimal('12')
+            # Months remaining in FY (Apr..Mar), current month inclusive
+            months_remaining = (12 - (month - 4)) if month >= 4 else (12 - (month + 8))
+            it = calculate_monthly_tds(
+                employee_obj, projected_annual_gross, tax_profile,
+                months_remaining, basic_annual=basic_for_statutory * Decimal('12')
+            )
+        else:
+            # No declaration on file yet — use designation's flat rate as before.
+            it = _decimal_round(Decimal(str(desig.ed_income_tax)) * proration)
+
+    # Loans & Advances — auto-deduction from the amortization schedule.
+    # Manual entry in edit_salary_slip can still override/add to this
+    # afterward for ad-hoc adjustments outside the schedule.
+    from Aapp.app.loans_advances import (
+        get_total_loan_deduction_for_month, get_total_advance_deduction_for_month
     )
+    loan_ded = get_total_loan_deduction_for_month(employee_obj, month, year)
+    advance_ded = get_total_advance_deduction_for_month(employee_obj, month, year)
 
-    total_deductions = pf_emp + esi_emp + lw_emp + pt + it
-    net_pay = gross - total_deductions
+    total_deductions = pf_emp + esi_emp + lw_emp + pt + it + loan_ded + advance_ded
+
+    # Tax-exempt approved expense reimbursements — added after
+    # total_deductions is computed since they bypass gross_earnings
+    # entirely (not part of the PF/ESI/PT/IT calculation base).
+    from Aapp.app.expense_management import get_approved_reimbursement_for_month
+    reimbursement = get_approved_reimbursement_for_month(employee_obj, month, year)
+
+    net_pay = gross - total_deductions + reimbursement
     employer_cost = gross + pf_empr + esi_empr + lw_empr
 
     return {
@@ -436,6 +487,9 @@ def calculate_employee_salary(employee_obj, desig, month, year, company=None):
         'labour_welfare_deduction': lw_emp,
         'professional_tax': pt,
         'income_tax': it,
+        'loan_deduction': loan_ded,
+        'advance_deduction': advance_ded,
+        'reimbursement': reimbursement,
         'total_deductions': _decimal_round(total_deductions),
 
         'net_pay': _decimal_round(net_pay),

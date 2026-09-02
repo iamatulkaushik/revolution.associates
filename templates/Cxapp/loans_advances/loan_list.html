@@ -1,0 +1,27 @@
+{% extends 'Cxapp/_base.html' %}
+{% block title %}Loans · {{ cx_company.company_name }}{% endblock %}
+{% block page_title %}Employee Loans{% endblock %}
+{% block content %}
+<div class="wrap" style="max-width:960px;margin:0 auto;padding:32px 24px">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+    <h2>Employee Loans</h2>
+    <a href="{% url 'cxapp_create_loan' %}" class="btn" style="padding:10px 18px;background:#2a9d8f;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">Add Loan</a>
+</div>
+<table style="width:100%;border-collapse:collapse;background:#fff;border-radius:12px;overflow:hidden">
+    <tr><th>Emp Code</th><th>Name</th><th>Principal</th><th>Mode</th><th>Start</th><th>Status</th><th></th></tr>
+    {% for l in loans %}
+    <tr>
+        <td>{{ l.employee.employee_code }}</td>
+        <td>{{ l.employee.name }}</td>
+        <td>Rs. {{ l.principal_amount }}</td>
+        <td>{{ l.get_deduction_mode_display }}</td>
+        <td>{{ l.deduction_start_month }}/{{ l.deduction_start_year }}</td>
+        <td>{{ l.get_status_display }}</td>
+        <td><a href="{% url 'cxapp_view_loan_schedule' l.loan_id %}">Schedule</a></td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="7">No loans on record.</td></tr>
+    {% endfor %}
+</table>
+</div>
+{% endblock %}

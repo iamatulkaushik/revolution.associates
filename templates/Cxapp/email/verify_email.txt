@@ -1,0 +1,11 @@
+Welcome to Revolution Associates, {{ company_name }}!
+
+Please verify your email address by clicking the link below:
+
+{{ link }}
+
+This link expires in {{ hours }} hours.
+
+If you didn't create this account, you can ignore this email.
+
+— Revolution Associates

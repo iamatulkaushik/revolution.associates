@@ -355,7 +355,7 @@ def create_company_associate(request):
             default_state = State.objects.first()
             default_district = District.objects.filter(state=default_state).first() if default_state else None
             
-            Company.objects.create(
+            new_company = Company.objects.create(
                 company_name=company_name,
                 start_date=start_date,
                 mobile=mobile,
@@ -364,6 +364,13 @@ def create_company_associate(request):
                 state_id=default_state,
                 district_id=default_district
             )
+
+            user = request.user
+            if hasattr(user, 'associate_profile'):
+                user.associate_profile.companyid.add(new_company)
+            elif hasattr(user, 'subuser_profile'):
+                user.subuser_profile.companyid.add(new_company)
+
             messages.success(request, f"Company '{company_name}' created successfully.")
             return redirect('list_company_associate')
     

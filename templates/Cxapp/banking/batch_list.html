@@ -1,0 +1,29 @@
+{% extends 'Cxapp/_base.html' %}
+{% block title %}Bank Payment Batches{% endblock %}
+{% block page_title %}Bank Payment Batches{% endblock %}
+{% block content %}
+<div class="wrap" style="max-width:960px;margin:0 auto;padding:32px 24px">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+    <h2>Bank Payment Batches</h2>
+    <a href="{% url 'cxapp_select_salary_for_bank_file' %}" class="btn" style="padding:10px 18px;background:#2a9d8f;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">Generate New Batch</a>
+</div>
+<table style="width:100%;border-collapse:collapse;background:#fff">
+    <tr><th>Bank Format</th><th>Mode</th><th>Employees</th><th>Total Amount</th><th>Generated At</th><th></th></tr>
+    {% for b in batches %}
+    <tr>
+        <td>{{ b.get_bank_format_display }}</td>
+        <td>{{ b.get_payment_mode_display }}</td>
+        <td>{{ b.employee_count }}</td>
+        <td>Rs. {{ b.total_amount }}</td>
+        <td>{{ b.generated_at }}</td>
+        <td>
+            <a href="{% url 'cxapp_download_bank_csv' b.batch_id %}">CSV</a> |
+            <a href="{% url 'cxapp_download_bank_xlsx' b.batch_id %}">Excel</a>
+        </td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="6">No payment batches generated yet.</td></tr>
+    {% endfor %}
+</table>
+</div>
+{% endblock %}

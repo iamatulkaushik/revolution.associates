@@ -19,6 +19,7 @@ from django_hosts import patterns, host
 from django.urls import path, include
 from django.views.generic import RedirectView
 from Sapp.views import base_home
+from Sapp.app.associate_public import associate_public_profile
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
 urlpatterns = [
@@ -27,6 +28,7 @@ urlpatterns = [
     path('admin/', include('Sapp.urls')),
     path('associate/',include('Aapp.urls')),
     path('capp/',include('Capp.urls')),
+    path('associates/<slug:slug>/', associate_public_profile, name='associate_public_profile'),
 ]
 urlpatterns += staticfiles_urlpatterns()
 

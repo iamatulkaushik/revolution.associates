@@ -1,0 +1,26 @@
+{% extends 'Cxapp/_base.html' %}
+{% block title %}Submit Expense Claim{% endblock %}
+{% block page_title %}Submit Expense Claim{% endblock %}
+{% block content %}
+<div class="wrap" style="max-width:600px;margin:0 auto;padding:32px 24px">
+{% if messages %}{% for message in messages %}<div>{{ message }}</div>{% endfor %}{% endif %}
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <table>
+        <tr>
+            <td>Employee</td>
+            <td>
+                <select name="employee_id" class="form-control">
+                    {% for emp in employees %}
+                    <option value="{{ emp.pk }}">{{ emp.employee_code }} - {{ emp.name }}</option>
+                    {% endfor %}
+                </select>
+            </td>
+        </tr>
+        {{ form.as_table }}
+    </table>
+    <button type="submit" class="btn" style="padding:10px 18px;background:#2a9d8f;color:#fff;border:none;border-radius:8px;font-weight:600">Submit Claim</button>
+    <a href="{% url 'cxapp_list_expense_claims' %}">Cancel</a>
+</form>
+</div>
+{% endblock %}

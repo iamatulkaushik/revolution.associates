@@ -15,6 +15,9 @@ Gates:
     esi         -> employee + employer ESI deduction
     labour      -> employee + employer Labour Welfare Fund deduction
     income_tax  -> income tax (TDS) deduction — requires company TAN
+    pt          -> Professional Tax deduction — requires company PT number
+                   AND an active PT slab on file for the company's state
+                   (see Sapp.app.professional_tax.get_pt_amount)
 """
 
 from Sapp.app.company import company_statury
@@ -24,7 +27,7 @@ def get_company_gates(company) -> dict:
     """
     Returns a dict of booleans for the given Company instance:
         {'shop_act': bool, 'epf': bool, 'esi': bool,
-         'labour': bool, 'income_tax': bool}
+         'labour': bool, 'income_tax': bool, 'pt': bool}
 
     A gate is True only if the corresponding registration number/field
     is present and non-empty. Missing company or missing company_statury
@@ -37,6 +40,7 @@ def get_company_gates(company) -> dict:
         'esi': False,
         'labour': False,
         'income_tax': False,
+        'pt': False,
     }
     if company is None:
         return gates
@@ -49,6 +53,7 @@ def get_company_gates(company) -> dict:
         gates['epf'] = bool(statury.epfo)
         gates['esi'] = bool(statury.esic)
         gates['labour'] = bool(statury.labour)
+        gates['pt'] = bool(statury.pt_number)
 
     return gates
 
@@ -67,6 +72,7 @@ def gate_required(gates, gate_name, feature_name=''):
         'esi': 'ESI',
         'labour': 'Labour Welfare Fund',
         'income_tax': 'Income Tax (TAN)',
+        'pt': 'Professional Tax',
     }
     name = gate_labels.get(gate_name, gate_name)
     return False, f'{name} registration not on file{label} — action blocked.'

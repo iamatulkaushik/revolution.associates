@@ -29,6 +29,8 @@
     </div>
     <div class="actions">
       <a href="{% url 'cxapp_salary_slip_pdf' salary.salary_id %}" target="_blank" style="margin-right:12px">Download PDF</a>
+      <a href="{% url 'cxapp_email_salary_slip' salary.salary_id %}" style="margin-right:12px"
+         onclick="return confirm('Email this payslip to the employee?')">Email Payslip</a>
       <form method="post" action="{% url 'cxapp_salary_reprocess' salary.salary_id %}">
         {% csrf_token %}
         <button type="submit" style="background:none;border:none;color:var(--green);font-size:12.5px;font-weight:600;cursor:pointer;text-decoration:underline">Reprocess</button>
