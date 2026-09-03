@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 {% extends "base_marketing.html" %}
 
 {% block title %}Revolution HRMS — Payroll, ESI, EPF & Compliance Software for India{% endblock %}
@@ -6,6 +7,321 @@
 {% block og_url %}<meta property="og:url" content="https://reas.host/">{% endblock %}
 
 {% block content %}
+=======
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Revolution HRMS — Payroll & Compliance, Handled</title>
+  {% load static %}
+<link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
+<link rel="prefetch" href="{% static 'fonts/Infinitude.ttf' %}" as="font" type="font/ttf" crossorigin>
+<link rel="prefetch" href="{% static 'fonts/Ubuntu-R.ttf' %}" as="font" type="font/ttf" crossorigin>
+<link rel="prefetch" href="{% static 'fonts/allerta.medium.ttf' %}" as="font" type="font/ttf" crossorigin>
+{% load static %}
+<style>
+  @font-face{font-family:'Ubuntu';src:url('static/fonts/Ubuntu-R.ttf') format('truetype');font-display:swap}
+  @font-face {
+    font-family: 'Infinitude';
+    src: url('static/fonts/Infinitude.ttf') format('truetype');
+  }
+  @font-face {
+    font-family: 'Allerta';
+    src: url('static/fonts/allerta.medium.ttf') format('truetype'),
+        url('static/fonts/allerta.medium.otf') format('otf');
+    font-display: swap;
+  }
+  :root{
+    --bg-0:#080c17;
+    --bg-1:#0d1426;
+    --bg-2:#131b34;
+    --glass:rgba(255,255,255,0.06);
+    --glass-brd:rgba(255,255,255,0.14);
+    --glass-hi:rgba(255,255,255,0.10);
+    --ink-0:#f5f7ff;
+    --ink-1:#b7c0dd;
+    --ink-2:#7c86a8;
+    --teal:#2dd9c4;
+    --indigo:#6f7bff;
+    --gold:#e9a23b;
+    --grad-brand: linear-gradient(135deg, var(--teal), var(--indigo));
+    --radius-lg: 28px;
+    --radius-md: 18px;
+    --radius-sm: 12px;
+    --ease: cubic-bezier(.22,.9,.32,1);
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:
+      radial-gradient(1200px 600px at 82% -10%, rgba(111,123,255,.35), transparent 60%),
+      radial-gradient(900px 500px at 8% 8%, rgba(45,217,196,.22), transparent 55%),
+      radial-gradient(700px 500px at 50% 100%, rgba(233,162,59,.14), transparent 60%),
+      linear-gradient(180deg, var(--bg-0), var(--bg-1) 40%, var(--bg-2));
+    color:var(--ink-0);
+    font-family:'Ubuntu', system-ui, sans-serif;
+    line-height:1.5;
+    min-height:100vh;
+    overflow-x:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3, .display{ font-family:'Allerta', 'Inter', sans-serif; letter-spacing:-0.02em; }
+  .mono{ font-family:'Ubuntu', monospace; }
+  a{ color:inherit; text-decoration:none; }
+  img,svg{ display:block; max-width:100%; }
+  button{ font:inherit; }
+  ::selection{ background:var(--teal); color:#04211d; }
+
+  a:focus-visible, button:focus-visible{
+    outline:2px solid var(--teal);
+    outline-offset:3px;
+    border-radius:8px;
+  }
+  .skip-link{
+    position:absolute; left:-999px; top:0; background:var(--teal); color:#04211d;
+    padding:10px 16px; border-radius:0 0 10px 0; z-index:999; font-weight:600;
+  }
+  .skip-link:focus{ left:0; }
+
+  .wrap{ max-width:1240px; margin:0 auto; padding:0 24px; }
+
+  /* ── Ambient orbs ─────────────────────────────────────── */
+  .orb{ position:fixed; border-radius:50%; filter:blur(70px); pointer-events:none; z-index:0; opacity:.55; }
+  .orb-a{ width:420px; height:420px; top:-120px; right:-100px; background:radial-gradient(circle, rgba(111,123,255,.55), transparent 70%); }
+  .orb-b{ width:360px; height:360px; bottom:5%; left:-140px; background:radial-gradient(circle, rgba(45,217,196,.4), transparent 70%); }
+
+  /* ── Glass utility ────────────────────────────────────── */
+  .glass{
+    background:var(--glass);
+    border:1px solid var(--glass-brd);
+    backdrop-filter: blur(22px) saturate(140%);
+    -webkit-backdrop-filter: blur(22px) saturate(140%);
+    box-shadow: 0 1px 0 rgba(255,255,255,.08) inset, 0 20px 60px -25px rgba(0,0,0,.6);
+  }
+
+  /* ── Nav ──────────────────────────────────────────────── */
+  header{ position:sticky; top:0; z-index:50; padding:18px 0; }
+  .nav-inner{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:12px 20px; border-radius:100px;
+  }
+  .brand{ display:flex; align-items:center; gap:10px; font-weight:700; font-size:17px; }
+  .brand-mark{
+    width:34px; height:34px; border-radius:10px; background:var(--grad-brand);
+    display:grid; place-items:center; font-family:'Infinitude'; font-weight:800; color:#04211d; font-size:36px;
+    box-shadow:0 6px 18px -6px rgba(111,123,255,.7);line-height:1; transform:translateY(-1px);
+  }
+  nav ul{ display:flex; gap:28px; list-style:none; }
+  nav a{ font-size:14.5px; color:var(--ink-1); font-weight:500; transition:color .2s var(--ease); }
+  nav a:hover{ color:var(--ink-0); }
+  .nav-cta{ display:flex; align-items:center; gap:12px; }
+  @media (max-width:860px){ nav ul{ display:none; } }
+
+  .btn{
+    display:inline-flex; align-items:center; gap:8px;
+    padding:12px 22px; border-radius:100px; font-weight:600; font-size:14.5px;
+    cursor:pointer; border:1px solid transparent; transition:transform .2s var(--ease), box-shadow .2s var(--ease), background .2s var(--ease);
+    min-height:44px;
+  }
+  .btn:hover{ transform:translateY(-2px); }
+  .btn-primary{ background:var(--grad-brand); color:#04211d; box-shadow:0 10px 30px -10px rgba(111,123,255,.65); }
+  .btn-primary:hover{ box-shadow:0 16px 36px -10px rgba(111,123,255,.8); }
+  .btn-ghost{ background:var(--glass); border-color:var(--glass-brd); color:var(--ink-0); }
+  .btn-ghost:hover{ background:var(--glass-hi); }
+
+  /* ── Hero ─────────────────────────────────────────────── */
+  .hero{
+    position:relative; z-index:1;
+    display:grid; grid-template-columns:1.05fr 0.95fr; gap:40px; align-items:center;
+    padding:56px 0 40px;
+  }
+  @media (max-width:960px){ .hero{ grid-template-columns:1fr; padding-top:24px; } }
+
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:8px;
+    padding:7px 14px; border-radius:100px; font-size:12.5px; font-weight:600; color:var(--teal);
+    margin-bottom:22px;
+  }
+  .eyebrow .dot{ width:6px; height:6px; border-radius:50%; background:var(--teal); box-shadow:0 0 10px var(--teal); }
+
+  .hero h1{
+    font-size:clamp(34px, 5vw, 58px); font-weight:800; line-height:1.06; color:var(--ink-0);
+  }
+  .hero h1 .accent{
+    background:var(--grad-brand); -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .hero p.lede{
+    margin-top:20px; max-width:480px; font-size:16.5px; color:var(--ink-1);
+  }
+  .hero-actions{ display:flex; align-items:center; gap:16px; margin-top:32px; flex-wrap:wrap; }
+  .trust-line{ margin-top:28px; display:flex; align-items:center; gap:14px; color:var(--ink-2); font-size:13px; }
+  .avatar-stack{ display:flex; }
+  .avatar-stack span{
+    width:28px; height:28px; border-radius:50%; border:2px solid var(--bg-1);
+    background:linear-gradient(135deg,var(--indigo),var(--teal)); margin-left:-8px;
+  }
+  .avatar-stack span:first-child{ margin-left:0; }
+
+  /* ── 3D mascot ────────────────────────────────────────── */
+  .mascot-stage{
+    position:relative; height:460px; display:grid; place-items:center;
+  }
+  .mascot-halo{
+    position:absolute; width:340px; height:340px; border-radius:50%;
+    background:radial-gradient(circle, rgba(111,123,255,.35), rgba(45,217,196,.12) 55%, transparent 72%);
+    filter:blur(6px);
+    animation: pulse 5s ease-in-out infinite;
+  }
+  .mascot{
+    position:relative; width:300px; animation: float 6s ease-in-out infinite;
+    filter:drop-shadow(0 30px 40px rgba(5,8,20,.55));
+  }
+  .badge-orbit{ position:absolute; inset:0; animation: spin 22s linear infinite; }
+  .badge{
+    position:absolute; width:56px; height:56px; border-radius:16px;
+    display:grid; place-items:center; animation: counterspin 22s linear infinite;
+  }
+  .badge svg{ width:24px; height:24px; }
+  .badge-1{ top:-6px; left:50%; transform:translateX(-50%); }
+  .badge-2{ top:38%; right:-24px; }
+  .badge-3{ bottom:0; left:-18px; }
+
+  @keyframes float{ 0%,100%{ transform:translateY(0px);} 50%{ transform:translateY(-16px);} }
+  @keyframes pulse{ 0%,100%{ opacity:.7; transform:scale(1);} 50%{ opacity:1; transform:scale(1.06);} }
+  @keyframes spin{ from{ transform:rotate(0deg);} to{ transform:rotate(360deg);} }
+  @keyframes counterspin{ from{ transform:rotate(0deg);} to{ transform:rotate(-360deg);} }
+
+  @media (prefers-reduced-motion: reduce){
+    .mascot, .mascot-halo, .badge-orbit, .badge{ animation:none !important; }
+    *{ scroll-behavior:auto !important; }
+  }
+
+  /* ── Stat strip ───────────────────────────────────────── */
+  .stat-strip{
+    position:relative; z-index:1;
+    display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin:20px 0 80px;
+    border-radius:var(--radius-lg); padding:26px 10px;
+  }
+  .stat{ text-align:center; padding:6px 12px; }
+  .stat .num{ font-size:clamp(22px,3vw,32px); font-weight:700; font-family:'Ubuntu'; }
+  .stat .label{ font-size:12.5px; color:var(--ink-2); margin-top:4px; }
+  @media (max-width:760px){ .stat-strip{ grid-template-columns:repeat(2,1fr); } }
+
+  /* ── Section shared ───────────────────────────────────── */
+  section{ position:relative; z-index:1; padding:70px 0; }
+  .section-head{ max-width:600px; margin:0 auto 44px; text-align:center; }
+  .section-head .eyebrow{ display:inline-flex; }
+  .section-head h2{ font-size:clamp(26px,3.4vw,38px); font-weight:800; margin-top:12px; }
+  .section-head p{ color:var(--ink-1); margin-top:12px; font-size:15.5px; }
+
+  /* ── Feature bento ────────────────────────────────────── */
+  .bento{ display:grid; grid-template-columns:repeat(3,1fr); gap:20px; }
+  @media (max-width:900px){ .bento{ grid-template-columns:repeat(2,1fr); } }
+  @media (max-width:600px){ .bento{ grid-template-columns:1fr; } }
+
+  .feature-card{
+    border-radius:var(--radius-md); padding:26px; transition:transform .25s var(--ease), border-color .25s var(--ease);
+  }
+  .feature-card:hover{ transform:translateY(-6px); border-color:rgba(255,255,255,.28); }
+  .feature-icon{
+    width:46px; height:46px; border-radius:13px; display:grid; place-items:center; margin-bottom:16px;
+    background:linear-gradient(135deg, rgba(45,217,196,.22), rgba(111,123,255,.22));
+    border:1px solid var(--glass-brd);
+  }
+  .feature-icon svg{ width:22px; height:22px; stroke:var(--teal); }
+  .feature-card h3{ font-size:17px; font-weight:700; margin-bottom:8px; }
+  .feature-card p{ font-size:14px; color:var(--ink-1); }
+
+  /* ── Compliance strip ─────────────────────────────────── */
+  .chips{ display:flex; flex-wrap:wrap; gap:12px; justify-content:center; }
+  .chip{
+    display:flex; align-items:center; gap:8px; padding:10px 18px; border-radius:100px; font-size:13.5px; font-weight:600;
+  }
+  .chip .sw{ width:8px; height:8px; border-radius:50%; }
+
+  /* ── Showcase (product glass panel) ───────────────────── */
+  .showcase{
+    border-radius:var(--radius-lg); padding:clamp(24px,4vw,52px); display:grid; grid-template-columns:1fr 1fr; gap:40px; align-items:center;
+  }
+  @media (max-width:900px){ .showcase{ grid-template-columns:1fr; } }
+  .showcase h2{ font-size:clamp(24px,3vw,34px); font-weight:800; }
+  .showcase p{ color:var(--ink-1); margin-top:14px; font-size:15.5px; }
+  .check-list{ margin-top:22px; display:flex; flex-direction:column; gap:12px; }
+  .check-list li{ list-style:none; display:flex; gap:10px; align-items:flex-start; font-size:14.5px; color:var(--ink-1); }
+  .check-list svg{ width:18px; height:18px; flex:none; margin-top:2px; stroke:var(--teal); }
+
+  .payslip-card{
+    border-radius:var(--radius-md); padding:22px; position:relative;
+  }
+  .payslip-row{ display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px dashed rgba(255,255,255,.12); font-size:13.5px; }
+  .payslip-row:last-child{ border-bottom:none; }
+  .payslip-row .v{ color:var(--ink-0); font-weight:600; }
+  .payslip-total{ margin-top:14px; display:flex; justify-content:space-between; align-items:center; padding-top:14px; border-top:1px solid var(--glass-brd); }
+  .payslip-total .amt{ font-size:22px; font-weight:800; font-family:'Ubuntu'; background:var(--grad-brand); -webkit-background-clip:text; background-clip:text; color:transparent; }
+
+  /* ── Testimonial ──────────────────────────────────────── */
+  .quote-card{
+    max-width:760px; margin:0 auto; text-align:center; border-radius:var(--radius-lg); padding:clamp(28px,4vw,50px);
+  }
+  .quote-card p{ font-size:clamp(17px,2vw,21px); color:var(--ink-0); font-weight:500; line-height:1.5; }
+  .quote-who{ margin-top:22px; display:flex; align-items:center; justify-content:center; gap:12px; }
+  .quote-who .qa{ width:42px; height:42px; border-radius:50%; background:var(--grad-brand); }
+  .quote-who .name{ font-weight:700; font-size:14px; }
+  .quote-who .role{ font-size:12.5px; color:var(--ink-2); }
+
+  /* ── Final CTA ────────────────────────────────────────── */
+  .cta-panel{
+    border-radius:var(--radius-lg); padding:clamp(32px,5vw,60px); text-align:center;
+    background: linear-gradient(135deg, rgba(45,217,196,.14), rgba(111,123,255,.14));
+  }
+  .cta-panel h2{ font-size:clamp(26px,3.6vw,40px); font-weight:800; }
+  .cta-panel p{ margin-top:12px; color:var(--ink-1); font-size:15.5px; }
+  .cta-actions{ margin-top:28px; display:flex; gap:14px; justify-content:center; flex-wrap:wrap; }
+
+  footer{ position:relative; z-index:1; padding:40px 0 60px; }
+  .foot-inner{ display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; color:var(--ink-2); font-size:13px; }
+  .foot-links{ display:flex; gap:20px; }
+  .foot-links a:hover{ color:var(--ink-0); }
+
+  /* Reveal on scroll */
+  .reveal{ opacity:0; transform:translateY(18px); transition:opacity .6s var(--ease), transform .6s var(--ease); }
+  .reveal.in{ opacity:1; transform:translateY(0); }
+</style>
+</head>
+<body>
+<a href="#main" class="skip-link">Skip to main content</a>
+
+<div class="orb orb-a" aria-hidden="true"></div>
+<div class="orb orb-b" aria-hidden="true"></div>
+
+<header>
+  <div class="wrap">
+    <div class="nav-inner glass">
+      <div class="brand">
+        <span class="brand-mark">R</span>
+        Revolution HRMS
+      </div>
+      <nav aria-label="Primary">
+        <ul>
+          <li><a href="#features">Features</a></li>
+          <li><a href="#compliance">Compliance</a></li>
+          <li><a href="#payroll">Payroll</a></li>
+          <li><a href="#reviews">Reviews</a></li>
+        </ul>
+      </nav>
+      <div class="nav-cta">
+        <a href="{% url 'sapp_login' %}" class="btn btn-ghost">Sign in</a>
+        <a href="#cta" class="btn btn-primary">Get a demo</a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+  <div class="wrap">
+
+>>>>>>> 64b858f0873133802dd58c98471a21d54a13f576
     <!-- ── HERO ─────────────────────────────────────────── -->
     <section class="hero" style="padding-top:0;">
       <div>
@@ -13,7 +329,11 @@
         <h1>Payroll, ESI, EPF and <span class="accent">compliance</span> — finally in one place.</h1>
         <p class="lede">Revolution HRMS runs attendance, payroll and every statutory register — ESI, EPF, Gratuity, Factory Act — for associates, companies and employees, without three separate spreadsheets.</p>
         <div class="hero-actions">
+<<<<<<< HEAD
           <a href="{% url 'contact' %}" class="btn btn-primary">
+=======
+          <a href="#cta" class="btn btn-primary">
+>>>>>>> 64b858f0873133802dd58c98471a21d54a13f576
             Start free trial
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
           </a>
@@ -224,13 +544,55 @@
         <h2>Bring your next filing month back under control</h2>
         <p>Set up your first company in minutes. No spreadsheets, no card required.</p>
         <div class="cta-actions">
+<<<<<<< HEAD
           <a href="{% url 'contact' %}" class="btn btn-primary">
             Start free trial
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
           </a>
           <a href="{% url 'contact' %}" class="btn btn-ghost">Talk to sales</a>
+=======
+          <a href="#" class="btn btn-primary">
+            Start free trial
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </a>
+          <a href="#" class="btn btn-ghost">Talk to sales</a>
+>>>>>>> 64b858f0873133802dd58c98471a21d54a13f576
         </div>
       </div>
     </section>
 
+<<<<<<< HEAD
 {% endblock %}
+=======
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-inner">
+      <div class="brand" style="font-size:14px;"><span class="brand-mark" style="width:26px;height:26px;font-size:13px;">R</span> Revolution HRMS</div>
+      <div class="foot-links">
+        <a href="#features">Features</a>
+        <a href="#compliance">Compliance</a>
+        <a href="#payroll">Payroll</a>
+        <a href="#reviews">Reviews</a>
+        <a href="{% url 'sapp_login' %}">Superadmin</a>
+        <a href="{{ associate_login_url }}">Associate</a>
+        <a href="{{ employee_login_url }}">Employee</a>
+        <a href="{{ company_login_url }}">Company</a>
+        <a href="{{ cxowner_login_url }}">Direct Owner</a>
+      </div>
+      <div>© 2026 Revolution Associates. All rights reserved.</div>
+    </div>
+  </div>
+</footer>
+
+<script>
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+</script>
+</body>
+</html>
+>>>>>>> 64b858f0873133802dd58c98471a21d54a13f576

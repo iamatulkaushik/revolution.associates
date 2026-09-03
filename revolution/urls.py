@@ -21,10 +21,14 @@ from django.views.generic import RedirectView
 from Sapp.views import base_home
 from Sapp.app.associate_public import associate_public_profile
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
+<<<<<<< HEAD
 from Sapp.app.marketing import (
     features, pricing, compliance, about, contact, contact_submit,
     robots_txt, sitemap_xml,
 )
+=======
+
+>>>>>>> 64b858f0873133802dd58c98471a21d54a13f576
 urlpatterns = [
     path('',base_home, name="base"),
     path('baseurls/', admin.site.urls),
@@ -32,6 +36,7 @@ urlpatterns = [
     path('associate/',include('Aapp.urls')),
     path('capp/',include('Capp.urls')),
     path('associates/<slug:slug>/', associate_public_profile, name='associate_public_profile'),
+<<<<<<< HEAD
     path('features/', features, name='features'),
     path('pricing/', pricing, name='pricing'),
     path('compliance/', compliance, name='compliance'),
@@ -40,6 +45,8 @@ urlpatterns = [
     path('contact/submit/', contact_submit, name='contact_submit'),
     path('robots.txt', robots_txt, name='robots_txt'),
     path('sitemap.xml', sitemap_xml, name='sitemap_xml'),
+=======
+>>>>>>> 64b858f0873133802dd58c98471a21d54a13f576
 ]
 urlpatterns += staticfiles_urlpatterns()
 

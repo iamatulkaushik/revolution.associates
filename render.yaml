@@ -1,0 +1,37 @@
+services:
+  - type: web
+    name: reas-hrms
+    env: python
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn revolution.wsgi --bind 0.0.0.0:$PORT"
+    envVars:
+      - key: DJANGO_PARENT_HOST
+        value: reas.host
+      - key: DJANGO_DEBUG
+        value: "False"
+      - key: ALLOWED_HOSTS
+        value: "reas.host,www.reas.host,aapp.reas.host,sapp.reas.host,capp.reas.host"
+      - key: DJANGO_SECRET_KEY
+        sync: false
+      - key: DJANGO_SUPERUSER_USERNAME
+        sync: false
+      - key: DJANGO_SUPERUSER_EMAIL
+        sync: false
+      - key: DJANGO_SUPERUSER_PASSWORD
+        sync: false
+      - key: PGHOST
+        sync: false
+      - key: PGDATABASE
+        sync: false
+      - key: PGUSER
+        sync: false
+      - key: PGPASSWORD
+        sync: false
+      - key: PGPORT
+        sync: false
+    domains:
+      - reas.host
+      - www.reas.host
+      - aapp.reas.host
+      - sapp.reas.host
+      - capp.reas.host
