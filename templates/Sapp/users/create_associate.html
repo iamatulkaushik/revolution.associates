@@ -1,0 +1,83 @@
+{% extends "Sapp/base.html" %}
+{% block title %}Create Associate{% endblock %}
+{% load static %}
+{% block additionalcss_js %}
+
+{% endblock %}
+{% block content %}
+<div class="form-container">
+    <h2>Create Associate User</h2>
+    {% if messages %}
+    <div style="margin-bottom:20px">
+        {% for message in messages %}
+        <div style="padding:10px;border-radius:4px;background:{% if message.tags == 'error' %}#f8d7da;color:#721c24{% else %}#d4edda;color:#155724{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    <div class="role-info">
+        <h4>👤 Role: Associate</h4>
+        <p>Associates can manage companies, employees, and create sub-users with limited access.</p>
+    </div>
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-section">
+            <h3>User Information</h3>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Username *</label>
+                    <input type="text" name="username" class="form-control" required>
+                    <label>Email *</label>
+                    <input type="email" name="email" class="form-control" required>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>First Name *</label>
+                    <input type="text" name="first_name" class="form-control" required>
+                    <label>Last Name *</label>
+                    <input type="text" name="last_name" class="form-control" required>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Password *</label>
+                    <input type="password" name="password1" class="form-control" required>
+                    <label>Confirm Password *</label>
+                    <input type="password" name="password2" class="form-control" required>
+                </div>
+                <div class="form-group">
+                </div>
+            </div>
+        </div>
+        <div class="form-section">
+            <h3>Associate Details</h3>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Associate ID *</label>
+                    <input type="text" name="associate_id" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>Mobile</label>
+                    <input type="tel" name="mobile" class="form-control">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Address</label>
+                <textarea name="address" class="form-control" rows="3"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Companies Access</label>
+                <select name="companies" class="form-control" multiple>
+                    {% for company in companies %}
+                    <option value="{{company.company_id}}">{{company.company_name}} - {{company.pan}}</option>
+                    {% endfor %}
+                </select>
+                <small style="color:#666">Hold Ctrl to select multiple companies</small>
+            </div>
+        </div>
+        <button type="submit" class="button btn-primary">Create Associate</button>
+    </form>
+</div>
+{% endblock %}

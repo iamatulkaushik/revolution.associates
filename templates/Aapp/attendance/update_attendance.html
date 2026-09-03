@@ -1,0 +1,53 @@
+{% extends 'Aapp/base.html' %}
+{% block title %}Update Attendance{% endblock %}
+{% block content %}
+<div class="main-content">
+    {% if messages %}{% for m in messages %}
+    <div class="message-alert {% if m.tags == 'success' %}message-success{% else %}message-error{% endif %}">{{ m }}</div>
+    {% endfor %}{% endif %}
+    <form method="post">
+        {% csrf_token %}
+        <h2 style="padding:10px;">Update Attendance — {{ rec.employee_id.name }}</h2>
+        <div class="container_boxed">
+            <h2>Attendance Details</h2><hr>
+            <label>Employee</label>
+            <input type="text" class="large" value="{{ rec.employee_id.name }} ({{ rec.emp_code }})" disabled><br>
+            <label>Branch</label>
+            <select class="medium" name="branchid">
+                <option value="">-- Select --</option>
+                {% for b in branches %}
+                <option value="{{ b.branchid }}" {% if rec.branchid_id == b.branchid %}selected{% endif %}>{{ b.branch_name }}</option>
+                {% endfor %}
+            </select>
+            <label>Division</label>
+            <input type="text" class="medium" name="divisionid" value="{{ rec.divisionid }}"><br>
+            <label>Month <span style="color:var(--Color1)">*</span></label>
+            <select class="sml" name="salary_month" required>
+                {% for val, label in months %}
+                <option value="{{ val }}" {% if rec.salary_month == val %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+            <label>Year <span style="color:var(--Color1)">*</span></label>
+            <input type="number" class="sml" name="salary_year" value="{{ rec.salary_year }}" min="2026" max="2032" required><br>
+            <label>Working Days</label>
+            <input type="number" class="sml" name="working_days" value="{{ rec.working_days }}" min="0" step="0.5">
+            <label>Holidays</label>
+            <input type="number" class="sml" name="holidays" value="{{ rec.holidays }}" min="0" step="0.5"><br>
+            <label>Casual Leaves</label>
+            <input type="number" class="sml" name="casual_leaves" value="{{ rec.casual_leaves }}" min="0" step="0.5">
+            <label>Earned Leaves</label>
+            <input type="number" class="sml" name="earned_leaves" value="{{ rec.earned_leaves }}" min="0" step="0.5"><br>
+            <label>Sick Leaves</label>
+            <input type="number" class="sml" name="sick_leaves" value="{{ rec.sick_leaves }}" min="0" step="0.5">
+            <label>Comp Leaves</label>
+            <input type="number" class="sml" name="comp_leaves" value="{{ rec.comp_leaves }}" min="0" step="0.5"><br>
+            <label>Work Pay Days</label>
+            <input type="number" class="sml" name="work_pay" value="{{ rec.work_pay }}" min="0" step="0.5"><br>
+        </div>
+        <div style="margin:15px 10px;">
+            <button type="submit" class="button">Update</button>
+            <a href="{% url 'list_attendance' %}" class="button" style="margin-left:10px;">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,38 @@
+{% extends 'aapp/base.html' %}
+{% block title %}Department List{% endblock %}
+{% block content %}
+<div class="main-content">
+<h2>Department List</h2>
+
+{% if departments %}
+<p>Total Departments: <strong>{{ departments|length }}</strong></p>
+<table class="data-table">
+    <thead>
+        <tr>
+            <th>Department Name</th>
+            <th>Branch</th>
+            <th>Company</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for dept in departments %}
+        <tr>
+            <td>{{ dept.department_name }}</td>
+            <td>{{ dept.branch.branch_name }}</td>
+            <td>{{ dept.companyid.company_name }}</td>
+            <td>
+                <a href="{% url 'alter_department' dept.departmentid %}" class="button edit"></a>
+                <a href="{% url 'delete_department' dept.departmentid %}" class="button delete"></a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>No departments available.</p>
+{% endif %}
+</br>
+<a href="{% url 'create_department' %}" class="button">Create New Department</a>
+</div>
+{% endblock %}

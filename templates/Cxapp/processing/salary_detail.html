@@ -1,0 +1,71 @@
+{% extends 'Cxapp/_base.html' %}
+{% block title %}Payslip · {{ salary.employee_name }}{% endblock %}
+{% block page_title %}{{ salary.employee_name }}{% endblock %}
+{% block content %}
+<style>
+.wrap{max-width:760px;margin:0 auto;padding:32px 24px}
+.header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px}
+.header h1{font-size:22px}
+.header .sub{font-size:13px;color:#6b7c93}
+.actions a{font-size:12.5px;color:var(--green);text-decoration:none;font-weight:600}
+.info-card{background:#fff;border-radius:12px;padding:20px;margin-bottom:16px;
+  box-shadow:0 4px 20px rgba(15,32,39,.06)}
+.info-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
+.info-row .lbl{font-size:11px;color:#6b7c93;text-transform:uppercase;letter-spacing:.04em}
+.info-row .val{font-size:13.5px;font-weight:600}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.card{background:#fff;border-radius:12px;padding:20px;box-shadow:0 4px 20px rgba(15,32,39,.06)}
+.card h3{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:#6b7c93;margin-bottom:12px}
+.line-row{display:flex;justify-content:space-between;font-size:13.5px;padding:6px 0;border-bottom:1px dashed #eef2f6}
+.line-row .prorated{font-size:10px;color:var(--green);margin-left:6px}
+.totals-card{background:var(--navy);color:#fff;border-radius:12px;padding:24px}
+.totals-row{display:flex;justify-content:space-between;font-size:14px;padding:8px 0}
+.totals-row.net{font-size:20px;font-weight:700;border-top:1px solid rgba(255,255,255,.2);padding-top:14px;margin-top:6px}
+</style>
+<div class="header">
+    <div>
+      
+      <p class="sub">{{ salary.get_salary_month_display }} {{ salary.salary_year }} · {{ salary.employee_code }} · {{ salary.designation.designation_name }}</p>
+    </div>
+    <div class="actions">
+      <a href="{% url 'cxapp_salary_slip_pdf' salary.salary_id %}" target="_blank" style="margin-right:12px">Download PDF</a>
+      <a href="{% url 'cxapp_email_salary_slip' salary.salary_id %}" style="margin-right:12px"
+         onclick="return confirm('Email this payslip to the employee?')">Email Payslip</a>
+      <form method="post" action="{% url 'cxapp_salary_reprocess' salary.salary_id %}">
+        {% csrf_token %}
+        <button type="submit" style="background:none;border:none;color:var(--green);font-size:12.5px;font-weight:600;cursor:pointer;text-decoration:underline">Reprocess</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="info-card">
+    <div class="info-grid">
+      <div class="info-row"><div class="lbl">Father/Husband</div><div class="val">{{ salary.father_husband_name|default:"—" }}</div></div>
+      <div class="info-row"><div class="lbl">UAN</div><div class="val">{{ salary.uan|default:"—" }}</div></div>
+      <div class="info-row"><div class="lbl">ESI</div><div class="val">{{ salary.esi|default:"—" }}</div></div>
+      <div class="info-row"><div class="lbl">Date of Birth</div><div class="val">{{ salary.date_of_birth|default:"—" }}</div></div>
+      <div class="info-row"><div class="lbl">Date of Joining</div><div class="val">{{ salary.date_of_joining|default:"—" }}</div></div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h3>Allowances</h3>
+      {% for line in allowance_lines %}
+        <div class="line-row"><span>{{ line.component_name }}{% if line.is_prorated %}<span class="prorated">prorated</span>{% endif %}</span><span>₹{{ line.resolved_amount }}</span></div>
+      {% empty %}<p style="font-size:13px;color:#6b7c93">No allowance lines.</p>{% endfor %}
+    </div>
+    <div class="card">
+      <h3>Deductions</h3>
+      {% for line in deduction_lines %}
+        <div class="line-row"><span>{{ line.component_name }}</span><span>₹{{ line.resolved_amount }}</span></div>
+      {% empty %}<p style="font-size:13px;color:#6b7c93">No deduction lines.</p>{% endfor %}
+    </div>
+  </div>
+
+  <div class="totals-card">
+    <div class="totals-row"><span>Total Allowances</span><span>₹{{ salary.total_allowances }}</span></div>
+    <div class="totals-row"><span>Total Deductions</span><span>₹{{ salary.total_deductions }}</span></div>
+    <div class="totals-row net"><span>Net Pay</span><span>₹{{ salary.total_amount }}</span></div>
+  </div>
+{% endblock %}

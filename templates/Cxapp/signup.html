@@ -1,0 +1,184 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Company Signup · Revolution HRMS</title>
+  <link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
+  <link rel="preload" href="{% static 'fonts/Infinitude.ttf' %}" as="font" type="font/ttf" crossorigin>
+  <link rel="preload" href="{% static 'fonts/Ubuntu-R.ttf' %}" as="font" type="font/ttf" crossorigin>
+  <style>
+    @font-face{font-family:'Infinitude';src:url("{% static 'fonts/Infinitude.ttf' %}") format('truetype');font-display:swap}
+    @font-face{font-family:'Ubuntu';src:url("{% static 'fonts/Ubuntu-R.ttf' %}") format('truetype');font-display:swap}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--navy:#0f2027;--green:#2a9d8f;--gold:#e9c46a;--cream:#f0f4f8;
+          --font-b:'Ubuntu',system-ui,sans-serif;--font-h:'Infinitude','Ubuntu',sans-serif}
+    html,body{font-family:var(--font-b);background:var(--cream)}
+    .wrap{max-width:720px;margin:0 auto;padding:48px 24px}
+    .badge{display:inline-flex;padding:3px 12px;border-radius:999px;background:rgba(42,157,143,.1);
+      color:var(--green);border:1px solid rgba(42,157,143,.25);font-size:11px;font-weight:700;
+      letter-spacing:.1em;text-transform:uppercase;margin-bottom:16px}
+    h1{font-family:var(--font-h);font-size:30px;color:var(--navy);margin-bottom:6px}
+    .sub{font-size:13.5px;color:#6b7c93;margin-bottom:8px}
+    .lock-note{font-size:12.5px;color:#a67c00;background:#fff8e1;border-left:4px solid var(--gold);
+      border-radius:6px;padding:10px 14px;margin:16px 0 28px}
+    .card{background:#fff;border-radius:12px;padding:32px;box-shadow:0 4px 20px rgba(15,32,39,.06)}
+    fieldset{border:none;margin-bottom:24px}
+    legend{font-size:12px;font-weight:700;color:var(--navy);text-transform:uppercase;
+      letter-spacing:.08em;margin-bottom:14px}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    .fg{display:flex;flex-direction:column;gap:5px;margin-bottom:16px}
+    .fg label{font-size:11.5px;font-weight:600;color:#6b7c93;text-transform:uppercase;letter-spacing:.06em}
+    .fg.locked label::after{content:' 🔒';font-size:10px}
+    .fg input,.fg select{font-family:var(--font-b);font-size:15px;color:var(--navy);background:var(--cream);
+      border:1.5px solid #dde5ed;border-radius:8px;padding:11px 14px;width:100%;outline:none}
+    .fg input:focus,.fg select:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(42,157,143,.15)}
+    .err{background:#fdecea;border-left:4px solid #e63946;border-radius:6px;padding:10px 14px;
+      margin-bottom:20px;font-size:13px;color:#7d2027}
+    .field-err{font-size:11.5px;color:#e63946;margin-top:2px}
+    .btn-submit{width:100%;padding:14px;background:linear-gradient(135deg,#0f2027,#2a9d8f);color:#fff;
+      border:none;border-radius:8px;font-family:var(--font-b);font-size:15px;font-weight:600;cursor:pointer}
+    .login-link{margin-top:16px;font-size:13px;color:#6b7c93;text-align:center}
+    .login-link a{color:var(--green);font-weight:600;text-decoration:none}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <span class="badge">Fresh Start</span>
+    <h1>Create your company account</h1>
+    <p class="sub">Full ownership of your company data. No associate involvement.</p>
+    <div class="lock-note">
+      🔒 Company Name, Start Date, PAN, Email, and Mobile become <strong>locked</strong> once created — they cannot be edited later through this portal.
+    </div>
+
+    {% if form.non_field_errors %}
+      <div class="err">{{ form.non_field_errors }}</div>
+    {% endif %}
+
+    <div class="card">
+      <form method="post">
+        {% csrf_token %}
+
+        <fieldset>
+          <legend>Owner Login</legend>
+          <div class="row">
+            <div class="fg">
+              <label>Username</label>
+              {{ form.username }}
+              {% if form.username.errors %}<div class="field-err">{{ form.username.errors|join:", " }}</div>{% endif %}
+            </div>
+          </div>
+          <div class="row">
+            <div class="fg">
+              <label>Password</label>
+              {{ form.password }}
+            </div>
+            <div class="fg">
+              <label>Confirm Password</label>
+              {{ form.password_confirm }}
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Company Identity (Locked)</legend>
+          <div class="row">
+            <div class="fg locked">
+              <label>Company Name</label>
+              {{ form.company_name }}
+              {% if form.company_name.errors %}<div class="field-err">{{ form.company_name.errors|join:", " }}</div>{% endif %}
+            </div>
+            <div class="fg locked">
+              <label>Start Date</label>
+              {{ form.start_date }}
+            </div>
+          </div>
+          <div class="row">
+            <div class="fg locked">
+              <label>PAN</label>
+              {{ form.pan }}
+              {% if form.pan.errors %}<div class="field-err">{{ form.pan.errors|join:", " }}</div>{% endif %}
+            </div>
+            <div class="fg locked">
+              <label>Email</label>
+              {{ form.email1 }}
+            </div>
+          </div>
+          <div class="row">
+            <div class="fg locked">
+              <label>Mobile</label>
+              {{ form.mobile }}
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Company Address</legend>
+          <div class="row">
+            <div class="fg">
+              <label>State</label>
+              {{ form.state_id }}
+            </div>
+            <div class="fg">
+              <label>District</label>
+              {{ form.district_id }}
+            </div>
+          </div>
+          <div class="row">
+            <div class="fg">
+              <label>Address</label>
+              {{ form.address1 }}
+            </div>
+            <div class="fg">
+              <label>PIN Code</label>
+              {{ form.pin }}
+            </div>
+          </div>
+        </fieldset>
+
+        <button type="submit" class="btn-submit">Create Company Account</button>
+      </form>
+      <div class="login-link">Already have an account? <a href="{% url 'cxapp_login' %}">Sign in</a></div>
+    </div>
+  </div>
+  <script>
+    // Cascading district filter: only show districts for the selected state.
+    (function () {
+      const stateSelect = document.getElementById('id_state_id');
+      const districtSelect = document.getElementById('id_district_id');
+      if (!stateSelect || !districtSelect) return;
+
+      function loadDistricts(stateId, preselectId) {
+        districtSelect.innerHTML = '<option value="">Loading...</option>';
+        if (!stateId) {
+          districtSelect.innerHTML = '<option value="">Select a state first</option>';
+          return;
+        }
+        fetch('{% url "cxapp_districts_for_state" %}?state_id=' + encodeURIComponent(stateId))
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            districtSelect.innerHTML = '';
+            if (!data.districts.length) {
+              districtSelect.innerHTML = '<option value="">No districts found</option>';
+              return;
+            }
+            data.districts.forEach(function (d) {
+              const opt = document.createElement('option');
+              opt.value = d.Districtid;
+              opt.textContent = d.name;
+              if (preselectId && String(d.Districtid) === String(preselectId)) opt.selected = true;
+              districtSelect.appendChild(opt);
+            });
+          });
+      }
+
+      stateSelect.addEventListener('change', function () { loadDistricts(this.value, null); });
+
+      // On initial load (e.g. after a validation error re-render),
+      // populate districts for whatever state is already selected.
+      if (stateSelect.value) loadDistricts(stateSelect.value, districtSelect.value);
+    })();
+  </script>
+</body>
+</html>

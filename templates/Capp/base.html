@@ -1,0 +1,233 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#1d3557">
+  <title>{% block title %}{% endblock %} · Owner Portal · {{ owned_company.company_name|default:"Revolution HRMS" }}</title>
+  <link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
+  <link rel="preload" href="{% static 'fonts/Infinitude.ttf' %}" as="font" type="font/ttf" crossorigin>
+  <link rel="preload" href="{% static 'fonts/Ubuntu-R.ttf' %}" as="font" type="font/ttf" crossorigin>
+  <link rel="stylesheet" href="{% static 'css/base.css' %}">
+  <style>
+    /* ── Capp owner portal overrides — green accent ──────────────────────── */
+    :root {
+      --capp-green:  #2a9d8f;
+      --capp-green-h:#238577;
+      --capp-gold:   #e9c46a;
+    }
+    .sidebar                    { background: #0f2027; }
+    .sidebar-logo               { color: var(--capp-green); }
+    .nav-link.active::before    { background: var(--capp-green); }
+    .card-header                { background: linear-gradient(135deg, #0f2027, #203a43); }
+    .topbar-title               { color: #0f2027; }
+    .company-chip               { background: var(--capp-green); color: #fff; }
+    .company-chip:hover         { background: var(--capp-green-h); }
+    .btn-primary                { background: var(--capp-green); border-color: var(--capp-green); }
+    .btn-primary:hover          { background: var(--capp-green-h); border-color: var(--capp-green-h); }
+    .stat-card:nth-child(1)     { --accent-color: var(--capp-green); }
+    .stat-card:nth-child(2)     { --accent-color: #457b9d; }
+    .stat-card:nth-child(3)     { --accent-color: #e63946; }
+    .stat-card:nth-child(4)     { --accent-color: var(--capp-gold); }
+    .owner-badge {
+      display: inline-flex; align-items: center; padding: 3px 12px;
+      border-radius: var(--r-full); background: rgba(42,157,143,.1);
+      color: var(--capp-green); border: 1px solid rgba(42,157,143,.25);
+      font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+    }
+    .readonly-notice {
+      background: rgba(42,157,143,.08); border-left: 3px solid var(--capp-green);
+      border-radius: var(--r-sm); padding: 8px 14px; font-size: 12px;
+      color: var(--c-muted); margin-bottom: var(--sp-4);
+    }
+  </style>
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+<div class="app-shell">
+
+  <!-- ── SIDEBAR ────────────────────────────────────────────────── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <span class="sidebar-logo noselect">Ó</span>
+      <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">&#9776;</button>
+    </div>
+
+    <nav class="sidebar-nav" aria-label="Owner navigation">
+      <ul>
+
+        <li class="nav-item">
+          <a href="{% url 'capp_dashboard' %}" class="nav-link dashboard">
+            <span class="nav-label">Dashboard</span>
+          </a>
+        </li>
+
+        {% if access.employees %}
+        <li class="nav-item" id="nav-emp">
+          <button class="nav-link employees" onclick="toggleNav('nav-emp')" aria-expanded="false">
+            <span class="nav-label">Employees</span>
+            <span class="nav-chevron">&#9658;</span>
+          </button>
+          <ul class="nav-sub">
+            <li><a href="{% url 'capp_employee_list' %}" class="nav-link">All Employees</a></li>
+          </ul>
+        </li>
+        {% endif %}
+
+        {% if access.attendance %}
+        <li class="nav-item" id="nav-att">
+          <button class="nav-link attandance" onclick="toggleNav('nav-att')" aria-expanded="false">
+            <span class="nav-label">Attendance</span>
+            <span class="nav-chevron">&#9658;</span>
+          </button>
+          <ul class="nav-sub">
+            <li><a href="{% url 'capp_attendance_list' %}" class="nav-link">Attendance Register</a></li>
+            <li><a href="{% url 'capp_overtime_list' %}"   class="nav-link">Overtime Register</a></li>
+          </ul>
+        </li>
+        {% endif %}
+
+        {% if access.wages %}
+        <li class="nav-item" id="nav-wages">
+          <button class="nav-link statuary" onclick="toggleNav('nav-wages')" aria-expanded="false">
+            <span class="nav-label">Wages & Payroll</span>
+            <span class="nav-chevron">&#9658;</span>
+          </button>
+          <ul class="nav-sub">
+            <li><a href="{% url 'capp_wages_list' %}"     class="nav-link">Wage Register</a></li>
+            <li><a href="{% url 'capp_salary_slip' %}"    class="nav-link">Salary Slip (PDF)</a></li>
+            <li><a href="{% url 'capp_salary_sheet' %}"   class="nav-link">Salary Sheet (PDF)</a></li>
+            <li><a href="{% url 'capp_salary_abstract' %}" class="nav-link">Abstract (PDF)</a></li>
+          </ul>
+        </li>
+        {% endif %}
+
+        {% if access.statutory %}
+        <li class="nav-item" id="nav-stat">
+          <button class="nav-link statuary" onclick="toggleNav('nav-stat')" aria-expanded="false">
+            <span class="nav-label">Statutory</span>
+            <span class="nav-chevron">&#9658;</span>
+          </button>
+          <ul class="nav-sub">
+            <li><a href="{% url 'capp_epf_ecr' %}"    class="nav-link">EPF ECR</a></li>
+            <li><a href="{% url 'capp_esi_returns' %}" class="nav-link">ESI Returns</a></li>
+            <li><a href="{% url 'capp_gratuity' %}"    class="nav-link">Gratuity</a></li>
+            <li><a href="{% url 'capp_bonus' %}"       class="nav-link">Bonus</a></li>
+            <li><a href="{% url 'capp_maternity' %}"   class="nav-link">Maternity</a></li>
+            <li><a href="{% url 'capp_lwf' %}"         class="nav-link">Labour Welfare Fund</a></li>
+          </ul>
+        </li>
+        {% endif %}
+
+        {% if access.compliance %}
+        <li class="nav-item">
+          <a href="{% url 'capp_compliance' %}" class="nav-link statuary">
+            <span class="nav-label">Compliance Calendar</span>
+          </a>
+        </li>
+        {% endif %}
+
+        {% if access.reports %}
+        <li class="nav-item" id="nav-rep">
+          <button class="nav-link statuary" onclick="toggleNav('nav-rep')" aria-expanded="false">
+            <span class="nav-label">Reports & Docs</span>
+            <span class="nav-chevron">&#9658;</span>
+          </button>
+          <ul class="nav-sub">
+            <li><a href="{% url 'capp_company_profile_pdf' %}"                  class="nav-link">Company Profile</a></li>
+            <li><a href="{% url 'capp_letterhead' doc_type='quotation' %}"       class="nav-link">Quotation</a></li>
+            <li><a href="{% url 'capp_letterhead' doc_type='appointment_letter' %}" class="nav-link">Appointment Letter</a></li>
+            <li><a href="{% url 'capp_letterhead' doc_type='show_cause' %}"      class="nav-link">Show Cause Notice</a></li>
+            <li><a href="{% url 'capp_letterhead' doc_type='notice' %}"          class="nav-link">Office Notice</a></li>
+          </ul>
+        </li>
+        {% endif %}
+
+      </ul>
+    </nav>
+
+    <div class="sidebar-footer">
+      <a href="{% url 'capp_logout' %}" class="nav-link logout">
+        <span class="nav-label">Logout</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- ── MAIN WRAP ──────────────────────────────────────────────── -->
+  <div class="main-wrap" id="mainWrap">
+
+    <header class="topbar">
+      <div class="topbar-left">
+        <h1 class="topbar-title">Owner Portal</h1>
+        <span class="owner-badge">Owner Portal</span>
+      </div>
+      <div class="topbar-right">
+        <div class="company-chip" aria-label="Selected company">
+          <span class="company-chip-icon">П</span>
+          <span class="company-chip-name">{{ owned_company.company_name|default:"No company" }}</span>
+        </div>
+        <div class="user-pill">
+          <div class="user-avatar" style="background:var(--capp-green)" aria-hidden="true">Ó</div>
+          <span class="user-name">{{ user.get_full_name|default:user.username }}</span>
+        </div>
+        <a href="{% url 'capp_logout' %}" class="btn-logout" aria-label="Logout">Logout</a>
+      </div>
+    </header>
+
+    <main class="page-content">
+      {% if messages %}
+      <div class="messages-container">
+        {% for message in messages %}
+        <div class="message-alert {% if message.tags == 'error' %}message-error{% elif message.tags == 'warning' %}message-warning{% else %}message-success{% endif %}" role="alert">
+          {{ message }}
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+      {% block content %}{% endblock %}
+    </main>
+
+    <footer class="app-footer">
+      <div class="footer-col">
+        <span>{{ owned_company.company_name|default:"Revolution Associates" }}</span>
+        <span class="tagline">Owner Portal — View only access</span>
+      </div>
+      <div class="footer-col">
+        <span>Contact</span>
+        <a href="tel:{{ owned_company.mobile }}" class="tagline">{{ owned_company.mobile|default:"" }}</a>
+        <a href="mailto:{{ owned_company.email1 }}" class="tagline">{{ owned_company.email1|default:"" }}</a>
+      </div>
+      <div class="footer-col">
+        <span>Powered by</span>
+        <span class="tagline">Revolution Associates HRMS</span>
+        <span class="tagline">© 2024–2026. All rights reserved.</span>
+      </div>
+    </footer>
+
+  </div><!-- /main-wrap -->
+</div><!-- /app-shell -->
+
+<script>
+const sidebar = document.getElementById('sidebar');
+try { if (localStorage.getItem('capp_sidebar_collapsed') === '1') sidebar.classList.add('collapsed'); } catch(e){}
+document.getElementById('sidebarToggle').addEventListener('click', () => {
+  const c = !sidebar.classList.contains('collapsed');
+  sidebar.classList.toggle('collapsed', c);
+  try { localStorage.setItem('capp_sidebar_collapsed', c ? '1' : '0'); } catch(e){}
+});
+function toggleNav(id) {
+  const item = document.getElementById(id);
+  const wasOpen = item.classList.contains('open');
+  document.querySelectorAll('.nav-item.open').forEach(el => {
+    if (el !== item) { el.classList.remove('open'); el.querySelector('[aria-expanded]')?.setAttribute('aria-expanded','false'); }
+  });
+  item.classList.toggle('open', !wasOpen);
+  item.querySelector('[aria-expanded]')?.setAttribute('aria-expanded', !wasOpen ? 'true' : 'false');
+}
+document.querySelectorAll('.nav-sub .nav-link').forEach(link => {
+  if (link.href === location.href) { link.classList.add('active'); link.closest('.nav-item')?.classList.add('open'); }
+});
+</script>
+</body>
+</html>

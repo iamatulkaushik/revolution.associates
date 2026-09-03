@@ -1,0 +1,27 @@
+{% extends 'Cxapp/_base.html' %}
+{% block title %}Assets{% endblock %}
+{% block page_title %}Assets{% endblock %}
+{% block content %}
+<div class="wrap" style="max-width:960px;margin:0 auto;padding:32px 24px">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+    <h2>Assets</h2>
+    <a href="{% url 'cxapp_create_asset' %}" class="btn" style="padding:10px 18px;background:#2a9d8f;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">Add Asset</a>
+</div>
+<table style="width:100%;border-collapse:collapse;background:#fff">
+    <tr><th>Name</th><th>Category</th><th>Serial</th><th>Qty</th><th>Valuation</th><th>Status</th><th></th></tr>
+    {% for a in assets %}
+    <tr>
+        <td>{{ a.asset_name }}</td>
+        <td>{{ a.asset_category }}</td>
+        <td>{{ a.serial_number|default:"-" }}</td>
+        <td>{{ a.quantity }}</td>
+        <td>Rs. {{ a.current_valuation }}</td>
+        <td>{{ a.get_status_display }}</td>
+        <td><a href="{% url 'cxapp_assign_asset' a.asset_id %}">Assign</a></td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="7">No assets on record yet.</td></tr>
+    {% endfor %}
+</table>
+</div>
+{% endblock %}

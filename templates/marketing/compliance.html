@@ -1,0 +1,91 @@
+{% extends "base_marketing.html" %}
+
+{% block title %}Statutory Compliance — EPF, ESI, PT, LWF, Gratuity | Revolution HRMS{% endblock %}
+{% block description %}Revolution HRMS automates Indian statutory compliance: EPF, ESI, Professional Tax across 19+ states, Labour Welfare Fund, Gratuity, Minimum Wages Act, Payment of Wages Act, Shop Act and TDS/Form 16.{% endblock %}
+{% block keywords %}EPF compliance software, ESI compliance India, professional tax slabs India, labour welfare fund software, gratuity calculation software, minimum wages act compliance, payment of wages act software, shop act compliance, labour codes India{% endblock %}
+{% block canonical %}https://reas.host/compliance/{% endblock %}
+{% block og_title %}<meta property="og:title" content="Statutory Compliance Coverage — Revolution HRMS">{% endblock %}
+{% block og_url %}<meta property="og:url" content="https://reas.host/compliance/">{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {"@type":"Question","name":"What statutory laws does Revolution HRMS cover?",
+     "acceptedAnswer":{"@type":"Answer","text":"EPF, ESI, Professional Tax across 19+ states, Labour Welfare Fund, Gratuity, TDS/Form 16, Minimum Wages Act, Payment of Wages Act, Shop Act and the new Labour Codes."}},
+    {"@type":"Question","name":"Is EPF calculated on full salary or Basic+DA?",
+     "acceptedAnswer":{"@type":"Answer","text":"EPF is calculated on Basic plus Dearness Allowance only, per the Wage Code statutory base, matching payslip and ECR filings exactly."}}
+  ]
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="breadcrumbs"><a href="{% url 'base' %}">Home</a> / Compliance</div>
+<section class="page-hero">
+  <span class="eyebrow glass"><span class="dot"></span> Every Indian statutory register, automated</span>
+  <h1>Built around the <span style="background:var(--grad-brand);-webkit-background-clip:text;background-clip:text;color:transparent;">Labour Codes</span>, not around guesswork</h1>
+  <p>Statutory gates are enforced automatically — no company registration on file means no deduction, everywhere in the system.</p>
+</section>
+
+<section>
+  <div class="section-head">
+    <h2>What's covered</h2>
+    <p>Reference: <a href="https://www.labour.gov.in/offerings/schemes-and-services/details/labour-codes-gzNzQzMtQWa" style="color:var(--teal);">labour.gov.in — Labour Codes</a></p>
+  </div>
+  <table class="compliance-table glass">
+    <thead><tr><th>Statute</th><th>What Revolution HRMS does</th></tr></thead>
+    <tbody>
+      <tr><td>EPF (Employees' Provident Fund)</td><td>Basic+DA calculation base, employer/employee split, ECR & challan generation for EPFO upload.</td></tr>
+      <tr><td>ESI (Employees' State Insurance)</td><td>Auto eligibility checks by wage threshold, ESIC direct upload format.</td></tr>
+      <tr><td>Professional Tax</td><td>Slab-based deduction across 19+ states, applied by employee work location.</td></tr>
+      <tr><td>Labour Welfare Fund (LWF)</td><td>Rules applied by state and working location, contribution frequency handled automatically.</td></tr>
+      <tr><td>Gratuity</td><td>Auto-calculated on eligible exits and included in Full & Final Settlement.</td></tr>
+      <tr><td>TDS / Form 16 / Form 24Q</td><td>New and Old regime support, investment declarations, Part A+B Form 16 generation.</td></tr>
+      <tr><td>Minimum Wages Act</td><td>State-wise minimum wage validation against configured pay structures.</td></tr>
+      <tr><td>Payment of Wages Act</td><td>Wage register formats maintained per statutory requirement.</td></tr>
+      <tr><td>Shop & Establishment Act</td><td>Registration tracking with renewal reminders.</td></tr>
+      <tr><td>Factory Act</td><td>Registers and working-hour compliance for factory-registered companies.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <div class="section-head">
+    <span class="eyebrow glass" style="display:inline-flex;">19+ states</span>
+    <h2>Professional Tax coverage</h2>
+    <p>State PT slabs stay current as governments revise them.</p>
+  </div>
+  <div class="state-chip-grid">
+    <span class="chip glass"><span class="sw" style="background:var(--teal);"></span> Maharashtra</span>
+    <span class="chip glass"><span class="sw" style="background:var(--indigo);"></span> Karnataka</span>
+    <span class="chip glass"><span class="sw" style="background:var(--gold);"></span> West Bengal</span>
+    <span class="chip glass"><span class="sw" style="background:var(--teal);"></span> Andhra Pradesh</span>
+    <span class="chip glass"><span class="sw" style="background:var(--indigo);"></span> Telangana</span>
+    <span class="chip glass"><span class="sw" style="background:var(--gold);"></span> Gujarat</span>
+    <span class="chip glass"><span class="sw" style="background:var(--teal);"></span> Madhya Pradesh</span>
+    <span class="chip glass"><span class="sw" style="background:var(--indigo);"></span> Tamil Nadu</span>
+    <span class="chip glass"><span class="sw" style="background:var(--gold);"></span> Kerala</span>
+    <span class="chip glass"><span class="sw" style="background:var(--teal);"></span> Odisha</span>
+    <span class="chip glass"><span class="sw" style="background:var(--indigo);"></span> Assam</span>
+    <span class="chip glass"><span class="sw" style="background:var(--gold);"></span> Bihar</span>
+    <span class="chip glass"><span class="sw" style="background:var(--teal);"></span> Jharkhand</span>
+    <span class="chip glass"><span class="sw" style="background:var(--indigo);"></span> Tripura</span>
+    <span class="chip glass"><span class="sw" style="background:var(--gold);"></span> Meghalaya</span>
+    <span class="chip glass"><span class="sw" style="background:var(--teal);"></span> Sikkim</span>
+    <span class="chip glass"><span class="sw" style="background:var(--indigo);"></span> Manipur</span>
+    <span class="chip glass"><span class="sw" style="background:var(--gold);"></span> Chhattisgarh</span>
+    <span class="chip glass"><span class="sw" style="background:var(--teal);"></span> Puducherry</span>
+  </div>
+</section>
+
+<section class="cta-panel glass reveal">
+  <h2>Have a specific compliance question?</h2>
+  <p>Talk to our team about your state's statutory requirements.</p>
+  <div class="cta-actions">
+    <a href="{% url 'contact' %}" class="btn btn-primary">Contact us</a>
+  </div>
+</section>
+{% endblock %}

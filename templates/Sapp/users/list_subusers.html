@@ -1,0 +1,71 @@
+{% extends "Sapp/base.html" %}
+{% block title %}Sub Users List{% endblock %}
+{% load static %}
+{% block additionalcss_js %}
+
+{% endblock %}
+{% block content %}
+{% if messages %}
+<div class="messages-container">
+{% for message in messages %}
+<div class="message-alert {% if message.tags == 'error' %}message-error{% elif message.tags == 'warning' %}message-warning{% else %}message-success{% endif %}" role="alert">{{ message }}</div>
+{% endfor %}
+</div>
+{% endif %}
+
+<div class="container">
+    <div class="header">
+        <h2>Sub Users Management</h2>
+        <a href="{% url 'create_subuser' %}" class="button btn-primary">+ Create Sub User</a>
+    </div>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Associate</th>
+                <th>Companies</th>
+                <th>Status</th>
+                <th>Created</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for subuser in subusers %}
+            <tr>
+                <td>{{subuser.user.get_full_name}}</td>
+                <td><strong>{{subuser.user.username}}</strong></td>
+                <td>{{subuser.user.email}}</td>
+                <td><span class="role-badge">{{subuser.role|title}}</span></td>
+                <td>
+                    <strong>{{subuser.associate.user.get_full_name}}</strong>
+                    <div class="associate-info">{{subuser.associate.associate_id}}</div>
+                </td>
+                <td>{{subuser.get_companies.count}} companies</td>
+                <td>
+                    <span
+                        class="status-badge {% if subuser.is_active %}status-active{% else %}status-disabled{% endif %}">
+                        {{subuser.get_status_display}}
+                    </span>
+                </td>
+                <td>{{subuser.created_at|date:"M d, Y"}}</td>
+                <td>
+                    <div class="actions">
+                        <a href="{% url 'sapp_alter_subuser' subuser.id %}" class="button">Edit</a>
+                        <a href="{% url 'disable_suspend_subuser' subuser.id %}"
+                            class="button">Manage</a>
+                        <a href = "{% url 'delete_subuser' subuser.id %}" class="button">Delete</a>
+                    </div>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="9" style="text-align:center;color:#666;font-style:italic">No sub users found</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

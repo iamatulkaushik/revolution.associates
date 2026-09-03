@@ -1,0 +1,59 @@
+{% extends "Sapp/base.html" %}
+{% block title %}Suspend/Revoke License{% endblock %}
+{% block additionalcss_js %}
+
+{% endblock %}
+{% block content %}
+<div class="form-container">
+<h2>License Management</h2>
+{% if messages %}
+<div style="margin-bottom:20px">
+{% for message in messages %}
+<div style="padding:10px;border-radius:4px;background:{% if message.tags == 'error' %}#f8d7da;color:#721c24{% else %}#d4edda;color:#155724{% endif %}">
+{{ message }}
+</div>
+{% endfor %}
+</div>
+{% endif %}
+<div class="license-details">
+<h4>License Information</h4>
+<p><strong>Company:</strong> {{license.company.company_name}}</p>
+<p><strong>Associate:</strong> {% if license.associate %}{{license.associate.user.get_full_name}}{% else %}N/A{% endif %}</p>
+<p><strong>License Key:</strong> {{license.license_key}}</p>
+<p><strong>Type:</strong> {{license.get_license_type_display}}</p>
+<p><strong>Status:</strong> <span style="color:{% if license.status == 'active' %}green{% elif license.status == 'suspended' %}orange{% else %}red{% endif %}">{{license.get_status_display}}</span></p>
+<p><strong>Issue Date:</strong> {{license.issue_date}}</p>
+<p><strong>Expiry Date:</strong> {{license.expiry_date}}</p>
+<p><strong>Max Users:</strong> {{license.max_users}}</p>
+{% if license.suspension_reason %}
+<p><strong>Suspension Reason:</strong> {{license.suspension_reason}}</p>
+{% endif %}
+{% if license.revoke_reason %}
+<p><strong>Revoke Reason:</strong> {{license.revoke_reason}}</p>
+{% endif %}
+</div>
+<div class="action-section">
+<h3>Actions</h3>
+<form method="post">
+{% csrf_token %}
+{% if license.status == 'active' %}
+<div class="form-group">
+<label>Reason for Action</label>
+<textarea name="reason" class="form-control" rows="3" placeholder="Enter reason for suspension or revocation"></textarea>
+</div>
+<button type="submit" class="button btn-primary" name="action" value="suspend" class="button">Suspend License</button>
+<button type="submit" class="button btn-primary" name="action" value="revoke" class="button btn-danger" onclick="return confirm('Are you sure you want to revoke this license? This action cannot be undone.')">Revoke License</button>
+{% elif license.status == 'suspended' %}
+<div class="form-group">
+<label>Reason for Activation</label>
+<textarea name="reason" class="form-control" rows="3" placeholder="Enter reason for activation"></textarea>
+</div>
+<button type="submit" class="button btn-primary" name="action" value="activate" class="button btn-success">Activate License</button>
+<button type="submit" class="button btn-primary" name="action" value="revoke" class="button btn-danger" onclick="return confirm('Are you sure you want to revoke this license?')">Revoke License</button>
+{% else %}
+<p style="color:#dc3545">This license has been revoked and cannot be modified.</p>
+{% endif %}
+</form>
+</div>
+</div>
+{% endblock %}

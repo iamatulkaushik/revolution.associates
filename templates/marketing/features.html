@@ -1,0 +1,132 @@
+{% extends "base_marketing.html" %}
+{% load static %}
+
+{% block title %}Features — Payroll, ESI, EPF, Attendance & Compliance | Revolution HRMS{% endblock %}
+{% block description %}Explore Revolution HRMS features: multi-state Professional Tax, EPF/ESI auto-calculation, biometric attendance, loans & advances, gratuity, Full & Final settlement, banking payout files and audit trails.{% endblock %}
+{% block keywords %}HRMS features India, payroll features, ESI EPF calculator, biometric attendance software, gratuity software, full and final settlement software, NEFT RTGS payroll, maker checker payroll{% endblock %}
+{% block canonical %}https://reas.host/features/{% endblock %}
+{% block og_title %}<meta property="og:title" content="Revolution HRMS Features — Payroll, ESI, EPF & Compliance">{% endblock %}
+{% block og_url %}<meta property="og:url" content="https://reas.host/features/">{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  "itemListElement": [
+    {"@type":"ListItem","position":1,"name":"Pan-India Statutory & Tax Engine"},
+    {"@type":"ListItem","position":2,"name":"Loans, Advances & Full and Final Settlement"},
+    {"@type":"ListItem","position":3,"name":"Biometric & RFID Attendance Sync"},
+    {"@type":"ListItem","position":4,"name":"Banking & Bulk Payout Automation"},
+    {"@type":"ListItem","position":5,"name":"Maker-Checker Audit Workflows"},
+    {"@type":"ListItem","position":6,"name":"Asset & Expense Management"}
+  ]
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="breadcrumbs"><a href="{% url 'base' %}">Home</a> / Features</div>
+<section class="page-hero">
+  <span class="eyebrow glass"><span class="dot"></span> Everything payroll & compliance needs</span>
+  <h1>One platform for <span class="accent" style="background:var(--grad-brand);-webkit-background-clip:text;background-clip:text;color:transparent;">every</span> HR compliance task</h1>
+  <p>Built for Indian Associates, Companies and Employees — from EPF challans to biometric attendance to bank payout files.</p>
+</section>
+
+<section id="statutory-engine">
+  <div class="section-head">
+    <span class="eyebrow glass" style="display:inline-flex;">Module 1</span>
+    <h2>Pan-India Statutory & Tax Engine</h2>
+    <p>Centralized engine that stays current with central and state budgets.</p>
+  </div>
+  <div class="bento">
+    <div class="feature-card glass reveal">
+      <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 2v20M2 12h20"/></svg></div>
+      <h3>EPF & ESI auto-calculation</h3>
+      <p>Employer/employee split computed on Basic+DA, with eligibility auto-checks and ECR/challan generation for direct EPFO/ESIC upload.</p>
+    </div>
+    <div class="feature-card glass reveal">
+      <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/></svg></div>
+      <h3>Professional Tax — 19+ states</h3>
+      <p>State-wise PT slabs applied automatically by employee work location, always in sync with the latest state notifications.</p>
+    </div>
+    <div class="feature-card glass reveal">
+      <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 4h16v16H4z"/></svg></div>
+      <h3>TDS, Form 16 & Form 24Q</h3>
+      <p>New and Old tax regime support with employee investment declarations, auto-generated Form 16 (Part A+B) and Form 24Q.</p>
+    </div>
+  </div>
+</section>
+
+<section id="lifecycle">
+  <div class="section-head">
+    <span class="eyebrow glass" style="display:inline-flex;">Module 2</span>
+    <h2>Complex Compensation & Lifecycle</h2>
+    <p>Loans, arrears, increments and exits — handled without manual spreadsheets.</p>
+  </div>
+  <div class="bento">
+    <div class="feature-card glass reveal">
+      <h3>Loans & Advances</h3>
+      <p>EMI amortization schedules auto-deducted into every payslip until closure.</p>
+    </div>
+    <div class="feature-card glass reveal">
+      <h3>Arrears & Increments</h3>
+      <p>Backdated pay changes with automatic TDS recalculation for the affected period.</p>
+    </div>
+    <div class="feature-card glass reveal">
+      <h3>Full & Final Settlement</h3>
+      <p>Leave encashment, notice pay, gratuity and loan recovery combined into one settlement run.</p>
+    </div>
+  </div>
+</section>
+
+<section id="attendance">
+  <div class="section-head">
+    <span class="eyebrow glass" style="display:inline-flex;">Module 3</span>
+    <h2>Hardware-Level Attendance Syncing</h2>
+    <p>Pull biometric or RFID punch data on your local network — no internet dependency.</p>
+  </div>
+  <div class="bento">
+    <div class="feature-card glass reveal"><h3>Biometric & RFID sync</h3><p>Local daemon reads punch data directly from your existing hardware over LAN.</p></div>
+    <div class="feature-card glass reveal"><h3>Shift-mapped OT & LOP</h3><p>Overtime and loss-of-pay calculated automatically against configured shift patterns.</p></div>
+    <div class="feature-card glass reveal"><h3>Half day / full day rules</h3><p>Configurable attendance rules per company, applied consistently across payroll runs.</p></div>
+  </div>
+</section>
+
+<section id="banking">
+  <div class="section-head">
+    <span class="eyebrow glass" style="display:inline-flex;">Module 4</span>
+    <h2>Banking & Payout Automation</h2>
+    <p>Bulk-upload files ready for your bank's disbursement portal.</p>
+  </div>
+  <div class="chips">
+    <span class="chip glass"><span class="sw" style="background:var(--teal);"></span> HDFC</span>
+    <span class="chip glass"><span class="sw" style="background:var(--indigo);"></span> ICICI</span>
+    <span class="chip glass"><span class="sw" style="background:var(--gold);"></span> SBI</span>
+    <span class="chip glass"><span class="sw" style="background:var(--teal);"></span> Axis</span>
+    <span class="chip glass"><span class="sw" style="background:var(--indigo);"></span> NEFT / RTGS / IMPS</span>
+  </div>
+</section>
+
+<section id="audit">
+  <div class="section-head">
+    <span class="eyebrow glass" style="display:inline-flex;">Module 5</span>
+    <h2>Maker-Checker Audit Workflows</h2>
+    <p>Dual-approval payroll lock: HR prepares, Owner approves, before anything releases.</p>
+  </div>
+  <div class="bento">
+    <div class="feature-card glass reveal"><h3>Dual approval</h3><p>Payslips and bank files stay locked until Owner sign-off.</p></div>
+    <div class="feature-card glass reveal"><h3>Full audit trail</h3><p>Every salary and attendance change logged with who, when and IP — ISO/SOC2 ready.</p></div>
+    <div class="feature-card glass reveal"><h3>Asset & expense tracking</h3><p>Bill uploads with tax-exempt routing, plus asset tracker for laptops, uniforms and safety gear.</p></div>
+  </div>
+</section>
+
+<section class="cta-panel glass reveal">
+  <h2>See these features on your own payroll</h2>
+  <p>Talk to us and we'll walk through the modules relevant to your business.</p>
+  <div class="cta-actions">
+    <a href="{% url 'contact' %}" class="btn btn-primary">Get a demo</a>
+    <a href="{% url 'pricing' %}" class="btn btn-ghost">View pricing</a>
+  </div>
+</section>
+{% endblock %}

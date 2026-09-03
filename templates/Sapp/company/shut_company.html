@@ -1,0 +1,46 @@
+{% extends "Sapp/base.html" %}
+{% block title %}Shut Company{% endblock %}
+{% load static %}
+{% block additionalcss_js %}
+
+{% endblock %}
+{% block content %}
+{% if messages %}
+<div class="messages-container">
+{% for message in messages %}
+<div class="message-alert {% if message.tags == 'error' %}message-error{% elif message.tags == 'warning' %}message-warning{% else %}message-success{% endif %}" role="alert">{{ message }}</div>
+{% endfor %}
+</div>
+{% endif %}
+
+<div class="container">
+<h2 style="color:#dc3545;margin-bottom:25px">🔒 Shut Company</h2>
+<div class="company-info">
+<h3>{{company.company_name}}</h3>
+<div class="info-grid">
+<p><strong>PAN:</strong> {{company.pan}}</p>
+<p><strong>Mobile:</strong> {{company.mobile}}</p>
+<p><strong>Email:</strong> {{company.email1}}</p>
+<p><strong>Start Date:</strong> {{company.start_date}}</p>
+</div>
+{% if company.shut_date %}
+<p style="color:#dc3545;font-weight:600;margin-top:15px"><strong>Current Shut Date:</strong> {{company.shut_date}}</p>
+{% endif %}
+</div>
+<div class="warning">
+<strong>⚠️ Warning:</strong> Setting a shut date will mark this company as closed. This action can be reversed by editing the company details and removing the shut date.
+</div>
+<form method="post">
+{% csrf_token %}
+<div class="form-group">
+<label>📅 Shut Date *</label>
+<input type="date" name="shut_date" class="form-control" value="{{company.shut_date|date:'Y-m-d'}}" required>
+<small style="color:#666;margin-top:5px;display:block">Select the date when the company operations were shut down</small>
+</div>
+<div class="actions">
+<a href="{% url 'list_company' %}" class="button">Cancel</a>
+<button type="submit" class="button btn-danger">Set Shut Date</button>
+</div>
+</form>
+</div>
+{% endblock %}

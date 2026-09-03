@@ -1,0 +1,191 @@
+<style>
+    :root {
+  --bg-color: #f4f7fe;
+  --sidebar-bg: #ffffff;
+  --primary-blue: #4a85f6;
+  --text-main: #2b3674;
+  --text-light: #a3aed0;
+  
+  /* Card Backgrounds */
+  --card-blue: #eef4ff;
+  --card-green: #e6faf5;
+  --card-purple: #f2eeff;
+  --card-cyan: #e1f9fb;
+}
+
+body {
+  background-color: var(--bg-color);
+  margin: 0;
+  display: flex;
+}
+
+/* Layout Structure */
+.dashboard-container {
+  display: flex;
+  width: 100%;
+}
+
+.sidebar {
+  width: 260px;
+  background: var(--sidebar-bg);
+  height: 100vh;
+  padding: 30px 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.main-content {
+  flex: 1;
+  padding: 30px;
+}
+
+/* Sidebar Elements */
+.logo {
+  font-size: 24px;
+  font-weight: bold;
+  color: var(--primary-blue);
+  margin-bottom: 40px;
+}
+
+.nav-item {
+  padding: 12px 15px;
+  color: var(--text-light);
+  cursor: pointer;
+  border-radius: 10px;
+  margin-bottom: 5px;
+  transition: 0.3s;
+}
+
+.nav-item.active {
+  background-color: var(--primary-blue);
+  color: white;
+}
+
+/* Header */
+.top-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.search-bar {
+  background: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 30px;
+  width: 300px;
+}
+
+/* Stat Cards */
+.overview-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1-fr);
+  gap: 20px;
+}
+
+.card {
+  background: white;
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+}
+
+.stat-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-card.blue { background-color: var(--card-blue); }
+.stat-card.green { background-color: var(--card-green); }
+.stat-card.purple { background-color: var(--card-purple); }
+.stat-card.cyan { background-color: var(--card-cyan); }
+
+.stat-card h2 {
+  font-size: 28px;
+  margin: 10px 0 0 0;
+  color: var(--text-main);
+}
+
+/* Badges/Status */
+.status-paid {
+  background: #e6faf5;
+  color: #05cd99;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+/* Donut Chart (Working Format) Simple CSS Version */
+.donut-chart {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  background: conic-gradient(
+    var(--primary-blue) 0% 60%, 
+    #b388ff 60% 90%, 
+    #6200ea 90% 100%
+  );
+  position: relative;
+}
+
+.donut-chart::after {
+  content: "";
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100px;
+  height: 100px;
+  background: white;
+  border-radius: 50%;
+}
+</style>
+
+<div class="dashboard-container">
+  <aside class="sidebar">
+    <div class="logo">Revolution Associates</div>
+    <nav>
+      <div class="nav-item active">Dashboard</div>
+      <div class="nav-item">Employees</div>
+      <div class="nav-item">Attendance</div>
+      </nav>
+  </aside>
+  <main class="main-content">
+    <header class="top-header">
+      <input type="text" placeholder="Search" class="search-bar">
+      <div class="user-profile">
+        <span class="notification-icon">🔔</span>
+        <img src="avatar.jpg" alt="David" class="avatar-small">
+        <span>David Hussy</span>
+      </div>
+    </header>
+
+    <section class="overview-grid">
+      <div class="card stat-card blue">
+        <p>Total Employee</p>
+        <h2>550</h2>
+      </div>
+      <div class="card stat-card green">
+        <p>New Employee</p>
+        <h2>120</h2>
+      </div>
+      <div class="card stat-card purple">
+        <p>Today Attendance</p>
+        <h2>545</h2>
+      </div>
+      <div class="card stat-card cyan">
+        <p>Total Applicant</p>
+        <h2>250</h2>
+      </div>
+
+      <div class="card chart-container">
+        <h3>Attendance Overview</h3>
+        </div>
+      
+      <div class="card table-container">
+        <h3>Employee Summary</h3>
+        </div>
+    </section>
+  </main>
+</div>

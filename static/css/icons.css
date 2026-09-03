@@ -1,0 +1,120 @@
+@font-face {
+  font-family: Infinitude;
+  src: url("../fonts/Infinitude.ttf");
+}
+
+.dashboard:before{
+    content:'ŧ';
+    font-family: 'Infinitude';
+    font-size: 25px;
+    padding:0 10px;
+    vertical-align: middle;
+}
+.masters:before{
+    content: 'ð';
+    font-family: 'Infinitude';
+    font-size: 25px;
+    padding:0 10px;
+    vertical-align: middle;
+}
+.companies:before, .departments:before, .branches:before, .designations:before{
+    content: 'ǉ';
+    font-family: 'Infinitude';
+    font-size: 25px;
+    padding:0 10px;
+    vertical-align: middle;
+}
+.edit:before{
+    content: 'ÿ';
+    font-family: 'Infinitude';
+    font-size: 25px;
+    padding:0 10px;
+    vertical-align: middle;
+}
+.delete:before{
+    content: 'Ă';
+    font-family:'Infinitude';
+    font-size: 25px;
+    padding:0 10px;
+    vertical-align: middle;
+}
+.inactive:before{
+    content: 'Ʀ';
+    font-family: 'Infinitude';
+    font-size: 25px;
+    padding:0 10px;
+    vertical-align: middle;
+}
+.statuary:before{
+    content: 'Ē';
+    font-family: 'Infinitude';
+    font-size: 25px;
+    padding:0 10px;
+    vertical-align: middle;
+}
+.employees:before{
+    content: 'ࠅ';
+    font-family: 'Infinitude';
+    font-size: 25px;
+    padding:0 10px;
+    vertical-align: middle;
+}
+.attandance:before{
+    content: 'Ɠ';
+    font-family: 'Infinitude';
+    font-size: 25px;
+    padding:0 10px;
+    vertical-align: middle;
+}
+.profile:before{
+    content: 'ţ';
+    font-family: 'Infinitude';
+    font-size: 25px;
+    padding:0 10px;
+    vertical-align: middle;
+}
+.logout:before{
+    content: 'Р';
+    font-family: 'Infinitude';
+    font-size: 25px;
+    padding:0 10px;
+    vertical-align: middle;
+}
+
+
+/******Profile Cards******/
+
+.profile-card{
+    display: inline-block;
+    position: relative;
+    min-width: 25vw;        color: var(--Color2);
+    padding:10px 5px;       float: right;
+    border-radius: 10px;
+    background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+.profile-image{
+    height: 80px;   float:left;
+    width: 80px;    border-radius: 50%;
+    display:flex;   text-align: center;     justify-content: center;
+    align-items: center;    border:1px var(--Color5) solid;
+    background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    position: relative;     vertical-align: middle; 
+    margin-left: -40px;     font-size: 50px;
+    background-color: var(--Color5);    color: var(--Color2);
+}
+.profile-content{
+    margin-left: 15px;
+    position: relative;
+    display: inline-block;
+}
+.profile-content h2{
+    padding: 4px 2px;
+}
+.profile-content p{
+    padding: 2px;
+}
+.status{
+    position: relative; float: right;   top: 0px;
+    padding: 5px;  background-color: #ffffff29;    border-radius: 5px;
+    color: var(--Color2);   margin-top: -20px;
+}

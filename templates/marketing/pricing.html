@@ -1,0 +1,97 @@
+{% extends "base_marketing.html" %}
+
+{% block title %}Pricing — HRMS & Payroll Software Plans (INR) | Revolution HRMS{% endblock %}
+{% block description %}Revolution HRMS pricing in Indian Rupees. Starter, Professional and Enterprise plans, plus one-time offline licensing. Transparent per-employee pricing, no hidden fees.{% endblock %}
+{% block keywords %}HRMS pricing India, payroll software price INR, HR software cost India, payroll SaaS pricing, compliance software price{% endblock %}
+{% block canonical %}https://reas.host/pricing/{% endblock %}
+{% block og_title %}<meta property="og:title" content="Revolution HRMS Pricing — Plans in INR">{% endblock %}
+{% block og_url %}<meta property="og:url" content="https://reas.host/pricing/">{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Product",
+  "name": "Revolution HRMS",
+  "offers": [
+    {"@type":"Offer","name":"Starter","priceCurrency":"INR","price":"999","description":"Per employee per month, billed annually"},
+    {"@type":"Offer","name":"Professional","priceCurrency":"INR","price":"1999","description":"Per employee per month, billed annually"},
+    {"@type":"Offer","name":"Enterprise","priceCurrency":"INR","price":"0","description":"Custom pricing, contact sales"}
+  ]
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="breadcrumbs"><a href="{% url 'base' %}">Home</a> / Pricing</div>
+<section class="page-hero">
+  <span class="eyebrow glass"><span class="dot"></span> Simple, transparent, INR pricing</span>
+  <h1>Pricing that scales with your headcount</h1>
+  <p>Per-employee pricing with no setup fees. Offline one-time licensing available for factories that need on-premise deployment.</p>
+</section>
+
+<section>
+  <div class="pricing-grid">
+    <div class="price-card glass reveal">
+      <h3>Starter</h3>
+      <div class="price">₹999 <small>/ employee / month</small></div>
+      <ul>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Payroll & payslips</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> EPF & ESI auto-calculation</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Professional Tax, single state</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Attendance & leave</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Email payslip delivery</li>
+      </ul>
+      <a href="{% url 'contact' %}" class="btn btn-ghost">Get started</a>
+    </div>
+
+    <div class="price-card glass reveal featured">
+      <span class="eyebrow glass" style="display:inline-flex;width:fit-content;">Most popular</span>
+      <h3>Professional</h3>
+      <div class="price">₹1,999 <small>/ employee / month</small></div>
+      <ul>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Everything in Starter</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Multi-state Professional Tax (19+ states)</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Loans, advances & arrears</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Biometric/RFID attendance sync</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Bank payout files (NEFT/RTGS/IMPS)</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Full & Final Settlement</li>
+      </ul>
+      <a href="{% url 'contact' %}" class="btn btn-primary">Get started</a>
+    </div>
+
+    <div class="price-card glass reveal">
+      <h3>Enterprise</h3>
+      <div class="price">Custom</div>
+      <ul>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Everything in Professional</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Maker-checker audit workflows</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Asset & expense management</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Dedicated compliance support</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> One-time offline license option</li>
+      </ul>
+      <a href="{% url 'contact' %}" class="btn btn-ghost">Talk to sales</a>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="section-head">
+    <h2>Frequently asked</h2>
+  </div>
+  <div class="faq">
+    <details class="faq-item glass"><summary>Is pricing per employee or per company?</summary><p>Pricing is per active employee per month, billed annually. Volume discounts apply for larger headcounts.</p></details>
+    <details class="faq-item glass"><summary>Do you offer offline / on-premise licensing?</summary><p>Yes. A one-time lifetime license with annual support is available for factories needing on-premise deployment.</p></details>
+    <details class="faq-item glass"><summary>What's included in Professional Tax coverage?</summary><p>The Professional plan covers Professional Tax slabs for 19+ Indian states, applied automatically by employee work location.</p></details>
+    <details class="faq-item glass"><summary>Can I switch plans later?</summary><p>Yes, you can upgrade or downgrade at any renewal cycle without data migration.</p></details>
+  </div>
+</section>
+
+<section class="cta-panel glass reveal">
+  <h2>Not sure which plan fits?</h2>
+  <p>Tell us your headcount and compliance needs — we'll recommend a plan.</p>
+  <div class="cta-actions">
+    <a href="{% url 'contact' %}" class="btn btn-primary">Get a demo</a>
+  </div>
+</section>
+{% endblock %}

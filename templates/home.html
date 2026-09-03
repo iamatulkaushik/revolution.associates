@@ -1,0 +1,236 @@
+{% extends "base_marketing.html" %}
+
+{% block title %}Revolution HRMS — Payroll, ESI, EPF & Compliance Software for India{% endblock %}
+{% block description %}Revolution HRMS runs payroll, ESI, EPF, Professional Tax, Gratuity, Factory Act and every Indian statutory register for associates, companies and employees — in one platform.{% endblock %}
+{% block canonical %}https://reas.host/{% endblock %}
+{% block og_url %}<meta property="og:url" content="https://reas.host/">{% endblock %}
+
+{% block content %}
+    <!-- ── HERO ─────────────────────────────────────────── -->
+    <section class="hero" style="padding-top:0;">
+      <div>
+        <span class="eyebrow glass"><span class="dot" aria-hidden="true"></span> Built for Indian factories &amp; companies</span>
+        <h1>Payroll, ESI, EPF and <span class="accent">compliance</span> — finally in one place.</h1>
+        <p class="lede">Revolution HRMS runs attendance, payroll and every statutory register — ESI, EPF, Gratuity, Factory Act — for associates, companies and employees, without three separate spreadsheets.</p>
+        <div class="hero-actions">
+          <a href="{% url 'contact' %}" class="btn btn-primary">
+            Start free trial
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </a>
+          <a href="#payroll" class="btn btn-ghost">See how payroll works</a>
+        </div>
+        <div class="trust-line">
+          <div class="avatar-stack" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+          Trusted by HR teams running payroll for 12,000+ employees
+        </div>
+      </div>
+
+      <div class="mascot-stage">
+        <div class="mascot-halo" aria-hidden="true"></div>
+        <div class="badge-orbit" aria-hidden="true">
+          <div class="badge glass badge-1"><svg viewBox="0 0 24 24" fill="none" stroke="#2dd9c4" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
+          <div class="badge glass badge-2"><svg viewBox="0 0 24 24" fill="none" stroke="#e9a23b" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12l4 6-10 12L2 9Z"/><path d="M2 9h20M12 3v18"/></svg></div>
+          <div class="badge glass badge-3"><svg viewBox="0 0 24 24" fill="none" stroke="#6f7bff" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 4v5"/></svg></div>
+        </div>
+
+        <!-- 3D-style isometric HR mascot, built entirely from gradient SVG shapes -->
+        <svg class="mascot" viewBox="0 0 300 340" role="img" aria-label="3D illustration of a friendly HR assistant character holding a compliance checklist">
+          <defs>
+            <linearGradient id="bodyGrad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#7d8bff"/>
+              <stop offset="1" stop-color="#4c56c9"/>
+            </linearGradient>
+            <linearGradient id="bodyShade" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#3d47ad"/>
+              <stop offset="1" stop-color="#2a3182"/>
+            </linearGradient>
+            <linearGradient id="headGrad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#3af0d6"/>
+              <stop offset="1" stop-color="#1fae9b"/>
+            </linearGradient>
+            <linearGradient id="visorGrad" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0" stop-color="#0c1830"/>
+              <stop offset="1" stop-color="#182b52"/>
+            </linearGradient>
+            <linearGradient id="cardGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#ffffff"/>
+              <stop offset="1" stop-color="#dfe4ff"/>
+            </linearGradient>
+          </defs>
+
+          <!-- floor shadow -->
+          <ellipse cx="150" cy="322" rx="82" ry="14" fill="#000816" opacity=".45"/>
+
+          <!-- legs / base -->
+          <rect x="112" y="248" width="30" height="62" rx="12" fill="url(#bodyShade)"/>
+          <rect x="158" y="248" width="30" height="62" rx="12" fill="url(#bodyGrad)"/>
+          <ellipse cx="127" cy="312" rx="22" ry="10" fill="#20265f"/>
+          <ellipse cx="173" cy="312" rx="22" ry="10" fill="#262c6e"/>
+
+          <!-- torso -->
+          <path d="M92 150c0-26 26-42 58-42s58 16 58 42v62c0 26-26 40-58 40s-58-14-58-40Z" fill="url(#bodyGrad)"/>
+          <path d="M92 150c0-26 26-42 58-42v144c-32 0-58-14-58-40Z" fill="url(#bodyShade)" opacity=".55"/>
+
+          <!-- chest badge -->
+          <rect x="132" y="150" width="36" height="26" rx="6" fill="url(#cardGrad)"/>
+          <rect x="138" y="157" width="24" height="4" rx="2" fill="#6f7bff"/>
+          <rect x="138" y="165" width="16" height="4" rx="2" fill="#2dd9c4"/>
+
+          <!-- left arm holding clipboard -->
+          <path d="M96 158c-20 4-34 20-34 40 0 16 10 26 24 30" fill="none" stroke="url(#bodyGrad)" stroke-width="20" stroke-linecap="round"/>
+          <g transform="translate(50 190) rotate(-8)">
+            <rect x="0" y="0" width="46" height="60" rx="8" fill="url(#cardGrad)"/>
+            <rect x="14" y="-6" width="18" height="12" rx="4" fill="#b9c2f0"/>
+            <rect x="8" y="14" width="30" height="4" rx="2" fill="#4c56c9"/>
+            <rect x="8" y="24" width="30" height="4" rx="2" fill="#9aa4e8"/>
+            <rect x="8" y="34" width="20" height="4" rx="2" fill="#9aa4e8"/>
+            <path d="M10 46 15 51 26 40" fill="none" stroke="#1fae9b" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
+          </g>
+
+          <!-- right arm -->
+          <path d="M204 158c20 4 34 20 34 38 0 14-8 24-20 29" fill="none" stroke="url(#bodyShade)" stroke-width="20" stroke-linecap="round"/>
+
+          <!-- neck -->
+          <rect x="138" y="98" width="24" height="24" rx="8" fill="#1fae9b"/>
+
+          <!-- head -->
+          <rect x="104" y="34" width="92" height="76" rx="30" fill="url(#headGrad)"/>
+          <rect x="118" y="58" width="64" height="30" rx="15" fill="url(#visorGrad)"/>
+          <circle cx="140" cy="73" r="6" fill="#7dfff0"/>
+          <circle cx="164" cy="73" r="6" fill="#7dfff0"/>
+          <rect x="128" y="24" width="44" height="14" rx="7" fill="#17c9b2"/>
+
+          <!-- floating currency chip -->
+          <g transform="translate(214 118)">
+            <circle cx="0" cy="0" r="20" fill="#e9a23b"/>
+            <text x="0" y="6" text-anchor="middle" font-family="Sora, sans-serif" font-weight="700" font-size="18" fill="#3a2205">₹</text>
+          </g>
+        </svg>
+      </div>
+    </section>
+
+    <!-- ── STAT STRIP ───────────────────────────────────── -->
+    <div class="stat-strip glass reveal">
+      <div class="stat"><div class="num mono">30+</div><div class="label">Statutory registers automated</div></div>
+      <div class="stat"><div class="num mono">₹0</div><div class="label">Late-filing penalties, avoided</div></div>
+      <div class="stat"><div class="num mono">3</div><div class="label">Portals — Associate, Company, Employee</div></div>
+      <div class="stat"><div class="num mono">99.9%</div><div class="label">Payroll run-time accuracy</div></div>
+    </div>
+
+    <!-- ── FEATURES ─────────────────────────────────────── -->
+    <section id="features">
+      <div class="section-head reveal">
+        <span class="eyebrow glass"><span class="dot" aria-hidden="true"></span> Everything HR needs</span>
+        <h2>One system, every statutory register</h2>
+        <p>From daily attendance to annual returns, each module keeps company data scoped, audited and export-ready.</p>
+      </div>
+
+      <div class="bento">
+        <div class="feature-card glass reveal">
+          <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></div>
+          <h3>Attendance &amp; leave</h3>
+          <p>Half-day, full-day and overtime capture, with leave balances that flow straight into payroll.</p>
+        </div>
+        <div class="feature-card glass reveal">
+          <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 2 7l10 5 10-5-10-5Z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div>
+          <h3>EPF &amp; ESI</h3>
+          <p>Nominations, monthly ECR and contribution returns generated in the formats your filings expect.</p>
+        </div>
+        <div class="feature-card glass reveal">
+          <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11Z"/></svg></div>
+          <h3>Factory Act registers</h3>
+          <p>Whitewash, vessel examination, accident and annual returns — kept current, not chased in March.</p>
+        </div>
+        <div class="feature-card glass reveal">
+          <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+          <h3>Gratuity &amp; bonus</h3>
+          <p>Eligibility, notices and payment tracking calculated automatically as service years accrue.</p>
+        </div>
+        <div class="feature-card glass reveal">
+          <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg></div>
+          <h3>Contract labour</h3>
+          <p>Contractor registration, worker payments and half-yearly returns, scoped per company.</p>
+        </div>
+        <div class="feature-card glass reveal">
+          <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11 3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
+          <h3>Compliance tracker</h3>
+          <p>A single calendar of every statutory due date, per company, with status at a glance.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── COMPLIANCE CHIPS ─────────────────────────────── -->
+    <section id="compliance">
+      <div class="section-head reveal">
+        <span class="eyebrow glass"><span class="dot" aria-hidden="true"></span> Covered out of the box</span>
+        <h2>Built against the Acts you're actually audited on</h2>
+      </div>
+      <div class="chips reveal">
+        <span class="chip glass"><span class="sw" style="background:#2dd9c4"></span> ESI Act</span>
+        <span class="chip glass"><span class="sw" style="background:#6f7bff"></span> EPF &amp; MP Act</span>
+        <span class="chip glass"><span class="sw" style="background:#e9a23b"></span> Factory Act, 1948</span>
+        <span class="chip glass"><span class="sw" style="background:#2dd9c4"></span> Payment of Gratuity Act</span>
+        <span class="chip glass"><span class="sw" style="background:#6f7bff"></span> Maternity Benefit Act</span>
+        <span class="chip glass"><span class="sw" style="background:#e9a23b"></span> Payment of Bonus Act</span>
+        <span class="chip glass"><span class="sw" style="background:#2dd9c4"></span> Shops &amp; Establishment Act</span>
+        <span class="chip glass"><span class="sw" style="background:#6f7bff"></span> Labour Welfare Fund</span>
+      </div>
+    </section>
+
+    <!-- ── PAYROLL SHOWCASE ─────────────────────────────── -->
+    <section id="payroll">
+      <div class="showcase glass reveal">
+        <div>
+          <span class="eyebrow glass"><span class="dot" aria-hidden="true"></span> Payroll</span>
+          <h2>Payslips that already know your compliance rules</h2>
+          <p>Every run applies ESI and EPF slabs, factory overtime rates and gratuity accruals automatically — in Indian Rupees, formatted the way your accountant expects.</p>
+          <ul class="check-list">
+            <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Auto-computed ESI &amp; EPF deductions</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Overtime and half-day rules built in</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Exportable to PDF, Excel and text formats</li>
+          </ul>
+        </div>
+        <div class="payslip-card glass">
+          <div class="payslip-row"><span>Employee</span><span class="v">R. Sharma · EMP-0142</span></div>
+          <div class="payslip-row"><span>Basic + DA</span><span class="v mono">₹38,000.00</span></div>
+          <div class="payslip-row"><span>EPF (12%)</span><span class="v mono">−₹4,560.00</span></div>
+          <div class="payslip-row"><span>ESI (0.75%)</span><span class="v mono">−₹285.00</span></div>
+          <div class="payslip-row"><span>Overtime (6 hrs)</span><span class="v mono">+₹1,650.00</span></div>
+          <div class="payslip-total">
+            <span style="color:var(--ink-1); font-size:13.5px;">Net payable</span>
+            <span class="amt">₹34,805.00</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── TESTIMONIAL ──────────────────────────────────── -->
+    <section id="reviews">
+      <div class="quote-card glass reveal">
+        <p>"We used to chase three spreadsheets every filing month. Revolution HRMS turned that into a checklist we clear before lunch."</p>
+        <div class="quote-who">
+          <div class="qa" aria-hidden="true"></div>
+          <div>
+            <div class="name">Priya Nair</div>
+            <div class="role">HR Manager, textile manufacturer, Panipat</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── FINAL CTA ────────────────────────────────────── -->
+    <section id="cta">
+      <div class="cta-panel glass reveal">
+        <h2>Bring your next filing month back under control</h2>
+        <p>Set up your first company in minutes. No spreadsheets, no card required.</p>
+        <div class="cta-actions">
+          <a href="{% url 'contact' %}" class="btn btn-primary">
+            Start free trial
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </a>
+          <a href="{% url 'contact' %}" class="btn btn-ghost">Talk to sales</a>
+        </div>
+      </div>
+    </section>
+
+{% endblock %}

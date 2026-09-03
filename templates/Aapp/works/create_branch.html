@@ -1,0 +1,64 @@
+{% extends 'Aapp/base.html' %}
+{% block title %}Create Branch{% endblock %}
+{% block content %}
+<div class="main-content">
+<h2>Create Branch</h2>
+
+{% if messages %}
+{% for message in messages %}
+<div class="{% if message.tags == 'error' %}error{% else %}success{% endif %}">{{ message }}</div>
+{% endfor %}
+{% endif %}
+
+<p><strong>Company:</strong> <span id="company-name">Loading...</span></p>
+
+<form method="post">
+    {% csrf_token %}
+    <input type="hidden" id="companyid" name="companyid">
+    <table class="data-table">
+        <tr>
+            <td><label for="branch_name">Branch Name:</label></td>
+            <td><input type="text" id="branch_name" name="branch_name" required></td>
+        </tr>
+        <tr>
+            <td><label for="branch_address">Branch Address:</label></td>
+            <td><textarea id="branch_address" name="branch_address" rows="2"></textarea></td>
+        </tr>
+        <tr>
+            <td><label for="branch_email">Branch Email:</label></td>
+            <td><input type="email" id="branch_email" name="branch_email"></td>
+        </tr>
+        <tr>
+            <td><label for="contact_person">Contact Person:</label></td>
+            <td><input type="text" id="contact_person" name="contact_person"></td>
+        </tr>
+        <tr>
+            <td><label for="contact_mobile">Contact Mobile:</label></td>
+            <td><input type="text" id="contact_mobile" name="contact_mobile" maxlength="10"></td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <button type="submit" class="button">Create Branch</button>
+                <a href="{% url 'branch_list' %}" class="button">Cancel</a>
+            </td>
+        </tr>
+    </table>
+</form></div>
+
+<script>
+function checkSelectedCompany() {
+    fetch('{% url "get_selected_company" %}')
+        .then(response => response.json())
+        .then(data => {
+            if (!data.company_id) {
+                alert('Please select a company first.');
+                window.location.href = '{% url 'aapp_dashboard' %}';
+            } else {
+                document.getElementById('company-name').textContent = data.company_name;
+                document.getElementById('companyid').value = data.company_id;
+            }
+        });
+}
+document.addEventListener('DOMContentLoaded', checkSelectedCompany);
+</script>
+{% endblock %}

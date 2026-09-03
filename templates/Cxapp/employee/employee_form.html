@@ -1,0 +1,46 @@
+{% extends 'Cxapp/_base.html' %}
+{% block title %}Add Employee · {{ cx_company.company_name }}{% endblock %}
+{% block page_title %}Add Employee{% endblock %}
+{% block content %}
+<style>
+*,*::before,*::as{box-sizing:border-box;margin:0;padding:0}
+.wrap{max-width:640px;margin:0 auto;padding:32px 24px}
+.card{background:#fff;border-radius:12px;padding:28px;box-shadow:0 4px 20px rgba(15,32,39,.06)}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.fg{margin-bottom:16px}
+.fg label{display:block;font-size:11.5px;font-weight:600;color:#6b7c93;text-transform:uppercase;margin-bottom:4px}
+.fg input,.fg select{width:100%;font-size:14px;padding:9px 12px;border:1.5px solid #dde5ed;
+  border-radius:7px;background:var(--cream)}
+.btn{padding:12px 24px;background:linear-gradient(135deg,#0f2027,#2a9d8f);color:#fff;border:none;
+  border-radius:8px;font-weight:600;cursor:pointer}
+.field-err{font-size:11.5px;color:#e63946;margin-top:2px}
+.note{font-size:12.5px;color:#6b7c93;margin-bottom:20px}
+</style>
+<div class="card">
+    <p class="note">You'll add address, contact, KYC, banking, employment, and nominee details next.</p>
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div class="row">
+        <div class="fg"><label>Employee Code</label>{{ form.employee_code }}
+          {% if form.employee_code.errors %}<div class="field-err">{{ form.employee_code.errors|join:", " }}</div>{% endif %}</div>
+        <div class="fg"><label>Designation</label>{{ form.designation }}</div>
+      </div>
+      <div class="fg"><label>Full Name</label>{{ form.name }}</div>
+      <div class="row">
+        <div class="fg"><label>Father/Husband Name</label>{{ form.father_husband_name }}</div>
+        <div class="fg"><label>Mother Name</label>{{ form.mother_name }}</div>
+      </div>
+      <div class="row">
+        <div class="fg"><label>Gender</label>{{ form.gender }}</div>
+        <div class="fg"><label>Date of Birth</label>{{ form.date_of_birth }}</div>
+      </div>
+      <div class="row">
+        <div class="fg"><label>Blood Group</label>{{ form.blood_group }}</div>
+        <div class="fg"><label>Religion</label>{{ form.religion }}</div>
+      </div>
+      <div class="fg"><label>Marital Status</label>{{ form.marital_status }}</div>
+      <div class="fg"><label>Employee Photo</label>{{ form.employee_pic }}</div>
+      <button type="submit" class="btn">Create & Continue</button>
+    </form>
+  </div>
+{% endblock %}

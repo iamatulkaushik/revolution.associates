@@ -1,0 +1,91 @@
+{% extends 'Aapp/base.html' %}
+{% block title %}Salary Dashboard{% endblock %}
+{% block content %}
+
+<div class="section-header">
+  <h2>Salary Processing — {{ company.company_name }}</h2>
+  <div class="section-actions">
+    <a href="{% url 'create_salary_batch' %}" class="button btn-primary">+ Process Salary</a>
+    <a href="{% url 'list_salary_structures' %}" class="button">Salary Structures</a>
+  </div>
+</div>
+
+{% if messages %}
+<div class="messages-container">
+  {% for message in messages %}
+  <div class="message-alert {% if message.tags == 'error' %}message-error{% elif message.tags == 'warning' %}message-warning{% else %}message-success{% endif %}" role="alert">{{ message }}</div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<div class="stat-grid">
+  <div class="stat-card" style="--accent-color:var(--c-primary)">
+    <span class="stat-icon">đ</span>
+    <span class="stat-value">{{ employees_count }}</span>
+    <span class="stat-label">Active Employees</span>
+  </div>
+  <div class="stat-card" style="--accent-color:var(--c-success)">
+    <span class="stat-icon">Ĕ</span>
+    <span class="stat-value">{{ structures_count }}</span>
+    <span class="stat-label">Salary Structures Set</span>
+  </div>
+  <div class="stat-card" style="--accent-color:var(--c-accent)">
+    <span class="stat-icon">Ē</span>
+    <span class="stat-value">{{ month_name }} {{ current_year }}</span>
+    <span class="stat-label">Current Period</span>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header"><h3>Recent Salary Batches</h3></div>
+  {% if recent_batches %}
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Period</th>
+          <th>Employees</th>
+          <th>Gross</th>
+          <th>Deductions</th>
+          <th>Net Pay</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for batch in recent_batches %}
+        <tr>
+          <td><strong>{{ batch.month }}/{{ batch.year }}</strong></td>
+          <td>{{ batch.total_employees }}</td>
+          <td>₹{{ batch.total_gross }}</td>
+          <td>₹{{ batch.total_deductions }}</td>
+          <td><strong>₹{{ batch.total_net }}</strong></td>
+          <td>
+            {% if batch.status == 'APPROVED' %}<span class="badge badge-success">Approved</span>
+            {% elif batch.status == 'PROCESSED' %}<span class="badge badge-info">Processed</span>
+            {% elif batch.status == 'PAID' %}<span class="badge badge-success">Paid</span>
+            {% else %}<span class="badge badge-muted">Draft</span>{% endif %}
+          </td>
+          <td><a href="{% url 'view_salary_batch' batch.id %}" class="action-edit">View</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="card-body text-center" style="padding:var(--sp-8)">
+    <p class="text-muted" style="font-size:15px">No salary batches processed yet.</p>
+    <a href="{% url 'create_salary_batch' %}" class="button btn-primary" style="margin-top:var(--sp-4)">Process First Salary Batch</a>
+  </div>
+  {% endif %}
+</div>
+
+<script>
+fetch('{% url "get_selected_company" %}').then(r=>r.json()).then(d=>{
+  if(!d.company_id){
+    const b=document.querySelector('.stat-grid');
+    if(b)b.insertAdjacentHTML('beforebegin','<div class="message-alert message-warning" role="alert">No company selected. <a href="{% url 'aapp_dashboard' %}">Go to Dashboard</a> to select one.</div>');
+  }
+});
+</script>
+{% endblock %}

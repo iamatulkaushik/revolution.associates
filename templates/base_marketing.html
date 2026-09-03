@@ -1,0 +1,117 @@
+{% load static %}<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}Revolution HRMS — Payroll, ESI, EPF & Compliance Software for India{% endblock %}</title>
+<meta name="description" content="{% block description %}Revolution HRMS runs payroll, ESI, EPF, Professional Tax, Gratuity, Factory Act and every Indian statutory register for associates, companies and employees — in one platform.{% endblock %}">
+<meta name="keywords" content="{% block keywords %}HRMS software India, payroll software India, ESI EPF software, professional tax software, factory act compliance, gratuity calculator, HR compliance software, statutory compliance India, payroll outsourcing India, labour law software{% endblock %}">
+<link rel="canonical" href="{% block canonical %}https://reas.host{% endblock %}">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="author" content="Revolution Associates">
+
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Revolution HRMS">
+{% block og_title %}<meta property="og:title" content="Revolution HRMS — Payroll, ESI, EPF & Compliance Software for India">{% endblock %}
+{% block og_description %}<meta property="og:description" content="Payroll, ESI, EPF, Professional Tax, Gratuity and every Indian statutory register — for associates, companies and employees, in one platform.">{% endblock %}
+{% block og_url %}<meta property="og:url" content="https://reas.host">{% endblock %}
+{% block og_image %}<meta property="og:image" content="https://reas.host{% static 'og-cover.png' %}">{% endblock %}
+<meta property="og:locale" content="en_IN">
+
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image">
+{% block twitter_title %}<meta name="twitter:title" content="Revolution HRMS — Payroll & Compliance Software">{% endblock %}
+{% block twitter_description %}<meta name="twitter:description" content="Payroll, ESI, EPF and statutory compliance for Indian businesses.">{% endblock %}
+{% block twitter_image %}<meta name="twitter:image" content="https://reas.host{% static 'og-cover.png' %}">{% endblock %}
+
+<link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
+<link rel="prefetch" href="{% static 'fonts/Ubuntu-R.ttf' %}" as="font" type="font/ttf" crossorigin>
+<link rel="prefetch" href="{% static 'fonts/allerta.medium.ttf' %}" as="font" type="font/ttf" crossorigin>
+<link rel="stylesheet" href="{% static 'css/site.css' %}">
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Revolution HRMS",
+  "applicationCategory": "BusinessApplication",
+  "operatingSystem": "Web",
+  "url": "https://reas.host",
+  "description": "Payroll, ESI, EPF, Professional Tax and statutory compliance HRMS software for Indian businesses.",
+  "offers": {
+    "@type": "AggregateOffer",
+    "priceCurrency": "INR",
+    "lowPrice": "999"
+  },
+  "provider": {
+    "@type": "Organization",
+    "name": "Revolution Associates",
+    "url": "https://reas.host"
+  }
+}
+</script>
+{% endblock %}
+</head>
+<body>
+<a href="#main" class="skip-link">Skip to main content</a>
+<div class="orb orb-a" aria-hidden="true"></div>
+<div class="orb orb-b" aria-hidden="true"></div>
+
+<header>
+  <div class="wrap">
+    <div class="nav-inner glass">
+      <a href="{% url 'base' %}" class="brand"><span class="brand-mark">R</span> Revolution HRMS</a>
+      <nav aria-label="Primary">
+        <ul>
+          <li><a href="{% url 'features' %}">Features</a></li>
+          <li><a href="{% url 'pricing' %}">Pricing</a></li>
+          <li><a href="{% url 'compliance' %}">Compliance</a></li>
+          <li><a href="{% url 'about' %}">About</a></li>
+          <li><a href="{% url 'contact' %}">Contact</a></li>
+        </ul>
+      </nav>
+      <div class="nav-cta">
+        <a href="{% url 'sapp_login' %}" class="btn btn-ghost">Sign in</a>
+        <a href="{% url 'contact' %}" class="btn btn-primary">Get a demo</a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+  <div class="wrap">
+{% block content %}{% endblock %}
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-inner">
+      <div class="brand" style="font-size:14px;"><span class="brand-mark" style="width:26px;height:26px;font-size:13px;">R</span> Revolution HRMS</div>
+      <div class="foot-links">
+        <a href="{% url 'features' %}">Features</a>
+        <a href="{% url 'pricing' %}">Pricing</a>
+        <a href="{% url 'compliance' %}">Compliance</a>
+        <a href="{% url 'about' %}">About</a>
+        <a href="{% url 'contact' %}">Contact</a>
+        <a href="{% url 'sapp_login' %}">Superadmin</a>
+        <a href="{{ associate_login_url }}">Associate</a>
+        <a href="{{ company_login_url }}">Company</a>
+        <a href="{{ cxowner_login_url }}">Direct Owner</a>
+      </div>
+      <div>© 2026 Revolution Associates. All rights reserved.</div>
+    </div>
+  </div>
+</footer>
+
+<script>
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+</script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

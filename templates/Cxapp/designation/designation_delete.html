@@ -1,0 +1,18 @@
+{% extends 'Cxapp/_base.html' %}
+{% block title %}Delete Designation{% endblock %}
+{% block page_title %}Delete Designation{% endblock %}
+{% block content %}
+<style>
+.wrap{max-width:420px;margin:60px auto;padding:28px;background:#fff;border-radius:12px;
+  box-shadow:0 4px 20px rgba(15,32,39,.06)}
+.btn{padding:10px 18px;border:none;border-radius:8px;font-weight:600;cursor:pointer;margin-right:8px}
+.btn-danger{background:#e63946;color:#fff}
+.btn-cancel{background:#eef2f6;color:#0f2027;text-decoration:none;display:inline-block}
+</style>
+<h2>Delete '{{ designation.designation_name }}'?</h2>
+  <p style="margin:12px 0;font-size:13.5px;color:#6b7c93">This designation and its components will be removed from active use.</p>
+  <form method="post">{% csrf_token %}
+    <button type="submit" class="btn btn-danger">Delete</button>
+    <a href="{% url 'cxapp_designation_list' %}" class="btn btn-cancel">Cancel</a>
+  </form>
+{% endblock %}

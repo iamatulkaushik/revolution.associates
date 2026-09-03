@@ -1,0 +1,73 @@
+{% extends "base_marketing.html" %}
+
+{% block title %}Contact Us — Get a Demo | Revolution HRMS{% endblock %}
+{% block description %}Get in touch with Revolution HRMS for a payroll and compliance software demo. We respond to every enquiry within one business day.{% endblock %}
+{% block keywords %}Revolution HRMS contact, payroll software demo India, HRMS demo request{% endblock %}
+{% block canonical %}https://reas.host/contact/{% endblock %}
+{% block og_title %}<meta property="og:title" content="Contact Revolution HRMS">{% endblock %}
+{% block og_url %}<meta property="og:url" content="https://reas.host/contact/">{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "ContactPage",
+  "url": "https://reas.host/contact/"
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="breadcrumbs"><a href="{% url 'base' %}">Home</a> / Contact</div>
+<section class="page-hero">
+  <span class="eyebrow glass"><span class="dot"></span> We reply within one business day</span>
+  <h1>Talk to us about your payroll</h1>
+  <p>Tell us your headcount, states of operation, and compliance needs — we'll set up a walkthrough.</p>
+</section>
+
+<section>
+  <div class="contact-grid">
+    <div class="form-card glass reveal">
+      <form method="post" action="{% url 'contact_submit' %}">
+        {% csrf_token %}
+        <div class="field">
+          <label for="name">Full name</label>
+          <input type="text" id="name" name="name" required>
+        </div>
+        <div class="field">
+          <label for="company">Company name</label>
+          <input type="text" id="company" name="company" required>
+        </div>
+        <div class="field">
+          <label for="email">Work email</label>
+          <input type="email" id="email" name="email" required>
+        </div>
+        <div class="field">
+          <label for="phone">Phone</label>
+          <input type="tel" id="phone" name="phone">
+        </div>
+        <div class="field">
+          <label for="message">What do you need help with?</label>
+          <textarea id="message" name="message" required></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;">Send message</button>
+      </form>
+    </div>
+
+    <div class="contact-info">
+      <div class="item glass reveal">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 4h16v16H4z"/></svg>
+        <div><h3>Email</h3><p>support@reas.host</p></div>
+      </div>
+      <div class="item glass reveal">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>
+        <div><h3>Response time</h3><p>Within one business day</p></div>
+      </div>
+      <div class="item glass reveal">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M9 12l2 2 4-4"/></svg>
+        <div><h3>Who we help</h3><p>HR Associates, company owners and factories across India</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

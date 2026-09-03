@@ -1,0 +1,169 @@
+{% extends "Sapp/base.html" %}
+{% block title %}Update Sub User{% endblock %}
+{% load static %}
+{% block additionalcss_js %}
+
+{% endblock %}
+{% block content %}
+{% if messages %}
+<div class="messages-container">
+{% for message in messages %}
+<div class="message-alert {% if message.tags == 'error' %}message-error{% elif message.tags == 'warning' %}message-warning{% else %}message-success{% endif %}" role="alert">{{ message }}</div>
+{% endfor %}
+</div>
+{% endif %}
+
+<div class="form-container">
+    <h2>Update Sub User: {{subuser.user.get_full_name}}</h2>
+    <div class="associate-info">
+        <h4>👤 Associate: {{subuser.associate.user.get_full_name}} ({{subuser.associate.associate_id}})</h4>
+        <p><strong>Associate Companies:</strong> {{subuser.associate.get_companies.count}} companies available</p>
+        <p><strong>Sub User Access:</strong> {{subuser.get_companies.count}} companies assigned</p>
+    </div>
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-section">
+            <h3>User Information</h3>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" name="username" class="form-control" value="{{subuser.user.username}}">
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" name="email" class="form-control" value="{{subuser.user.email}}">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>First Name</label>
+                    <input type="text" name="first_name" class="form-control" value="{{subuser.user.first_name}}">
+                </div>
+                <div class="form-group">
+                    <label>Last Name</label>
+                    <input type="text" name="last_name" class="form-control" value="{{subuser.user.last_name}}">
+                </div>
+            </div>
+        </div>
+        <div class="form-section">
+            <h3>Sub User Details</h3>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Associate</label>
+                    <select name="associate" class="form-control" onchange="loadAssociateCompanies()">
+                        {% for assoc in associates %}
+                        <option value="{{assoc.id}}" {% if assoc.id == subuser.associate.id %}selected{% endif %}>
+                            {{assoc.user.get_full_name}} - {{assoc.associate_id}}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Mobile</label>
+                    <input type="tel" name="mobile" class="form-control" value="{{subuser.mobile}}">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>User Role</label>
+                    <select name="role" class="form-control">
+                        <option value="operator" {% if subuser.role == 'operator' %}selected{% endif %}>Operator</option>
+                        <option value="employee" {% if subuser.role == 'employee' %}selected{% endif %}>Employee</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Active Status</label>
+                    <select name="is_active" class="form-control">
+                        <option value="True" {% if subuser.is_active %}selected{% endif %}>Active</option>
+                        <option value="False" {% if not subuser.is_active %}selected{% endif %}>Inactive</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Address</label>
+                <textarea name="address" class="form-control" rows="3">{{subuser.address}}</textarea>
+            </div>
+        </div>
+        <div class="form-section">
+            <h3>Company Access Management</h3>
+            <div class="form-group">
+                <label>Update Company Access</label>
+                <select name="companies" class="form-control" multiple id="companySelect">
+                    {% for company in subuser.associate.get_companies %}
+                    <option value="{{company.company_id}}" {% if company in subuser.get_companies %}selected{% endif %}>
+                        {{company.company_name}} - {{company.pan}}
+                    </option>
+                    {% endfor %}
+                </select>
+                <small style="color:#666">Select companies this sub user can access. Hold Ctrl to select
+                    multiple.</small>
+            </div>
+            <h4>Currently Assigned Companies ({{subuser.get_companies.count}})</h4>
+            <div class="companies-grid">
+                {% for company in subuser.get_companies %}
+                <div class="company-card">
+                    <h5>{{company.company_name}}</h5>
+                    <p><strong>PAN:</strong> {{company.pan}}</p>
+                    <p><strong>Mobile:</strong> {{company.mobile}}</p>
+                    <p><strong>Access Level:</strong>
+                        <span class="access-level">{{subuser.role|title}}</span>
+                    </p>
+                    <div class="company-actions">
+                        <button type="button" class="button"
+                            onclick="removeCompanyAccess({{company.company_id}})">
+                            Remove Access
+                        </button>
+                    </div>
+                </div>
+                {% empty %}
+                <p style="color:#666;font-style:italic">No companies assigned to this sub user.</p>
+                {% endfor %}
+            </div>
+            <h4>Available from Associate ({{subuser.associate.get_companies.count}})</h4>
+            <div class="companies-grid">
+                {% for company in subuser.associate.get_companies %}
+                {% if company not in subuser.get_companies %}
+                <div class="company-card" style="border-left-color:#6c757d;opacity:0.7">
+                    <h5>{{company.company_name}}</h5>
+                    <p><strong>PAN:</strong> {{company.pan}}</p>
+                    <p><strong>Status:</strong> Available to assign</p>
+                </div>
+                {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+        <button type="submit" class="button btn-primary">Update Sub User</button>
+        <a href="{% url 'sapp_reset_subuser_password' subuser.id %}" class="button">Reset Password</a>
+    </form>
+</div>
+<script>
+    function removeCompanyAccess(companyId) {
+        if (confirm('Remove company access for this sub user?')) {
+            fetch(`/remove-subuser-company-access/${companyId}/`, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value }
+            }).then(() => location.reload());
+        }
+    }
+
+    function loadAssociateCompanies() {
+        const associateId = document.querySelector('[name="associate"]').value;
+        const companySelect = document.getElementById('companySelect');
+
+        if (associateId) {
+            fetch(`/get-associate-companies/${associateId}/`)
+                .then(response => response.json())
+                .then(data => {
+                    companySelect.innerHTML = '';
+                    data.companies.forEach(company => {
+                        const option = document.createElement('option');
+                        option.value = company.company_id;
+                        option.textContent = `${company.company_name} - ${company.pan}`;
+                        companySelect.appendChild(option);
+                    });
+                })
+                .catch(error => console.error('Error loading companies:', error));
+        }
+    }
+</script>
+{% endblock %}

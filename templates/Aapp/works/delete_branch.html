@@ -1,0 +1,28 @@
+{% extends 'Aapp/base.html' %}
+{% block title %}Delete Branch{% endblock %}
+{% block content %}
+<div class="main-content">
+<h2>Delete Branch</h2>
+
+<p>Are you sure you want to delete the branch <strong>{{ branch.branch_name }}</strong>?</p>
+
+<form method="post">
+    {% csrf_token %}
+    <button type="submit" class="button">Confirm Delete</button>
+    <a href="{% url 'branch_list' %}" class="button">Cancel</a>
+</form></div>
+
+<script>
+function checkSelectedCompany() {
+    fetch('{% url "get_selected_company" %}')
+        .then(response => response.json())
+        .then(data => {
+            if (!data.company_id) {
+                alert('Please select a company first.');
+                window.location.href = '{% url 'aapp_dashboard' %}';
+            }
+        });
+}
+document.addEventListener('DOMContentLoaded', checkSelectedCompany);
+</script>
+{% endblock %}

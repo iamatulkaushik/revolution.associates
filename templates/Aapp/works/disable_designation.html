@@ -1,0 +1,28 @@
+{% extends 'Aapp/base.html' %}
+{% block title %}Disable Designation{% endblock %}
+{% block content %}
+<div class="main-content">
+<h2>Disable Designation</h2>
+<p>Are you sure you want to disable the designation <strong>{{ designation.designationname }}</strong>?</p>
+<form method="post">
+    {% csrf_token %}
+</br>
+</br>
+    <button type="submit" class="button">Confirm Disable</button>
+    <a href="{% url 'list_designation' %}" class="button">Cancel</a>
+</form></div>
+
+<script>
+function checkSelectedCompany() {
+    fetch('{% url "get_selected_company" %}')
+        .then(response => response.json())
+        .then(data => {
+            if (!data.company_id) {
+                alert('Please select a company first.');
+                window.location.href = '{% url 'aapp_dashboard' %}';
+            }
+        });
+}
+document.addEventListener('DOMContentLoaded', checkSelectedCompany);
+</script>
+{% endblock %}

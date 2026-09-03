@@ -1,0 +1,206 @@
+{% extends 'Aapp/base.html' %}
+{% block title %}Add Employee{% endblock %}
+{% load static %}
+{% block content %}
+<div class="main-content">
+    {% if messages %}{% for m in messages %}
+    <div class="message-alert {% if m.tags == 'success' %}message-success{% else %}message-error{% endif %}">{{ m }}</div>
+    {% endfor %}{% endif %}
+    <form method="post">
+        {% csrf_token %}
+        <h2 style="padding:10px;">Add Employee — {{ company.company_name }}</h2>
+        <div class="container_boxed">
+            <h2>Personal Details</h2><hr>
+            <label>E Code <span style="color:var(--Color1)">*</span></label>
+            <input class="sml" type="text" name="employeecode" required><br/>
+            <label>Full Name <span style="color:var(--Color1)">*</span></label>
+            <input class="large" type="text" name="name" required><br/>
+            <label>Father's Name</label>
+            <input type="text" class="medium" name="fathername">
+            <label>Mother's Name</label>
+            <input type="text" class="medium" name="mothername"><br/>
+            <label>Gender <span style="color:var(--Color1)">*</span></label>
+            <select class="sml" name="gender" required>
+                <option value="">--</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+            </select>
+            <label>Date of Birth <span style="color:var(--Color1)">*</span></label>
+            <input type="date" class="sml" name="dateofbirth" required><br>
+            <label>Blood Group</label>
+            <input type="text" class="sml" name="bloodgroup" placeholder="A+">
+            <label>Religion</label>
+            <input type="text" class="sml" name="religion"><br/>
+            <label>Marital Status</label>
+            <select name="maritalstatus" class="sml">
+                <option value="">--</option>
+                <option value="Single">Single</option>
+                <option value="Married">Married</option>
+                <option value="Divorced">Divorced</option>
+                <option value="Widowed">Widowed</option>
+            </select><br>
+        </div>
+
+        <div class="container_boxed" style="margin-top:10px;">
+            <h2>Contact Details</h2><hr>
+            <label>Email <span style="color:var(--Color1)">*</span></label>
+            <input class="large" type="email" name="email" required><br/>
+            <label>Mobile <span style="color:var(--Color1)">*</span></label>
+            <input type="tel" class="sml" name="mobile" maxlength="10" required>-
+            <input type="tel" class="sml" name="phone" maxlength="10"><br/>
+            <label class="large">Temporary Address <span style="color:var(--Color1)">*</span></label>
+            <textarea name="temporaryaddress" rows="2" required style="width:60%;"></textarea><br>
+            <select class="medium" name="temp_state" id="temp_state" required onchange="loadDistricts('temp_state','temp_district')">
+                <option value="">-- State --</option>
+                {% for s in states %}<option value="{{ s.Stateid }}">{{ s.name }}</option>{% endfor %}
+            </select>
+            <select class="medium" name="temp_district" id="temp_district" required>
+                <option value="">-- District --</option>
+            </select><br/>
+            <input type="text" class="sml" name="temp_pincode" maxlength="6" placeholder="Pincode" required>
+            <input type="text" class="sml" name="country" value="India"><br>
+
+            <label class="large"><input type="checkbox" name="same_as_permanent" id="same_as_permanent" onchange="togglePerm()"> Same as Permanent Address</label>
+            <div id="perm_rows">
+                <label class="medium">Permanent Address</label><br/>
+                <textarea name="permanentaddress" rows="2" style="width:60%;"></textarea><br>
+                <select class="sml" name="perm_state" id="perm_state" onchange="loadDistricts('perm_state','perm_district')">
+                    <option value="">-- State --</option>
+                    {% for s in states %}<option value="{{ s.Stateid }}">{{ s.name }}</option>{% endfor %}
+                </select>
+                <select class="sml" name="perm_district" id="perm_district">
+                    <option value="">-- District --</option>
+                </select>
+                <input type="text" style="width:80px;" name="perm_pincode" maxlength="6" placeholder="Pincode">
+            </div>
+        </div>
+<br/>
+        <div class="container_boxed" style="margin-top:10px;">
+            <h2>KYC Details</h2><hr>
+            <label>Aadhaar No <span style="color:var(--Color1)">*</span></label>
+            <input class="sml" type="text" name="aadhar_number" maxlength="12" required>
+            <label>Name<span style="color:var(--Color1)">*</span></label>
+            <input type="text" class="sml" name="aadhar_name" required><br>
+            <label>PAN Number</label>
+            <input type="text" class="sml" name="pan_number" maxlength="10">
+            <label>PAN Name</label>
+            <input type="text" class="sml" name="pan_name"><br>
+            <label>Bank Name <span style="color:var(--Color1)">*</span></label>
+            <select class="sml" name="bank_name" required>
+                <option value="">-- Select Bank --</option>
+                {% for b in banks %}<option value="{{ b.name }}">{{ b.name }}</option>{% endfor %}
+            </select>
+            <label>Account <span style="color:var(--Color1)">*</span></label>
+            <input type="text" class="sml" name="bank_account" required>-
+            <input type="text" placeholder="SBIN0000721" class="sml" name="bank_ifsc" maxlength="11" required><br>
+            <label>DL Name</label>
+            <input type="text" class="medium" name="driving_license_name">
+            <input type="text" class="sml" name="driving_license_number" placeholder="DL Number" maxlength="20">
+            <input type="date" class="sml" name="driving_license_expiry" title="DL Expiry"><br>
+            <label>Passport Name</label>
+            <input type="text" class="medium" name="passport_name">
+            <input type="text" class="sml" name="passport_number" placeholder="Passport No" maxlength="20">
+            <input type="date" class="sml" name="passport_expiry" title="Passport Expiry"><br>
+            <label for="voter_id_name">Voter ID Name</label>
+            <input type="text" class="medium" name="voter_id_name">
+            <input type="text" class="sml" name="voter_id_number" placeholder="Voter ID Number" maxlength="20"><br>
+        </div>
+
+        <div class="container_boxed" style="margin-top:10px;">
+            <h2>Employment Details</h2><hr>
+            <label>Joining Date <span style="color:var(--Color1)">*</span></label>
+            <input type="date" class="sml" name="dateofjoining" required>
+            <label>Employment Type</label>
+            <select class="medium" name="employmenttype" id="employmenttype" onchange="toggleEmploymentFields()">
+                <option value="">-- Select --</option>
+                <option value="Permanent">Permanent</option>
+                <option value="Contract">Contract</option>
+                <option value="Intern">Intern</option>
+            </select><br>
+            <div id="contract_employment">
+                <label class="sml">Contract from</label>
+                <input type="date" name="contract_start_date" class="sml"> to <input type="date" class="sml" name="contract_end_date">
+            </div>
+            <div id="intern_employment">
+                <label class="sml" for="internship">Internship from</label>
+                <input type="date" name="internship_start_date" class="sml"> to <input type="date" name="internship_end_date" class="sml">
+            </div>
+            <label>Designation <span style="color:var(--Color1)">*</span></label>
+            <select class="medium" name="designationID" required>
+                <option value="">-- Select --</option>
+                {% for d in designations %}<option value="{{ d.designationid }}">{{ d.designationname }}</option>{% endfor %}
+            </select><br>
+            <label>Branch <span style="color:var(--Color1)">*</span></label>
+            <select class="medium" name="branchID" required>
+                <option value="">-- Select --</option>
+                {% for b in branches %}<option value="{{ b.branchid }}">{{ b.branch_name }}</option>{% endfor %}
+            </select>
+            <label>Department <span style="color:var(--Color1)">*</span></label>
+            <select class="medium" name="departmentID" required>
+                <option value="">-- Select --</option>
+                {% for d in departments %}<option value="{{ d.departmentid }}">{{ d.department_name }}</option>{% endfor %}
+            </select><br>
+            <label>UAN Number</label>
+            <input type="text" class="medium" name="uan_number">
+            <label>UAN DOJ</label>
+            <input type="date" class="sml" name="uan_doj"><br>
+            <label>EPF Member ID</label>
+            <input type="text" class="sml" name="epf_memberID">
+            <label><input type="checkbox" name="epf_higher"> Higher EPF</label><br>
+            <label>ESIC Number</label>
+            <input type="text" class="medium" name="esic_number" maxlength="10">
+            <label>ESIC DOJ</label>
+            <input type="date" class="sml" name="esic_doj"><br>
+            <label>Labour ID</label>
+            <input type="text" class="sml" name="labour_id"><br>
+        </div>
+
+        <div style="margin:15px 10px;">
+            <button type="submit" class="button">Create Employee</button>
+            <a href="{% url 'list_employee' %}" class="button" style="margin-left:10px;">Cancel</a>
+        </div>
+    </form>
+</div>
+<script>
+function loadDistricts(stateSelectId, districtSelectId) {
+    const stateId = document.getElementById(stateSelectId).value;
+    const distSel = document.getElementById(districtSelectId);
+    distSel.innerHTML = '<option value="">-- District --</option>';
+    if (!stateId) return;
+    fetch(`{% url 'get_districts' 0 %}`.replace('/0/', `/${stateId}/`))
+        .then(r => r.json())
+        .then(data => data.forEach(d => {
+            const o = document.createElement('option');
+            o.value = d.id; o.textContent = d.name;
+            distSel.appendChild(o);
+        }));
+}
+function togglePerm() {
+    const hide = document.getElementById('same_as_permanent').checked;
+    document.getElementById('perm_rows').style.display = hide ? 'none' : '';
+}
+
+function toggleEmploymentFields() {
+    const empType = document.getElementById('employmenttype').value;
+    const contractDiv = document.getElementById('contract_employment');
+    const internDiv = document.getElementById('intern_employment');
+    
+    // Hide both by default
+    contractDiv.style.display = 'none';
+    internDiv.style.display = 'none';
+    
+    // Show relevant div based on selection
+    if (empType === 'Contract') {
+        contractDiv.style.display = 'block';
+    } else if (empType === 'Intern') {
+        internDiv.style.display = 'block';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    togglePerm();
+    toggleEmploymentFields();
+});
+</script>
+{% endblock %}

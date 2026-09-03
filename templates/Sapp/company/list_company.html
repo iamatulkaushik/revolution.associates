@@ -1,0 +1,49 @@
+{% extends "Sapp/base.html" %}
+{% block title %}Companies{% endblock %}
+{% load static %}
+{% block additionalcss_js %}
+
+{% endblock %}
+{% block content %}
+{% if messages %}
+<div class="messages-container">
+{% for message in messages %}
+<div class="message-alert {% if message.tags == 'error' %}message-error{% elif message.tags == 'warning' %}message-warning{% else %}message-success{% endif %}" role="alert">{{ message }}</div>
+{% endfor %}
+</div>
+{% endif %}
+
+<div class="container">
+    <div class="header">
+        <h2>Companies</h2>
+        <a href="{% url 'create_company' %}" class="button btn-primary">+ New Company</a>
+    </div>
+<table class="data-table">
+    <thead>
+        <tr>
+            <th>Company Name</th>
+            <th>PAN</th>
+            <th>Mobile</th>
+            <th>Email</th>
+            <th>Start Date</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for company in companies %}
+        <tr>
+            <td>{{ company.company_name }}</td>
+            <td>{{ company.pan }}</td>
+            <td>{{ company.mobile }}</td>
+            <td>{{ company.email1 }}</td>
+            <td>{{ company.start_date }}</td>
+            <td>
+                <a href="{% url 'alter_company' company.company_id %}" title="Company Basics Update" class="button edit"></a>
+                <a href="{% url 'shut_company' company.company_id %}" title="Mark Inactive" class="button inactive"></a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+</div>
+{% endblock %}

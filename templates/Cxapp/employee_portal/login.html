@@ -1,0 +1,76 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Employee Login · Revolution HRMS</title>
+  <link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
+  <style>
+    @font-face{font-family:'Infinitude';src:url("{% static 'fonts/Infinitude.ttf' %}") format('truetype');font-display:swap}
+    @font-face{font-family:'Ubuntu';src:url("{% static 'fonts/Ubuntu-R.ttf' %}") format('truetype');font-display:swap}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--navy:#0f2027;--green:#2a9d8f;--gold:#e9c46a;--cream:#f0f4f8;
+          --font-b:'Ubuntu',system-ui,sans-serif;--font-h:'Infinitude','Ubuntu',sans-serif}
+    html,body{height:100%;font-family:var(--font-b)}
+    body{background:var(--cream);display:flex;min-height:100vh}
+    .shell{display:flex;width:100%;min-height:100vh}
+    .brand{flex:1.1;background:linear-gradient(155deg,#0f2027 0%,#203a43 60%,#2a9d8f 160%);
+           color:#fff;padding:48px 52px;display:flex;flex-direction:column;justify-content:space-between}
+    .brand-logo{font-family:var(--font-h);font-size:54px;color:var(--green)}
+    .brand-name{font-size:11px;font-weight:600;color:rgba(255,255,255,.5);letter-spacing:.14em;
+      text-transform:uppercase;margin-bottom:40px}
+    .brand-tagline{font-family:var(--font-h);font-size:26px;line-height:1.35;color:#fff;margin-bottom:6px}
+    .brand-sub{font-size:13px;color:rgba(255,255,255,.5)}
+    .brand-footer{font-size:11px;color:rgba(255,255,255,.3)}
+    .form-panel{flex:.75;background:#fff;padding:48px 52px;display:flex;flex-direction:column;
+      justify-content:center;min-width:340px}
+    .emp-badge{display:inline-flex;padding:3px 12px;border-radius:999px;background:rgba(233,196,106,.15);
+      color:#a9791b;border:1px solid rgba(233,196,106,.4);font-size:11px;font-weight:700;
+      letter-spacing:.1em;text-transform:uppercase;margin-bottom:20px;width:fit-content}
+    .form-head{margin-bottom:28px}
+    .form-head h2{font-family:var(--font-h);font-size:26px;color:var(--navy);margin-bottom:6px}
+    .form-head p{font-size:13px;color:#6b7c93}
+    .fg{display:flex;flex-direction:column;gap:5px;margin-bottom:20px}
+    .fg label{font-size:11.5px;font-weight:600;color:#6b7c93;text-transform:uppercase;letter-spacing:.06em}
+    .fg input{font-family:var(--font-b);font-size:15px;color:var(--navy);background:var(--cream);
+      border:1.5px solid #dde5ed;border-radius:8px;padding:11px 14px;width:100%;outline:none;
+      text-transform:uppercase}
+    .fg input:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(42,157,143,.15)}
+    .err{background:#fdecea;border-left:4px solid #e63946;border-radius:6px;padding:10px 14px;
+      margin-bottom:20px;font-size:13px;color:#7d2027}
+    .btn-login{width:100%;padding:13px;background:linear-gradient(135deg,#0f2027,#2a9d8f);color:#fff;
+      border:none;border-radius:8px;font-family:var(--font-b);font-size:15px;font-weight:600;cursor:pointer}
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <div class="brand">
+      <div>
+        <div class="brand-logo">R</div>
+        <div class="brand-name">Revolution Associates</div>
+        <div class="brand-tagline">Your salary slips,<br>anytime.</div>
+        <div class="brand-sub">Sign in with your PAN to view and download your payslips.</div>
+      </div>
+      <div class="brand-footer">Revolution Associates · Employee Self-Service</div>
+    </div>
+    <div class="form-panel">
+      <span class="emp-badge">Employee</span>
+      <div class="form-head">
+        <h2>Sign in</h2>
+        <p>Enter your PAN and password.</p>
+      </div>
+      {% if messages %}
+        {% for message in messages %}<div class="err">{{ message }}</div>{% endfor %}
+      {% endif %}
+      <form method="post">
+        {% csrf_token %}
+        <div class="fg"><label>PAN Number</label><input type="text" name="pan" required autofocus maxlength="10"></div>
+        <div class="fg"><label>Password</label><input type="password" name="password" required style="text-transform:none"></div>
+        <button type="submit" class="btn-login">Sign In</button>
+      </form>
+      <div class="signup-link"><a href="{% url 'cxapp_emp_password_reset_request' %}">Forgot password?</a></div>
+    </div>
+  </div>
+</body>
+</html>

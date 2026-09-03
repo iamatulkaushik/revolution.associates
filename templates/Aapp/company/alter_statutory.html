@@ -1,0 +1,78 @@
+{% extends 'Aapp/base.html' %}
+{% block title %}Update Company Statutory{% endblock %}
+{% block content %}
+<div class="main-content">
+<h1>Update Company Statutory Details</h1>
+<h2>Company : {{ selected_company.company_name }}</h2>
+
+{% if messages %}
+{% for message in messages %}
+<div class="{% if message.tags == 'error' %}error{% else %}success{% endif %}">{{ message }}</div>
+{% endfor %}
+{% endif %}
+<form method="post">
+    {% csrf_token %}
+    <table class="data-table">
+        <tr>
+            <td><label for="shop_act">Shop Act Number:</label></td>
+            <td><input type="text" id="shop_act" name="shop_act" value="{{ statutory.shop_act }}" maxlength="15"></td>
+            <td><label for="shop_act_date">Shop Act Date:</label></td>
+            <td><input type="date" id="shop_act_date" name="shop_act_date" value="{{ statutory.shop_act_date|date:'Y-m-d' }}"></td>
+        </tr>
+        <tr>
+            <td><label for="gst">GST Number:</label></td>
+            <td><input type="text" id="gst" name="gst" value="{{ statutory.gst }}" maxlength="15"></td>
+            <td><label for="gst_date">GST Date:</label></td>
+            <td><input type="date" id="gst_date" name="gst_date" value="{{ statutory.gst_date|date:'Y-m-d' }}"></td>
+        </tr>
+        <tr>
+            <td><label for="epfo">EPFO Number:</label></td>
+            <td><input type="text" id="epfo" name="epfo" value="{{ statutory.epfo }}" maxlength="15"></td>
+            <td><label for="epfo_date">EPFO Date:</label></td>
+            <td><input type="date" id="epfo_date" name="epfo_date" value="{{ statutory.epfo_date|date:'Y-m-d' }}"></td>
+        </tr>
+        <tr>
+            <td><label for="esic">ESIC Number:</label></td>
+            <td><input type="text" id="esic" name="esic" value="{{ statutory.esic }}" maxlength="15"></td>
+            <td><label for="esic_date">ESIC Date:</label></td>
+            <td><input type="date" id="esic_date" name="esic_date" value="{{ statutory.esic_date|date:'Y-m-d' }}"></td>
+        </tr>
+        <tr>
+            <td><label for="labour">Labour License:</label></td>
+            <td><input type="text" id="labour" name="labour" value="{{ statutory.labour }}" maxlength="15"></td>
+            <td><label for="labour_from">From:</label></td>
+            <td><input type="date" id="labour_from" name="labour_from" value="{{ statutory.labour_from|date:'Y-m-d' }}"></td>
+            <td><label for="labour_to">To:</label></td>
+            <td><input type="date" id="labour_to" name="labour_to" value="{{ statutory.labour_to|date:'Y-m-d' }}"></td>
+        </tr>
+        <tr>
+            <td><label for="psara">PSARA License:</label></td>
+            <td><input type="text" id="psara" name="psara" value="{{ statutory.psara }}" maxlength="15"></td>
+            <td><label for="psara_from">From:</label></td>
+            <td><input type="date" id="psara_from" name="psara_from" value="{{ statutory.psara_from|date:'Y-m-d' }}"></td>
+            <td><label for="psara_to">To:</label></td>
+            <td><input type="date" id="psara_to" name="psara_to" value="{{ statutory.psara_to|date:'Y-m-d' }}"></td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <button type="submit" class="button">Update Statutory</button>
+                <a href="{% url 'list_company_associate' %}" class="button">Cancel</a>
+            </td>
+        </tr>
+    </table>
+</form></div>
+
+<script>
+function checkSelectedCompany() {
+    fetch('{% url "get_selected_company" %}')
+        .then(response => response.json())
+        .then(data => {
+            if (!data.company_id) {
+                alert('Please select a company first.');
+                window.location.href = '{% url 'aapp_dashboard' %}';
+            }
+        });
+}
+document.addEventListener('DOMContentLoaded', checkSelectedCompany);
+</script>
+{% endblock %}

@@ -1,0 +1,60 @@
+{% extends 'Aapp/base.html' %}
+{% block title %}List of Branches{% endblock %}
+{% block content %}
+<div class="main-content">
+<h2>List of Branches</h2>
+
+{% if branches %}
+<p>Total Branches: <strong>{{ branches|length }}</strong></p>
+<table class="data-table">
+    <thead>
+        <tr>
+            <th>Branch Name</th>
+            <th>Code</th>
+            <th>Address</th>
+            <th>Email</th>
+            <th>Contact Person</th>
+            <th>Mobile</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for branch in branches %}
+        <tr>
+            <td>{{ branch.branch_name }}</td>
+            <td>{{ branch.branch_code|default:"N/A" }}</td>
+            <td>{{ branch.branch_address|default:"N/A" }}</td>
+            <td>{{ branch.branch_email|default:"N/A" }}</td>
+            <td>{{ branch.contact_person|default:"N/A" }}</td>
+            <td>{{ branch.contact_mobile|default:"N/A" }}</td>
+            <td>
+                <a href="{% url 'alter_branch' branch.branchid %}" class="button edit"></a>
+                <a href="{% url 'delete_branch' branch.branchid %}" class="button delete"></a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>No branches available.</p>
+{% endif %}
+<br>
+<br>
+<br>
+<a href="{% url 'create_branch' %}" class="button">Create New Branch</a>
+</div>
+
+<script>
+function checkSelectedCompany() {
+    fetch('{% url "get_selected_company" %}')
+        .then(response => response.json())
+        .then(data => {
+            if (!data.company_id) {
+                alert('Please select a company first.');
+                window.location.href = '{% url 'aapp_dashboard' %}';
+            }
+        });
+}
+document.addEventListener('DOMContentLoaded', checkSelectedCompany);
+</script>
+{% endblock %}

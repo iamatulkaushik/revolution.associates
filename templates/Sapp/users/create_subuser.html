@@ -1,0 +1,148 @@
+{% extends "Sapp/base.html" %}
+{% block title %}Create Sub User{% endblock %}
+{% load static %}
+{% block additionalcss_js %}
+
+{% endblock %}
+{% block content %}
+<div class="form-container">
+    <h2>Create Sub User</h2>
+    {% if messages %}
+    <div style="margin-bottom:20px">
+        {% for message in messages %}
+        <div
+            style="padding:10px;border-radius:4px;background:{% if message.tags == 'error' %}#f8d7da;color:#721c24{% else %}#d4edda;color:#155724{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% if associate %}
+    <div class="associate-info">
+        <h4>👤 Associate: {{associate.user.get_full_name}} ({{associate.associate_id}})</h4>
+        <p><strong>Companies Access:</strong> {{associate.get_companies.count}} companies</p>
+        <p><strong>Available Companies:</strong>
+            {% for company in associate.get_companies %}
+            {{company.company_name}}{% if not forloop.last %}, {% endif %}
+            {% endfor %}
+        </p>
+    </div>
+    {% endif %}
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-section">
+            <h3>User Information</h3>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Username *</label>
+                    <input type="text" name="username" class="form-control" required>
+                    <label>Email *</label>
+                    <input type="email" name="email" class="form-control" required>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>First Name *</label>
+                    <input type="text" name="first_name" class="form-control" required>
+                    <label>Last Name *</label>
+                    <input type="text" name="last_name" class="form-control" required>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Password *</label>
+                    <input type="password" name="password1" class="form-control" required>
+                    <label>Confirm Password *</label>
+                    <input type="password" name="password2" class="form-control" required>
+                </div>
+            </div>
+        </div>
+        <div class="form-section">
+            <h3>Sub User Details</h3>
+            <div class="form-group">
+                <label>Associate *</label>
+                <select name="associate" class="form-control" required onchange="loadAssociateCompanies()">
+                    <option value="">Select Associate</option>
+                    {% for assoc in associates %}
+                    <option value="{{assoc.id}}" {% if associate and assoc.associate_id == associate.id %}selected{% endif %}>
+                        {{assoc.user.get_full_name}} - {{assoc.associate_id}}
+                    </option>
+                    {% endfor %}
+                </select>
+                <label>Mobile</label>
+                <input type="tel" name="mobile" class="form-control">
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>User Role *</label>
+                    <select name="role" class="form-control" required onchange="showRoleInfo()">
+                        <option value="">Select Role</option>
+                        <option value="operator">Operator</option>
+                        <option value="employee">Employee</option>
+                    </select>
+                    <div class="role-info" id="roleInfo" style="display:none">
+                        <small id="roleDescription"></small>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Address</label>
+                <textarea name="address" class="form-control" rows="3"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Company Access</label>
+                <select name="companies" class="form-control" multiple id="companySelect">
+                    {% if associate %}
+                    {% for company in associate.get_companies %}
+                    <option value="{{company.company_id}}">{{company.company_name}} - {{company.pan}}</option>
+                    {% endfor %}
+                    {% endif %}
+                </select>
+                <small style="color:#666">Sub user will have access to selected companies under the associate. Hold Ctrl
+                    to select multiple.</small>
+            </div>
+        </div>
+        <button type="submit" class="button btn-primary">Create Sub User</button>
+    </form>
+</div>
+<script>
+    function showRoleInfo() {
+        const role = document.querySelector('[name="role"]').value;
+        const roleInfo = document.getElementById('roleInfo');
+        const roleDescription = document.getElementById('roleDescription');
+
+        if (role) {
+            roleInfo.style.display = 'block';
+            if (role === 'operator') {
+                roleDescription.textContent = 'Operators can manage employees, attendance, allowances, deductions, and view reports.';
+            } else if (role === 'employee') {
+                roleDescription.textContent = 'Employees have limited access to view their own reports, attendance, and salary information.';
+            }
+        } else {
+            roleInfo.style.display = 'none';
+        }
+    }
+
+    function loadAssociateCompanies() {
+        const associateId = document.querySelector('[name="associate"]').value;
+        const companySelect = document.getElementById('companySelect');
+
+        if (associateId) {
+            fetch(`/get-associate-companies/${associateId}/`)
+                .then(response => response.json())
+                .then(data => {
+                    companySelect.innerHTML = '';
+                    data.companies.forEach(company => {
+                        const option = document.createElement('option');
+                        option.value = company.company_id;
+                        option.textContent = `${company.company_name} - ${company.pan}`;
+                        companySelect.appendChild(option);
+                    });
+                })
+                .catch(error => console.error('Error loading companies:', error));
+        } else {
+            companySelect.innerHTML = '';
+        }
+    }
+</script>
+{% endblock %}

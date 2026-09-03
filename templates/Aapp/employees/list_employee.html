@@ -1,0 +1,59 @@
+{% extends 'Aapp/base.html' %}
+{% block title %}Employees{% endblock %}
+{% load static %}
+{% block content %}
+<div class="main-content">
+    <div class="container">
+        {% if messages %}{% for m in messages %}
+        <div class="message-alert {% if m.tags == 'success' %}message-success{% else %}message-error{% endif %}">{{ m }}</div>
+        {% endfor %}{% endif %}
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+            <h2>Employees — {{ company.company_name }} ({{ employees.count }})</h2>
+            <span>
+                <a href="{% url 'create_employee' %}" class="button">+ Add Employee</a>
+                <a href="{% url 'bulk_excel_upload_employees' %}" class="button" style="margin-left:6px;">⬆ Excel Upload</a>
+                <a href="{% url 'bulk_update_statutory_fields' %}" class="button" style="margin-left:6px;">Update UAN/ESIC/PAN/Labour ID</a>
+            </span>
+        </div>
+
+        {% if employees %}
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Code</th>
+                    <th>Name</th>
+                    <th>Designation</th>
+                    <th>Branch</th>
+                    <th>Mobile</th>
+                    <th>DOJ</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for emp in employees %}
+                <tr>
+                    <td>{{ emp.employeecode }}</td>
+                    <td>{{ emp.name }}</td>
+                    <td>{{ emp.designationID.designationname }}</td>
+                    <td>{{ emp.branchID.branch_name }}</td>
+                    <td>{{ emp.mobile }}</td>
+                    <td>{{ emp.dateofjoining|date:"d M Y" }}</td>
+                    <td>{% if emp.dateofretirement %}Retired{% elif emp.is_working %}Active{% else %}Disabled{% endif %}</td>
+                    <td>
+                        <a href="{% url 'alter_employee' emp.employeeid %}" class="button" style="font-size:11px;padding:3px 8px;">Edit</a>
+                        <a href="{% url 'disable_employee' emp.employeeid %}" class="button" style="font-size:11px;padding:3px 8px;">{% if emp.is_working %}Disable{% else %}Enable{% endif %}</a>
+                        <a href="{% url 'retire_employee' emp.employeeid %}" class="button" style="font-size:11px;padding:3px 8px;">Retire</a>
+                        <a href="{% url 'delete_employee' emp.employeeid %}" class="button" style="font-size:11px;padding:3px 8px;color:var(--Color1);border-color:var(--Color1);">Delete</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p style="text-align:center;color:#999;font-style:italic;padding:30px;">No employees found for this company.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,64 @@
+{% extends "Sapp/base.html" %}
+{% block title %}Associates List{% endblock %}
+{% load static %}
+{% block additionalcss_js %}
+
+{% endblock %}
+{% block content %}
+{% if messages %}
+<div class="messages-container">
+{% for message in messages %}
+<div class="message-alert {% if message.tags == 'error' %}message-error{% elif message.tags == 'warning' %}message-warning{% else %}message-success{% endif %}" role="alert">{{ message }}</div>
+{% endfor %}
+</div>
+{% endif %}
+
+<div class="container">
+<div class="header">
+<h2>Associates Management</h2>
+<a href="{% url 'create_associate' %}" class="button btn-primary">+ Create Associate</a>
+</div>
+<table class="table">
+<thead>
+<tr>
+<th>Associate ID</th>
+<th>Name</th>
+<th>Email</th>
+<th>Mobile</th>
+<th>Companies</th>
+<th>Status</th>
+<th>Created</th>
+<th>Actions</th>
+</tr>
+</thead>
+<tbody>
+{% for associate in associates %}
+<tr>
+<td><strong>{{associate.associate_id}}</strong></td>
+<td>{{associate.user.get_full_name}}</td>
+<td>{{associate.user.email}}</td>
+<td>{{associate.mobile|default:"N/A"}}</td>
+<td>{{associate.get_companies.count}} companies</td>
+<td>
+<span class="status-badge {% if associate.is_active %}status-active{% else %}status-disabled{% endif %}">
+{{associate.get_status_display}}
+</span>
+</td>
+<td>{{associate.created_at|date:"M d, Y"}}</td>
+<td>
+<div class="actions">
+<a href="{% url 'alter_associate' associate.id %}" class="button">Edit</a>
+<a href="{% url 'disable_suspend_associate' associate.id %}" class="button">Manage</a>
+<a href="{% url 'create_subuser_for_associate' associate.id %}" class="action-edit">Add Sub User</a>
+</div>
+</td>
+</tr>
+{% empty %}
+<tr>
+<td colspan="8" style="text-align:center;color:#666;font-style:italic">No associates found</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+{% endblock %}

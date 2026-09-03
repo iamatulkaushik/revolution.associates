@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#1d3557">
+  <title>Superadmin Login · Revolution HRMS</title>
+  {% load static %}
+  <link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
+  <link rel="preload" href="{% static 'fonts/Infinitude.ttf' %}" as="font" type="font/ttf" crossorigin>
+  <link rel="preload" href="{% static 'fonts/Ubuntu-R.ttf' %}" as="font" type="font/ttf" crossorigin>
+  <style>
+    @font-face{font-family:'Infinitude';src:url("{% static 'fonts/Infinitude.ttf' %}") format('truetype');font-display:swap}
+    @font-face{font-family:'Ubuntu';src:url("{% static 'fonts/Ubuntu-R.ttf' %}") format('truetype');font-display:swap}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--navy:#1d3557;--steel:#457b9d;--red:#e63946;--coral:#ff6f61;--cream:#f0f4f8;
+          --font-b:'Ubuntu',system-ui,sans-serif;--font-h:'Infinitude','Ubuntu',sans-serif}
+    html,body{height:100%;font-family:var(--font-b)}
+    body{background:var(--cream);display:flex;align-items:stretch;min-height:100vh}
+
+    .login-shell{display:flex;width:100%;min-height:100vh}
+
+    /* Left — brand */
+    .brand-panel{
+      flex:1.1;background:linear-gradient(155deg,#0d1b2a 0%,#1d3557 60%,#2a4a72 100%);
+      color:#fff;padding:48px 52px;display:flex;flex-direction:column;
+      justify-content:space-between;position:relative;overflow:hidden;
+    }
+    .brand-panel::before{content:'';position:absolute;right:-80px;top:-80px;width:360px;height:360px;
+      border-radius:50%;background:rgba(255,111,97,.08);pointer-events:none}
+    .brand-panel::after{content:'';position:absolute;left:-50px;bottom:-50px;width:280px;height:280px;
+      border-radius:50%;background:rgba(69,123,157,.15);pointer-events:none}
+
+    .brand-logo{font-family:var(--font-h);font-size:56px;color:var(--coral);line-height:1;margin-bottom:6px;position:relative;z-index:1}
+    .brand-name{font-size:12px;font-weight:600;color:rgba(255,255,255,.5);letter-spacing:.15em;text-transform:uppercase;margin-bottom:44px;position:relative;z-index:1}
+    .brand-tagline{font-family:var(--font-h);font-size:30px;line-height:1.3;color:#fff;margin-bottom:6px;position:relative;z-index:1}
+    .brand-sub{font-size:13.5px;color:rgba(255,255,255,.5);margin-bottom:52px;position:relative;z-index:1}
+
+    .feature-list{display:grid;gap:24px;position:relative;z-index:1}
+    .feature-item{display:flex;align-items:flex-start;gap:14px}
+    .feature-icon{font-family:var(--font-h);font-size:30px;color:var(--coral);line-height:1;flex-shrink:0;margin-top:2px}
+    .feature-text h4{font-size:14px;font-weight:600;color:#fff;margin-bottom:3px}
+    .feature-text p{font-size:12.5px;color:rgba(255,255,255,.5);line-height:1.5}
+    .brand-footer{font-size:11px;color:rgba(255,255,255,.3);position:relative;z-index:1}
+
+    /* Right — form */
+    .login-panel{
+      flex:.75;background:#fff;padding:48px 52px;
+      display:flex;flex-direction:column;justify-content:center;min-width:340px;
+    }
+    .admin-badge{
+      display:inline-flex;align-items:center;padding:3px 12px;border-radius:999px;
+      background:rgba(255,111,97,.1);color:var(--coral);border:1px solid rgba(255,111,97,.25);
+      font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:20px;
+    }
+    .login-header{margin-bottom:32px}
+    .login-header h2{font-family:var(--font-h);font-size:26px;color:var(--navy);margin-bottom:6px}
+    .login-header p{font-size:13px;color:#6b7c93}
+
+    .form-group{display:flex;flex-direction:column;gap:5px;margin-bottom:20px}
+    .form-group label{font-size:11.5px;font-weight:600;color:#6b7c93;text-transform:uppercase;letter-spacing:.06em}
+    .form-group input{
+      font-family:var(--font-b);font-size:15px;color:var(--navy);background:var(--cream);
+      border:1.5px solid #dde5ed;border-radius:8px;padding:11px 14px;width:100%;
+      transition:border-color .2s,box-shadow .2s;outline:none;
+    }
+    .form-group input:focus{border-color:var(--coral);box-shadow:0 0 0 3px rgba(255,111,97,.14)}
+
+    .error-box{background:#fdecea;border-left:4px solid var(--red);border-radius:6px;
+      padding:10px 14px;margin-bottom:20px;font-size:13px;color:#7d2027}
+
+    .btn-login{
+      width:100%;padding:13px;background:linear-gradient(135deg,#0d1b2a,#1d3557);
+      color:#fff;border:none;border-radius:8px;font-family:var(--font-b);font-size:15px;
+      font-weight:600;cursor:pointer;transition:all .2s;letter-spacing:.02em;margin-bottom:20px;
+    }
+    .btn-login:hover{background:linear-gradient(135deg,#1d3557,#2a4a72);transform:translateY(-1px);box-shadow:0 4px 16px rgba(29,53,87,.3)}
+    .btn-login:active{transform:translateY(0)}
+    .btn-login:focus{outline:2px solid var(--coral);outline-offset:3px}
+
+    .login-links{display:flex;justify-content:space-between;font-size:12.5px}
+    .login-links a{color:var(--steel);text-decoration:none;transition:color .2s}
+    .login-links a:hover{color:var(--navy)}
+    .login-footer{margin-top:auto;padding-top:36px;font-size:11px;color:#9fb0c2;text-align:center}
+
+    @media(max-width:720px){
+      .login-shell{flex-direction:column}
+      .brand-panel{padding:32px 28px;flex:none}
+      .login-panel{padding:32px 28px;flex:none}
+    }
+    @media(prefers-reduced-motion:reduce){*{transition-duration:.01ms !important}}
+  </style>
+</head>
+<body>
+<div class="login-shell">
+
+  <!-- Brand -->
+  <div class="brand-panel">
+    <div>
+      <div class="brand-logo">Ň</div>
+      <div class="brand-name">Revolution Associates</div>
+      <div class="brand-tagline">Superadmin Control Panel</div>
+      <div class="brand-sub">Manage companies, associates, sub-users and licenses</div>
+    </div>
+    <div class="feature-list">
+      <div class="feature-item">
+        <div class="feature-icon">П</div>
+        <div class="feature-text">
+          <h4>Company Management</h4>
+          <p>Create and manage all registered companies.</p>
+        </div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">ı</div>
+        <div class="feature-text">
+          <h4>Associate & Sub-User Control</h4>
+          <p>Full lifecycle management of all users.</p>
+        </div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">Ē</div>
+        <div class="feature-text">
+          <h4>License Management</h4>
+          <p>Issue, renew, suspend and revoke licenses.</p>
+        </div>
+      </div>
+    </div>
+    <div class="brand-footer">© 2024–2026 Revolution Associates · All Rights Reserved</div>
+  </div>
+
+  <!-- Form -->
+  <div class="login-panel">
+    <div>
+      <div class="admin-badge">Superadmin</div>
+      <div class="login-header">
+        <h2>Admin Login</h2>
+        <p>Restricted access. Authorised personnel only.</p>
+      </div>
+
+      {% if form.errors %}
+      <div class="error-box" role="alert">Username or password incorrect. Please try again.</div>
+      {% endif %}
+
+      <form method="post" novalidate>
+        {% csrf_token %}
+        <div class="form-group">
+          <label for="id_username">Username</label>
+          {{ form.username }}
+        </div>
+        <div class="form-group">
+          <label for="id_password">Password</label>
+          {{ form.password }}
+        </div>
+        <button type="submit" class="btn-login">Log In</button>
+      </form>
+      <div class="login-links">
+        <a href="#">Forgot password?</a>
+        <a href="#">Terms &amp; Privacy</a>
+      </div>
+    </div>
+    <div class="login-footer">Revolution Associates HRMS · Superadmin Panel</div>
+  </div>
+
+</div>
+</body>
+</html>

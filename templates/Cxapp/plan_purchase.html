@@ -1,0 +1,94 @@
+{% extends 'Cxapp/_base.html' %}
+{% block title %}Choose a Plan · {{ cx_company.company_name }}{% endblock %}
+{% block page_title %}Choose your plan{% endblock %}
+{% block content %}
+<style>
+.wrap{max-width:960px;margin:0 auto;padding:40px 24px}
+    .notice{background:#fdecea;border-left:4px solid #e63946;border-radius:8px;padding:16px 20px;
+      margin-bottom:28px;font-size:14px;color:#7d2027}
+    .notice.ok{background:#eafaf5;border-left-color:var(--green);color:#0f2027}
+    .notice.info{background:#eef6fb;border-left-color:#4a90c2;color:#0f2027}
+    h1{font-family:'Infinitude','Ubuntu',sans-serif;font-size:28px;margin-bottom:8px}
+    .sub{font-size:13.5px;color:#6b7c93;margin-bottom:8px}
+    .emp-count{font-size:13px;color:#6b7c93;margin-bottom:28px;background:#fff;display:inline-block;
+      padding:6px 14px;border-radius:999px;border:1px solid #dde5ed}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px}
+    .plan-card{background:#fff;border-radius:12px;padding:26px;box-shadow:0 4px 20px rgba(15,32,39,.06);
+      display:flex;flex-direction:column}
+    .plan-card h3{font-size:17px;margin-bottom:4px}
+    .pepm{font-size:12.5px;color:#6b7c93;margin-bottom:16px}
+    .price-row{display:flex;justify-content:space-between;font-size:13px;color:#6b7c93;padding:5px 0;
+      border-bottom:1px dashed #eef2f6}
+    .price-row.total{color:var(--navy);font-weight:700;font-size:15px;border-bottom:none;padding-top:10px}
+    .price-row .val{font-weight:600}
+    .price-block{margin-bottom:18px}
+    .floor-note{font-size:11px;color:#a67c00;margin-top:6px}
+    .contact-sales{flex:1;display:flex;align-items:center;justify-content:center;color:#6b7c93;
+      font-size:13.5px;padding:24px 0}
+    .plan-card button{margin-top:auto;padding:12px;background:linear-gradient(135deg,#0f2027,#2a9d8f);
+      color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;width:100%}
+    .plan-card.enterprise button{background:linear-gradient(135deg,#6b7c93,#0f2027)}
+</style>
+{% if plan and plan.is_valid %}
+      <div class="notice ok">Your {{ plan.get_plan_display }} plan is active — {{ plan.days_remaining }} day(s) remaining.</div>
+    {% else %}
+      <div class="notice">Your trial has ended. Choose a plan below to regain access to the rest of the portal.</div>
+    {% endif %}
+
+    {% if messages %}
+      {% for message in messages %}
+        <div class="notice {% if message.tags == 'success' %}ok{% elif message.tags == 'info' %}info{% endif %}">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+
+    <p class="sub">Company profile stays visible; everything else unlocks once you pick a plan. Prices exclude GST ({{ gst_rate_pct }}% added at checkout).</p>
+    <div class="emp-count">Priced for your current headcount: <strong>{{ employee_count }}</strong> employee{{ employee_count|pluralize }}</div>
+
+    <form method="post">
+      {% csrf_token %}
+      <div class="grid">
+        {% for p in plan_pricing %}
+        <div class="plan-card {% if p.contact_sales %}enterprise{% endif %}">
+          <h3>{{ p.label }}</h3>
+
+          {% if p.contact_sales %}
+            <p class="pepm">Custom pricing for large teams</p>
+            <div class="contact-sales">Indicative floor: ₹{{ p.floor|floatformat:0 }}/mo<br>Contact sales for a quote.</div>
+            <button type="submit" name="plan" value="{{ p.code }}">Contact Sales</button>
+          {% else %}
+            <p class="pepm">₹{{ p.pepm|floatformat:0 }} / employee / month · {{ p.years }} year term</p>
+
+            <div class="price-block">
+              <div class="price-row">
+                <span>Monthly rate ({{ employee_count }} × ₹{{ p.pepm|floatformat:0 }})</span>
+                <span class="val">₹{{ p.monthly_pepm_total|floatformat:2 }}</span>
+              </div>
+              <div class="price-row">
+                <span>Monthly billed{% if p.monthly_billed != p.monthly_pepm_total %} (floor applied){% endif %}</span>
+                <span class="val">₹{{ p.monthly_billed|floatformat:2 }}</span>
+              </div>
+              <div class="price-row">
+                <span>Subtotal ({{ p.months }} months)</span>
+                <span class="val">₹{{ p.subtotal|floatformat:2 }}</span>
+              </div>
+              <div class="price-row">
+                <span>GST ({{ gst_rate_pct }}%)</span>
+                <span class="val">₹{{ p.gst|floatformat:2 }}</span>
+              </div>
+              <div class="price-row total">
+                <span>Total ({{ p.years }} yr)</span>
+                <span class="val">₹{{ p.total|floatformat:2 }}</span>
+              </div>
+            </div>
+
+            {% if p.monthly_billed != p.monthly_pepm_total %}
+              <p class="floor-note">Minimum ₹{{ p.floor|floatformat:0 }}/mo applies below {{ p.floor|floatformat:0 }}÷{{ p.pepm|floatformat:0 }} employees.</p>
+            {% endif %}
+
+            <button type="submit" name="plan" value="{{ p.code }}">Choose {{ p.label }}</button>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    </form>
+{% endblock %}

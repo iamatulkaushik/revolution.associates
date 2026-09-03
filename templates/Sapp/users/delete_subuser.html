@@ -1,0 +1,27 @@
+{% extends 'Sapp/base.html' %}
+{% block title %}Delete Sub User{% endblock %}
+{% block content %}
+{% if messages %}
+<div class="messages-container">
+{% for message in messages %}
+<div class="message-alert {% if message.tags == 'error' %}message-error{% elif message.tags == 'warning' %}message-warning{% else %}message-success{% endif %}" role="alert">{{ message }}</div>
+{% endfor %}
+</div>
+{% endif %}
+
+<div class="main-content">
+    <div class="container">
+        <div class="quickupdate" style="max-width:480px;">
+            <h2>Delete Sub User</h2><hr>
+            <p>Are you sure you want to permanently delete <strong>{{ subuser.user.username }}</strong>?</p>
+            <p style="color:var(--Color1); font-size:12px;">This will delete the user account and all associated data. This action cannot be undone.</p>
+            <br>
+            <form method="post">
+                {% csrf_token %}
+                <button type="submit" class="button" style="border-color:var(--Color1); color:var(--Color1);">Yes, Delete</button>
+                <a href="{% url 'sapp_list_subusers' %}" class="button" style="margin-left:10px;">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

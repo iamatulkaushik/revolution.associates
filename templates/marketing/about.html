@@ -1,0 +1,74 @@
+{% extends "base_marketing.html" %}
+
+{% block title %}About Revolution Associates — HR & Payroll Compliance Platform{% endblock %}
+{% block description %}Revolution Associates builds compliance-first HRMS and payroll software for Indian businesses, run by Associates who understand ground-level labour law.{% endblock %}
+{% block keywords %}Revolution Associates, HRMS company India, payroll compliance company, HR software company India{% endblock %}
+{% block canonical %}https://reas.host/about/{% endblock %}
+{% block og_title %}<meta property="og:title" content="About Revolution Associates">{% endblock %}
+{% block og_url %}<meta property="og:url" content="https://reas.host/about/">{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "Revolution Associates",
+  "url": "https://reas.host",
+  "description": "Compliance-first HRMS and payroll platform for Indian businesses.",
+  "areaServed": "IN"
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="breadcrumbs"><a href="{% url 'base' %}">Home</a> / About</div>
+<section class="page-hero">
+  <span class="eyebrow glass"><span class="dot"></span> Built by people who file the returns themselves</span>
+  <h1>Compliance software, built from the Associate's chair</h1>
+  <p>Revolution Associates started as an HR compliance practice before it became software — every module exists because an Associate needed it on a live payroll run.</p>
+</section>
+
+<section>
+  <div class="section-head">
+    <h2>Our approach</h2>
+  </div>
+  <div class="value-grid">
+    <div class="value-card glass reveal">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg>
+      <h3>Statutory-gated, always</h3>
+    </div>
+    <div class="value-card glass reveal">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M2 12h20"/></svg>
+      <h3>Three portals, one truth</h3>
+    </div>
+    <div class="value-card glass reveal">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/></svg>
+      <h3>Audit-first by design</h3>
+    </div>
+    <div class="value-card glass reveal">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z"/></svg>
+      <h3>Built for Indian labour law</h3>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="section-head">
+    <h2>How the platform is organised</h2>
+    <p>Three portals, one compliance engine underneath.</p>
+  </div>
+  <div class="bento">
+    <div class="feature-card glass reveal"><h3>Associate Portal</h3><p>HR operations, payroll runs, statutory filings across every managed company.</p></div>
+    <div class="feature-card glass reveal"><h3>Company Portal</h3><p>Company owners onboarded by an Associate manage their own HR data directly.</p></div>
+    <div class="feature-card glass reveal"><h3>Employee Portal</h3><p>Self-service payslips, leave requests and personal statutory records.</p></div>
+  </div>
+</section>
+
+<section class="cta-panel glass reveal">
+  <h2>Want to become an Associate partner?</h2>
+  <p>We onboard HR compliance associates who want to run payroll for multiple companies from one dashboard.</p>
+  <div class="cta-actions">
+    <a href="{% url 'contact' %}" class="btn btn-primary">Get in touch</a>
+  </div>
+</section>
+{% endblock %}

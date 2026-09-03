@@ -1,0 +1,159 @@
+{% extends "Sapp/base.html" %}
+{% block title %}Create Company{% endblock %}
+{% load static %}
+{% block additionalcss_js %}
+<script>
+function loadDistricts(){
+    const stateSelect = document.querySelector('#id_state_id');
+    const districtSelect = document.querySelector('#id_district_id');
+    if(!stateSelect || !districtSelect) return;
+    
+    stateSelect.addEventListener('change', function(){
+        const stateId = this.value;
+        if(!stateId){
+            districtSelect.innerHTML = '<option value="">---------</option>';
+            return;
+        }
+        
+        fetch(`/admin/get_districts/${stateId}/`)
+            .then(response => response.json())
+            .then(data => {
+                districtSelect.innerHTML = '<option value="">---------</option>';
+                data.forEach(district => {
+                    districtSelect.innerHTML += `<option value="${district.id}">${district.name}</option>`;
+                });
+            })
+            .catch(error => {
+                console.error('Error loading districts:', error);
+                districtSelect.innerHTML = '<option value="">Error loading districts</option>';
+            });
+    });
+}
+document.addEventListener('DOMContentLoaded', loadDistricts);
+</script>
+
+{% endblock %}
+{% block content %}
+{% if messages %}
+<div class="messages-container">
+{% for message in messages %}
+<div class="message-alert {% if message.tags == 'error' %}message-error{% elif message.tags == 'warning' %}message-warning{% else %}message-success{% endif %}" role="alert">{{ message }}</div>
+{% endfor %}
+</div>
+{% endif %}
+
+<div class="form-container">
+    <h2>Register New Company</h2>
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-section">
+            <h3>Basic Information</h3>
+            <div class="form-group">
+                <label for="id_company_name">Company Name *</label>
+                {{form.company_name}}
+                {{form.company_name.errors}}
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="id_start_date">Start Date *</label>
+                    {{form.start_date}}
+                    {{form.start_date.errors}}
+                </div>
+                <div class="form-group">
+                    <label for="id_tagline1">Tagline</label>
+                    {{form.tagline1}}
+                </div>
+            </div>
+        </div>
+        <div class="form-section">
+            <h3>Address Details</h3>
+            <div class="form-group">
+                <label for="id_address1">Address Line 1</label>
+                {{form.address1}}
+                {{form.address2}}
+                {{form.address3}}
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="id_state_id">State | District *</label>
+                    {{form.state_id}}
+                    {{form.state_id.errors}}
+                    {{form.district_id}}
+                    {{form.district_id.errors}}
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="id_pin">PIN Code</label>
+                {{form.pin}}
+            </div>
+        </div>
+        <div class="form-section">
+            <h3>Contact Information</h3>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="id_mobile">Mobile *</label>
+                    {{form.mobile}}
+                    {{form.mobile.errors}}
+                    {{form.mobile2}}
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="id_phone">Phone</label>
+                    {{form.phone}}
+                    {{form.phone2}}
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="id_email1">Email *</label>
+                    {{form.email1}}
+                    {{form.email1.errors}}
+                    {{form.email2}}
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="id_website">Website</label>
+                {{form.website}}
+            </div>
+        </div>
+        <div class="form-section">
+            <h3>Statutory Information</h3>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="id_pan">PAN *</label>
+                    {{form.pan}}
+                    {{form.pan.errors}}
+                </div>
+                <div class="form-group">
+                    <label for="id_tan">TAN</label>
+                    {{form.tan}}
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="id_cin">CIN</label>
+                {{form.cin}}
+            </div>
+        </div>
+        <div class="form-section">
+            <h3>Bank Details</h3>
+            <div class="form-group">
+                <label for="id_bank_id">Bank Name</label>
+                {{form.bank_id}}
+                {{form.branch_address}}
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="id_account">Account Number | IFSC Code</label>
+                    {{form.account}}
+                    {{form.ifsc}}
+                    {{form.ifsc.errors}}
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <button type="submit" class="button btn-primary">Register Company</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

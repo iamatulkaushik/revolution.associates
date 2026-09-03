@@ -1,0 +1,92 @@
+{% extends 'Aapp/base.html' %}
+{% block title %}{{ structure.designationname }} — Pay Scale{% endblock %}
+{% block content %}
+
+<div class="section-header">
+  <h2>Pay Scale — {{ structure.designationname }}</h2>
+  <div class="section-actions">
+    <a href="{% url 'alter_designation' structure.designationid %}" class="button">Edit Designation</a>
+    <a href="{% url 'list_salary_structures' %}" class="button">← Back</a>
+  </div>
+</div>
+
+{% if messages %}
+<div class="messages-container">
+  {% for message in messages %}
+  <div class="message-alert {% if message.tags == 'error' %}message-error{% else %}message-success{% endif %}" role="alert">{{ message }}</div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<div class="card" style="margin-bottom:var(--sp-5)">
+  <div class="card-header">
+    <h3>{{ structure.designationname }}</h3>
+    {% if structure.is_dailywage %}<span class="badge badge-info">Daily Wage</span>{% else %}<span class="badge badge-muted">Monthly Salaried</span>{% endif %}
+  </div>
+  <div class="card-body">
+    <div class="form-grid">
+      <div class="form-group"><label>Employees on this Designation</label><span><strong>{{ employee_count }}</strong></span></div>
+      <div class="form-group"><label>Monthly Gross</label><span><strong>₹{{ monthly_gross }}</strong></span></div>
+      <div class="form-group"><label>Yearly Gross (CTC basis)</label><span><strong>₹{{ yearly_gross }}</strong></span></div>
+    </div>
+  </div>
+</div>
+
+<div class="form-grid" style="align-items:start">
+
+  <div class="card">
+    <div class="card-header" style="background:linear-gradient(135deg,var(--c-success),#238577)"><h3>Earnings</h3></div>
+    <div class="table-wrap">
+      <table class="data-table">
+        <tbody>
+          {% if structure.is_dailywage %}
+          <tr><td>Daily Wage</td><td class="text-right">₹{{ structure.dailywage }}</td></tr>
+          {% else %}
+          <tr><td>Basic</td><td class="text-right">₹{{ structure.basicpay }}</td></tr>
+          <tr><td>HRA</td><td class="text-right">₹{{ structure.hra }}</td></tr>
+          <tr><td>DA</td><td class="text-right">₹{{ structure.da }}</td></tr>
+          <tr><td>Conveyance</td><td class="text-right">₹{{ structure.conveyance }}</td></tr>
+          <tr><td>Medical Allowance</td><td class="text-right">₹{{ structure.medicalallowance }}</td></tr>
+          <tr><td>Lunch Allowance</td><td class="text-right">₹{{ structure.lunchallowance }}</td></tr>
+          <tr><td>CCA</td><td class="text-right">₹{{ structure.cca }}</td></tr>
+          <tr><td>Special Allowance</td><td class="text-right">₹{{ structure.specialallowance }}</td></tr>
+          <tr><td>Travel Allowance</td><td class="text-right">₹{{ structure.travelallowance }}</td></tr>
+          <tr><td>Washing Allowance</td><td class="text-right">₹{{ structure.washingallowance }}</td></tr>
+          <tr><td>Cycle Allowance</td><td class="text-right">₹{{ structure.cycleallowance }}</td></tr>
+          <tr><td>Other 1</td><td class="text-right">₹{{ structure.other1 }}</td></tr>
+          <tr><td>Other 2</td><td class="text-right">₹{{ structure.other2 }}</td></tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header" style="background:linear-gradient(135deg,var(--c-danger),#c1121f)"><h3>Statutory Rates</h3></div>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th></th><th>Employee</th><th>Employer</th></tr></thead>
+        <tbody>
+          <tr><td>PF</td><td class="text-right">{{ structure.ed_epf_per }}%</td><td class="text-right">{{ structure.er_epf_per }}%</td></tr>
+          <tr><td>ESI</td><td class="text-right">{{ structure.ed_esi_per }}%</td><td class="text-right">{{ structure.er_esi_per }}%</td></tr>
+          <tr><td>Labour Welfare Fund</td><td class="text-right">{{ structure.ed_labourwelfare_per }}%</td><td class="text-right">{{ structure.er_labourwelfare_per }}%</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="table-wrap" style="border-top:1px solid var(--c-border)">
+      <table class="data-table">
+        <tbody>
+          <tr><td>Professional Tax</td><td class="text-right">₹{{ structure.ed_professionaltax }}</td></tr>
+          <tr><td>Income Tax (TDS)</td><td class="text-right">₹{{ structure.ed_income_tax }}</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<div class="message-alert message-info" style="margin-top:var(--sp-5)">
+  PF is capped at a basic of ₹15,000/month and ESI applies only when gross pay is ≤ ₹21,000, regardless of the rates configured above — statutory ceilings always take priority.
+</div>
+
+{% endblock %}

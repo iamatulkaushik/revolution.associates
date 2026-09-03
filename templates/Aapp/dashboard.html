@@ -1,0 +1,109 @@
+{% extends 'Aapp/base.html' %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<div class="section-header">
+  <h2>Dashboard</h2>
+  <div class="section-actions">
+    <a href="{% url 'compliance_dashboard' %}" class="button btn-primary">Compliance Calendar</a>
+    <a href="{% url 'create_employee' %}" class="button">+ Add Employee</a>
+  </div>
+</div>
+
+<div class="stat-grid">
+  <div class="stat-card" style="--accent-color:#457b9d">
+    <div class="stat-icon">У</div>
+    <div class="stat-value">{{ departments_count|default:"0" }} / {{ branches_count|default:"0" }}</div>
+    <div class="stat-label">Departments / Branches</div>
+    <div class="stat-note"><a href="{% url 'department_list' %}">Departments</a> · <a href="{% url 'branch_list' %}">Branches</a></div>
+  </div>
+  <div class="stat-card" style="--accent-color:#2a9d8f">
+    <div class="stat-icon">ı</div>
+    <div class="stat-value" id="stat-employees">—</div>
+    <div class="stat-label">Active Employees</div>
+    <div class="stat-note"><a href="{% url 'list_employee' %}">View all</a></div>
+  </div>
+  <div class="stat-card" style="--accent-color:#e63946" id="compliance-card">
+    <div class="stat-icon">Ē</div>
+    <div class="stat-value" id="stat-overdue">—</div>
+    <div class="stat-label">Overdue Returns</div>
+    <div class="stat-note"><a href="{% url 'compliance_dashboard' %}">View compliance</a></div>
+  </div>
+  <div class="stat-card" style="--accent-color:#f4a261">
+    <div class="stat-icon">П</div>
+    <div class="stat-value" id="stat-companies">—</div>
+    <div class="stat-label">My Companies</div>
+    <div class="stat-note"><a href="{% url 'list_company_associate' %}">Manage</a></div>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom:var(--sp-5)">
+  <div class="card-header">
+    <h3>Quick Actions</h3>
+  </div>
+  <div class="card-body">
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:var(--sp-3)">
+      <a href="{% url 'list_wages' %}" class="button">Generate Wages</a>
+      <a href="{% url 'add_attendance' %}" class="button">Add Attendance</a>
+      <a href="{% url 'add_epf_ecr' %}" class="button">EPF ECR</a>
+      <a href="{% url 'add_esi_return' %}" class="button">ESI Return</a>
+      <a href="{% url 'add_lwf' %}" class="button">LWF Contribution</a>
+      <a href="{% url 'seed_compliance_calendar' %}" class="button btn-primary">Seed Compliance</a>
+      <a href="{% url 'list_loans' %}" class="button">Loans</a>
+      <a href="{% url 'list_advances' %}" class="button">Advances</a>
+      <a href="{% url 'list_increments' %}" class="button">Increments</a>
+      <a href="{% url 'list_arrears' %}" class="button">Arrears</a>
+      <a href="{% url 'list_fnf_settlements' %}" class="button">FnF Settlements</a>
+      <a href="{% url 'list_biometric_devices' %}" class="button">Biometric Devices</a>
+      <a href="{% url 'list_shifts' %}" class="button">Shifts</a>
+      <a href="{% url 'list_bank_batches' %}" class="button">Bank Payment Files</a>
+      <a href="{% url 'list_assets' %}" class="button">Assets</a>
+      <a href="{% url 'list_expense_claims' %}" class="button">Expense Claims</a>
+      <a href="{% url 'select_employee_for_form16' %}" class="button">Form 16</a>
+      <a href="{% url 'download_company_profile' %}" class="button">Company Profile PDF</a>
+      <a href="{% url 'download_letterhead_doc' 'quotation' %}" class="button">Letterhead: Quotation</a>
+    </div>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom:var(--sp-5)">
+  <div class="card-header">
+    <h3>Payroll Extensions</h3>
+  </div>
+  <div class="card-body">
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:var(--sp-3)">
+      <a href="{% url 'create_loan' %}" class="button">+ Loan</a>
+      <a href="{% url 'create_advance' %}" class="button">+ Advance</a>
+      <a href="{% url 'create_increment' %}" class="button">+ Increment</a>
+      <a href="{% url 'create_arrear' %}" class="button">+ Arrear</a>
+      <a href="{% url 'create_fnf_settlement' %}" class="button">+ FnF Settlement</a>
+      <a href="{% url 'create_asset_recovery' %}" class="button">+ Asset Recovery</a>
+      <a href="{% url 'create_expense_claim' %}" class="button">+ Expense Claim</a>
+      <a href="{% url 'select_processing_for_bank_file' %}" class="button">+ Bank Payment File</a>
+    </div>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom:var(--sp-5)">
+  <div class="card-header">
+    <h3>Attendance &amp; Shifts</h3>
+  </div>
+  <div class="card-body">
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:var(--sp-3)">
+      <a href="{% url 'create_shift' %}" class="button">+ Shift</a>
+      <a href="{% url 'assign_shift' %}" class="button">Assign Shift</a>
+      <a href="{% url 'create_biometric_device' %}" class="button">+ Biometric Device</a>
+    </div>
+  </div>
+</div>
+
+<script>
+fetch('{% url "get_selected_company" %}')
+  .then(r=>r.json()).then(d=>{
+    if(d.company_id){
+      document.getElementById('stat-companies').textContent='1 selected';
+    } else {
+      document.getElementById('stat-companies').textContent='None selected';
+    }
+  }).catch(()=>{});
+</script>
+{% endblock %}

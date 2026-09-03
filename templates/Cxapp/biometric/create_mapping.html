@@ -1,0 +1,14 @@
+{% extends 'Cxapp/_base.html' %}
+{% block title %}Map Employee{% endblock %}
+{% block page_title %}Map Employee — {{ device.device_name }}{% endblock %}
+{% block content %}
+<div class="wrap" style="max-width:600px;margin:0 auto;padding:32px 24px">
+{% if messages %}{% for message in messages %}<div>{{ message }}</div>{% endfor %}{% endif %}
+<form method="post">
+    {% csrf_token %}
+    <table>{{ form.as_table }}</table>
+    <button type="submit" class="btn" style="padding:10px 18px;background:#2a9d8f;color:#fff;border:none;border-radius:8px;font-weight:600">Save Mapping</button>
+    <a href="{% url 'cxapp_list_device_mappings' device.device_id %}">Cancel</a>
+</form>
+</div>
+{% endblock %}

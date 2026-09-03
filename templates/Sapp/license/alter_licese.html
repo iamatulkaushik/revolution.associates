@@ -1,0 +1,70 @@
+{% extends "Sapp/base.html" %}
+{% block title %}Update License{% endblock %}
+{% block additionalcss_js %}
+
+{% endblock %}
+{% block content %}
+<div class="form-container">
+<h2>Update License</h2>
+{% if messages %}
+<div style="margin-bottom:20px">
+{% for message in messages %}
+<div style="padding:10px;border-radius:4px;background:{% if message.tags == 'error' %}#f8d7da;color:#721c24{% else %}#d4edda;color:#155724{% endif %}">
+{{ message }}
+</div>
+{% endfor %}
+</div>
+{% endif %}
+<div class="license-info">
+<p><strong>License Key:</strong> {{license.license_key}}</p>
+<p><strong>Status:</strong> {{license.get_status_display}}</p>
+<p><strong>Expires:</strong> {{license.expiry_date}}</p>
+</div>
+<form method="post">
+{% csrf_token %}
+<div class="form-row">
+<div class="form-group">
+<label>Company</label>
+<input type="text" class="form-control" value="{{license.company.company_name}}" readonly>
+</div>
+<div class="form-group">
+<label>Associate</label>
+<select name="associate" class="form-control">
+<option value="">None</option>
+{% for assoc in associates %}
+<option value="{{assoc.id}}" {% if license.associate and assoc.id == license.associate.id %}selected{% endif %}>
+{{assoc.user.get_full_name}} - {{assoc.associate_id}}
+</option>
+{% endfor %}
+</select>
+</div>
+</div>
+<div class="form-row">
+<div class="form-group">
+<label>License Type</label>
+<select name="license_type" class="form-control">
+<option value="trial" {% if license.license_type == 'trial' %}selected{% endif %}>Trial</option>
+<option value="basic" {% if license.license_type == 'basic' %}selected{% endif %}>Basic</option>
+<option value="premium" {% if license.license_type == 'premium' %}selected{% endif %}>Premium</option>
+<option value="enterprise" {% if license.license_type == 'enterprise' %}selected{% endif %}>Enterprise</option>
+</select>
+</div>
+<div class="form-group">
+<label>Max Users</label>
+<input type="number" name="max_users" class="form-control" value="{{license.max_users}}">
+</div>
+</div>
+<div class="form-row">
+<div class="form-group">
+<label>Issue Date</label>
+<input type="date" name="issue_date" class="form-control" value="{{license.issue_date|date:'Y-m-d'}}">
+</div>
+<div class="form-group">
+<label>Expiry Date</label>
+<input type="date" name="expiry_date" class="form-control" value="{{license.expiry_date|date:'Y-m-d'}}">
+</div>
+</div>
+<button type="submit" class="button btn-primary">Update License</button>
+</form>
+</div>
+{% endblock %}

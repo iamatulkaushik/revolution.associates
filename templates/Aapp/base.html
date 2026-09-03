@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#1d3557">
+  <meta name="rights" content="Revolution Associates">
+  <title>{% block title %}{% endblock %} · Revolution HRMS</title>
+  {% load static %}
+  <link rel="icon" href="{% static '/favicon.ico' %}" type="image/x-icon">
+  <link rel="preload" href="{% static 'fonts/Infinitude.ttf' %}" as="font" type="font/ttf" crossorigin>
+  <link rel="preload" href="{% static 'fonts/Ubuntu-R.ttf' %}" as="font" type="font/ttf" crossorigin>
+  <link rel="stylesheet" href="{% static 'css/base.css' %}">
+  {% block additionalcss_js %}{% endblock %}
+</head>
+<body>
+
+<div class="app-shell">
+
+  <!-- ── SIDEBAR ──────────────────────────────────────────────── -->
+  <aside class="sidebar" id="sidebar">
+
+    <div class="sidebar-brand">
+      <span class="sidebar-logo noselect">Ń</span>
+      <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar" title="Toggle sidebar">
+        &#9776;
+      </button>
+    </div>
+
+    <nav class="sidebar-nav" aria-label="Main navigation">
+      <ul>
+
+        <li class="nav-item">
+          <a href="{% url 'aapp_dashboard' %}" class="nav-link dashboard">
+            <span class="nav-label">Dashboard</span>
+          </a>
+        </li>
+
+        <li class="nav-item" id="nav-masters">
+          <button class="nav-link masters" onclick="toggleNav('nav-masters')" aria-expanded="false">
+            <span class="nav-label">Masters</span>
+            <span class="nav-chevron">&#9658;</span>
+          </button>
+          <ul class="nav-sub">
+            <li><a href="{% url 'list_company_associate' %}" class="nav-link">Companies</a></li>
+            <li><a href="{% url 'branch_list' %}" class="nav-link">Branches</a></li>
+            <li><a href="{% url 'department_list' %}" class="nav-link">Departments</a></li>
+            <li><a href="{% url 'list_designation' %}" class="nav-link">Designations</a></li>
+          </ul>
+        </li>
+
+        <li class="nav-item" id="nav-employees">
+          <button class="nav-link employees" onclick="toggleNav('nav-employees')" aria-expanded="false">
+            <span class="nav-label">Employees</span>
+            <span class="nav-chevron">&#9658;</span>
+          </button>
+          <ul class="nav-sub">
+            <li><a href="{% url 'list_employee' %}" class="nav-link">All Employees</a></li>
+            <li><a href="{% url 'create_employee' %}" class="nav-link">Add Employee</a></li>
+            <li><a href="{% url 'bulk_excel_upload_employees' %}" class="nav-link">Bulk Upload</a></li>
+          </ul>
+        </li>
+
+        <li class="nav-item" id="nav-attendance">
+          <button class="nav-link attandance" onclick="toggleNav('nav-attendance')" aria-expanded="false">
+            <span class="nav-label">Attendance</span>
+            <span class="nav-chevron">&#9658;</span>
+          </button>
+          <ul class="nav-sub">
+            <li><a href="{% url 'list_attendance' %}" class="nav-link">Attendance List</a></li>
+            <li><a href="{% url 'add_attendance' %}" class="nav-link">Add Attendance</a></li>
+            <li><a href="{% url 'bulk_attendance' %}" class="nav-link">Bulk Attendance</a></li>
+            <li><a href="{% url 'list_leave' %}" class="nav-link">Leave Records</a></li>
+            <li><a href="{% url 'list_overtime_register' %}" class="nav-link">Overtime Register</a></li>
+          </ul>
+        </li>
+
+        <li class="nav-item" id="nav-wages">
+          <button class="nav-link statuary" onclick="toggleNav('nav-wages')" aria-expanded="false">
+            <span class="nav-label">Wages</span>
+            <span class="nav-chevron">&#9658;</span>
+          </button>
+          <ul class="nav-sub">
+            <li><a href="{% url 'list_wages' %}" class="nav-link">Wage Register</a></li>
+            <li><a href="{% url 'list_fines' %}" class="nav-link">Fines (Form I)</a></li>
+            <li><a href="{% url 'list_deductions' %}" class="nav-link">Deductions (Form II)</a></li>
+            <li><a href="{% url 'list_minwages_returns' %}" class="nav-link">Min Wages Returns</a></li>
+            <li><a href="{% url 'list_pow_returns' %}" class="nav-link">POW Annual Returns</a></li>
+          </ul>
+        </li>
+
+        <li class="nav-item" id="nav-salary">
+          <button class="nav-link statuary" onclick="toggleNav('nav-salary')" aria-expanded="false">
+            <span class="nav-label">Salary Processing</span>
+            <span class="nav-chevron">&#9658;</span>
+          </button>
+          <ul class="nav-sub">
+            <li><a href="{% url 'salary_dashboard' %}" class="nav-link">Dashboard</a></li>
+            <li><a href="{% url 'create_salary_batch' %}" class="nav-link">Process Salary</a></li>
+            <li><a href="{% url 'list_salary_structures' %}" class="nav-link">Salary Structures</a></li>
+            <li><a href="{% url 'pf_report' %}" class="nav-link">PF Report</a></li>
+            <li><a href="{% url 'esi_report' %}" class="nav-link">ESI Report</a></li>
+          </ul>
+        </li>
+
+        <li class="nav-item" id="nav-statutory">
+          <button class="nav-link statuary" onclick="toggleNav('nav-statutory')" aria-expanded="false">
+            <span class="nav-label">Statutory</span>
+            <span class="nav-chevron">&#9658;</span>
+          </button>
+          <ul class="nav-sub">
+            <li><a href="{% url 'compliance_dashboard' %}" class="nav-link">Compliance Calendar</a></li>
+            <li><a href="{% url 'list_factory_registration' %}" class="nav-link">Factory Act</a></li>
+            <li><a href="{% url 'list_contractors' %}" class="nav-link">Contractors</a></li>
+            <li><a href="{% url 'list_cl_registration' %}" class="nav-link">Contract Labour Reg.</a></li>
+            <li><a href="{% url 'list_epf_nominations' %}" class="nav-link">EPF Nominations</a></li>
+            <li><a href="{% url 'list_epf_ecr' %}" class="nav-link">EPF ECR</a></li>
+            <li><a href="{% url 'list_esi_family' %}" class="nav-link">ESI Family (1A)</a></li>
+            <li><a href="{% url 'list_esi_returns' %}" class="nav-link">ESI Returns</a></li>
+            <li><a href="{% url 'list_maternity' %}" class="nav-link">Maternity</a></li>
+            <li><a href="{% url 'list_gratuity' %}" class="nav-link">Gratuity</a></li>
+            <li><a href="{% url 'list_bonus' %}" class="nav-link">Bonus</a></li>
+            <li><a href="{% url 'list_establishments' %}" class="nav-link">Shops Act</a></li>
+            <li><a href="{% url 'list_lwf' %}" class="nav-link">Labour Welfare Fund</a></li>
+          </ul>
+        </li>
+
+        <li class="nav-item" id="nav-profile">
+          <button class="nav-link profile" onclick="toggleNav('nav-profile')" aria-expanded="false">
+            <span class="nav-label">Profile</span>
+            <span class="nav-chevron">&#9658;</span>
+          </button>
+          <ul class="nav-sub">
+            <li><a href="{% url 'associate_profile' %}" class="nav-link">My Profile</a></li>
+            <li><a href="{% url 'list_subusers' %}" class="nav-link">Sub Users</a></li>
+          </ul>
+        </li>
+
+      </ul>
+    </nav>
+
+    <div class="sidebar-footer">
+      <a href="{% url 'logout' %}" class="nav-link logout">
+        <span class="nav-label">Logout</span>
+      </a>
+    </div>
+
+  </aside><!-- /sidebar -->
+
+  <!-- ── MAIN WRAP ─────────────────────────────────────────────── -->
+  <div class="main-wrap" id="mainWrap">
+
+    <!-- Topbar -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <h1 class="topbar-title"></h1>
+      </div>
+      <div class="topbar-right">
+        <button class="company-chip" onclick="showCompanySelector()" title="Click to change company" aria-label="Select company">
+          <span class="company-chip-icon">П</span>
+          <span class="company-chip-name" id="topbar-company">Select Company</span>
+        </button>
+        <div class="user-pill">
+          <div class="user-avatar" aria-hidden="true">ţ</div>
+          <span class="user-name">{{ user.username }}</span>
+        </div>
+        <a href="{% url 'logout' %}" class="btn-logout logout" aria-label="Logout">
+          <span>Logout</span>
+        </a>
+      </div>
+    </header>
+
+    <!-- Page content -->
+    <main class="page-content" id="main-content">
+      {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <div class="footer-col">
+        <span>Revolution Associates</span>
+        <span class="tagline">Revolutionary Solutions for Everything</span>
+      </div>
+      <div class="footer-col">
+        <span>Contact</span>
+        <a href="tel:+91-8307145638" class="tagline">+91-8307145638</a>
+        <a href="mailto:revolution.associates@gmail.com" class="tagline">revolution.associates@gmail.com</a>
+      </div>
+      <div class="footer-col">
+        <span>Legal</span>
+        <span class="tagline">© 2024–2026 Revolution Associates. All Rights Reserved.</span>
+        <span class="tagline"><a href="/legal/terms">Terms</a> · <a href="/legal/privacy">Privacy</a></span>
+      </div>
+      <div class="footer-col">
+        <span>Quick Links</span>
+        <span class="tagline"><a href="{% url 'aapp_dashboard' %}">Dashboard</a> · <a href="{% url 'list_employee' %}">Employees</a></span>
+        <span class="tagline"><a href="{% url 'list_wages' %}">Wages</a> · <a href="{% url 'compliance_dashboard' %}">Compliance</a></span>
+      </div>
+    </footer>
+
+  </div><!-- /main-wrap -->
+
+</div><!-- /app-shell -->
+
+<!-- ── Company Selector Popup ─────────────────────────────────── -->
+<div class="company-popup" id="companyPopup" role="dialog" aria-modal="true" aria-labelledby="popup-title">
+  <div class="popup-card">
+    <div class="popup-head">
+      <h3 id="popup-title">Select Company</h3>
+      <button class="popup-close" onclick="hideCompanySelector()" aria-label="Close">&times;</button>
+    </div>
+    <div class="popup-body" id="companyList">Loading&hellip;</div>
+  </div>
+</div>
+
+<script>
+/* ── Sidebar toggle ───────────────────────────────────────────── */
+const sidebar = document.getElementById('sidebar');
+const mainWrap = document.getElementById('mainWrap');
+const COLLAPSED_KEY = 'sidebar_collapsed';
+
+function applyCollapsed(collapsed) {
+  sidebar.classList.toggle('collapsed', collapsed);
+  const btn = document.getElementById('sidebarToggle');
+  btn.setAttribute('aria-label', collapsed ? 'Expand sidebar' : 'Collapse sidebar');
+}
+
+document.getElementById('sidebarToggle').addEventListener('click', () => {
+  const collapsed = !sidebar.classList.contains('collapsed');
+  applyCollapsed(collapsed);
+  try { localStorage.setItem(COLLAPSED_KEY, collapsed ? '1' : '0'); } catch(e){}
+});
+
+try {
+  const saved = localStorage.getItem(COLLAPSED_KEY);
+  if (saved === '1') applyCollapsed(true);
+} catch(e){}
+
+/* ── Sub-menu toggle ─────────────────────────────────────────── */
+function toggleNav(id) {
+  const item = document.getElementById(id);
+  const wasOpen = item.classList.contains('open');
+  document.querySelectorAll('.nav-item.open').forEach(el => {
+    if (el !== item) {
+      el.classList.remove('open');
+      el.querySelector('[aria-expanded]')?.setAttribute('aria-expanded', 'false');
+    }
+  });
+  item.classList.toggle('open', !wasOpen);
+  item.querySelector('[aria-expanded]')?.setAttribute('aria-expanded', !wasOpen ? 'true' : 'false');
+}
+
+/* Auto-expand nav section for current page */
+document.querySelectorAll('.nav-sub .nav-link').forEach(link => {
+  if (link.href === location.href) {
+    link.classList.add('active');
+    const navItem = link.closest('.nav-item');
+    if (navItem) navItem.classList.add('open');
+  }
+});
+
+/* ── Company selector ────────────────────────────────────────── */
+function showCompanySelector() {
+  document.getElementById('companyPopup').classList.add('active');
+  loadCompanies();
+}
+function hideCompanySelector() {
+  document.getElementById('companyPopup').classList.remove('active');
+}
+document.getElementById('companyPopup').addEventListener('click', function(e) {
+  if (e.target === this) hideCompanySelector();
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') hideCompanySelector(); });
+
+function loadCompanies() {
+  const list = document.getElementById('companyList');
+  list.innerHTML = '<p style="color:var(--c-muted);text-align:center;padding:20px">Loading&hellip;</p>';
+  fetch('{% url "get_user_companies" %}')
+    .then(r => r.json())
+    .then(data => {
+      if (!data.companies || !data.companies.length) {
+        list.innerHTML = '<p style="color:var(--c-muted);text-align:center;padding:20px">No companies available.</p>';
+        return;
+      }
+      list.innerHTML = data.companies.map(c =>
+        `<div class="company-item" onclick="selectCompany(${c.company_id})" role="button" tabindex="0">
+           <strong>${c.company_name}</strong><br>
+           <small>ID: ${c.company_id}</small>
+         </div>`
+      ).join('');
+      list.querySelectorAll('.company-item').forEach(el => {
+        el.addEventListener('keydown', e => { if (e.key === 'Enter') el.click(); });
+      });
+    })
+    .catch(() => { list.innerHTML = '<p style="color:var(--c-danger);padding:20px">Failed to load companies.</p>'; });
+}
+
+function selectCompany(id) {
+  const fd = new FormData();
+  fd.append('company_id', id);
+  fd.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+  fetch('{% url "select_company" %}', { method:'POST', body:fd })
+    .then(r => r.json())
+    .then(data => {
+      if (data.status === 'success') {
+        hideCompanySelector();
+        loadSelectedCompany();
+      }
+    });
+}
+
+function loadSelectedCompany() {
+  fetch('{% url "get_selected_company" %}')
+    .then(r => r.json())
+    .then(data => {
+      const chip = document.getElementById('topbar-company');
+      if (chip) chip.textContent = data.company_id ? data.company_name : 'Select Company';
+    });
+}
+
+document.addEventListener('DOMContentLoaded', loadSelectedCompany);
+</script>
+
+</body>
+</html>

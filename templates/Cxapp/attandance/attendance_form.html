@@ -1,0 +1,67 @@
+{% extends 'Cxapp/_base.html' %}
+{% block title %}{% if is_new %}Add{% else %}Edit{% endif %} Attendance{% endblock %}
+{% block page_title %}{% if is_new %}Add{% else %}Edit{% endif %} Attendance{% endblock %}
+{% block content %}
+<style>
+.wrap{max-width:680px;margin:0 auto;padding:32px 24px}
+.card{background:#fff;border-radius:12px;padding:28px;box-shadow:0 4px 20px rgba(15,32,39,.06)}
+fieldset{border:none;margin-bottom:22px}
+legend{font-size:12px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px}
+.row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.fg{margin-bottom:14px}
+.fg label{display:block;font-size:11px;font-weight:600;color:#6b7c93;text-transform:uppercase;margin-bottom:4px}
+.fg input,.fg select{width:100%;font-size:14px;padding:8px 11px;border:1.5px solid #dde5ed;border-radius:7px;background:var(--cream)}
+.btn{padding:12px 24px;background:linear-gradient(135deg,#0f2027,#2a9d8f);color:#fff;border:none;
+  border-radius:8px;font-weight:600;cursor:pointer}
+.field-err{font-size:11px;color:#e63946;margin-top:2px}
+.checkbox-row{display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.checkbox-row label{font-size:13px;color:var(--navy);text-transform:none;font-weight:500}
+</style>
+<div class="card">
+    <form method="post">
+      {% csrf_token %}
+      {% if form.non_field_errors %}<div class="field-err">{{ form.non_field_errors }}</div>{% endif %}
+
+      <fieldset>
+        <legend>Employee & Period</legend>
+        <div class="fg"><label>Employee</label>{{ form.employee }}</div>
+        <div class="row">
+          <div class="fg"><label>Month</label>{{ form.attandance_month }}</div>
+          <div class="fg"><label>Year</label>{{ form.attandance_year }}</div>
+          <div class="checkbox-row">{{ form.is_bulk }}<label>Bulk entry</label></div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Attendance</legend>
+        <div class="row">
+          <div class="fg"><label>Working Days</label>{{ form.working_day }}</div>
+          <div class="fg"><label>Holidays</label>{{ form.holidays }}</div>
+          <div class="fg"><label>Work Pay</label>{{ form.work_pay }}</div>
+        </div>
+        <div class="row">
+          <div class="fg"><label>Casual Leave</label>{{ form.casual_leave }}</div>
+          <div class="fg"><label>Earned Leave</label>{{ form.earned_leave }}</div>
+          <div class="fg"><label>Sick Leave</label>{{ form.sick_leave }}</div>
+        </div>
+        <div class="row">
+          <div class="fg"><label>Comp Leave</label>{{ form.comp_leave }}</div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Leave Record</legend>
+        <div class="row">
+          <div class="fg"><label>Leave Earned</label>{{ form.leave_earned }}</div>
+          <div class="fg"><label>Leave Lapsed</label>{{ form.leave_lapsed }}</div>
+        </div>
+        <div class="row">
+          <div class="fg"><label>Leave Encashment Amount</label>{{ form.leave_encashment_amount }}</div>
+          <div class="fg"><label>Leave Wages Paid</label>{{ form.leave_wages_paid }}</div>
+        </div>
+      </fieldset>
+
+      <button type="submit" class="btn">{% if is_new %}Create Record{% else %}Save Changes{% endif %}</button>
+    </form>
+  </div>
+{% endblock %}

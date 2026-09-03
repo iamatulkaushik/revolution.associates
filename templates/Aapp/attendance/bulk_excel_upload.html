@@ -1,0 +1,56 @@
+{% extends 'Aapp/base.html' %}
+{% block title %}Excel Upload — Attendance{% endblock %}
+{% block content %}
+<div class="main-content">
+    {% if messages %}{% for m in messages %}
+    <div class="message-alert {% if m.tags == 'success' %}message-success{% else %}message-error{% endif %}">{{ m }}</div>
+    {% endfor %}{% endif %}
+
+    <h2 style="padding:10px;">Bulk Excel Upload — {{ company.company_name }}</h2>
+
+    <div class="container_boxed">
+        <h2>Step 1 — Download Template</h2><hr>
+        <p style="font-size:13px;margin-bottom:10px;">
+            Download the pre-filled template with your active employee codes, fill in the attendance data, then upload below.
+        </p>
+        <a href="{% url 'download_attendance_template' %}" class="button">⬇ Download Template</a>
+    </div>
+<br/>
+    <div class="container_boxed" style="margin-top:10px;">
+        <h2>Step 2 — Upload Filled Excel</h2><hr>
+        <p style="font-size:12px;color:#666;margin-bottom:10px;">
+            Required columns: <strong>emp_code, salary_month, salary_year</strong><br>
+            Optional columns: working_days, holidays, casual_leaves, earned_leaves, sick_leaves, comp_leaves, work_pay<br>
+            Duplicate records (same employee + month + year) will be skipped automatically.
+        </p>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <label>Excel File <span style="color:var(--Color1)">*</span></label>
+            <input type="file" name="excel_file" accept=".xlsx,.xls" required style="margin-left:8px;"><br><br>
+            <button type="submit" class="button">Upload &amp; Import</button>
+            <a href="{% url 'list_attendance' %}" class="button" style="margin-left:10px;">Cancel</a>
+        </form>
+    </div>
+
+    <div class="container_boxed" style="margin-top:10px;">
+        <h2>Column Reference</h2><hr>
+        <table class="data-table" style="min-width:unset;width:auto;">
+            <thead>
+                <tr><th>Column</th><th>Required</th><th>Description</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>emp_code</td><td style="text-align:center;">✔</td><td>Active employee code for this company</td></tr>
+                <tr><td>salary_month</td><td style="text-align:center;">✔</td><td>Integer 1–12</td></tr>
+                <tr><td>salary_year</td><td style="text-align:center;">✔</td><td>4-digit year e.g. 2025</td></tr>
+                <tr><td>working_days</td><td style="text-align:center;">—</td><td>Decimal, defaults to 0</td></tr>
+                <tr><td>holidays</td><td style="text-align:center;">—</td><td>Decimal, defaults to 0</td></tr>
+                <tr><td>casual_leaves</td><td style="text-align:center;">—</td><td>Decimal, defaults to 0</td></tr>
+                <tr><td>earned_leaves</td><td style="text-align:center;">—</td><td>Decimal, defaults to 0</td></tr>
+                <tr><td>sick_leaves</td><td style="text-align:center;">—</td><td>Decimal, defaults to 0</td></tr>
+                <tr><td>comp_leaves</td><td style="text-align:center;">—</td><td>Decimal, defaults to 0</td></tr>
+                <tr><td>work_pay</td><td style="text-align:center;">—</td><td>Decimal, defaults to 0</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

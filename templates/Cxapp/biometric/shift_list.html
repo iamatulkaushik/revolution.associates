@@ -1,0 +1,28 @@
+{% extends 'Cxapp/_base.html' %}
+{% block title %}Shifts{% endblock %}
+{% block page_title %}Shifts{% endblock %}
+{% block content %}
+<div class="wrap" style="max-width:800px;margin:0 auto;padding:32px 24px">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+    <h2>Shifts</h2>
+    <div>
+        <a href="{% url 'cxapp_create_shift' %}" class="btn" style="padding:10px 18px;background:#2a9d8f;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">Add Shift</a>
+        <a href="{% url 'cxapp_assign_shift' %}" class="btn" style="padding:10px 18px;background:#264653;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">Assign Shift</a>
+    </div>
+</div>
+<table style="width:100%;border-collapse:collapse;background:#fff">
+    <tr><th>Name</th><th>Start</th><th>End</th><th>Grace</th><th>Status</th></tr>
+    {% for s in shifts %}
+    <tr>
+        <td>{{ s.shift_name }}</td>
+        <td>{{ s.start_time }}</td>
+        <td>{{ s.end_time }}</td>
+        <td>{{ s.grace_minutes }} min</td>
+        <td>{% if s.is_active %}Active{% else %}Inactive{% endif %}</td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="5">No shifts defined yet.</td></tr>
+    {% endfor %}
+</table>
+</div>
+{% endblock %}

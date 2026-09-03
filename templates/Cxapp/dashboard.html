@@ -1,0 +1,72 @@
+{% extends 'Cxapp/_base.html' %}
+{% block title %}Dashboard · {{ cx_company.company_name }}{% endblock %}
+{% block page_title %}Welcome{% if cx_is_owner %}, Owner{% endif %}{% endblock %}
+{% block content %}
+<style>
+.sub{font-size:13px;color:#6b7c93;margin-bottom:24px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
+.card{background:#fff;border-radius:12px;padding:20px;box-shadow:0 4px 20px rgba(15,32,39,.06)}
+.card h3{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:#6b7c93;margin-bottom:8px}
+.card .val{font-size:26px;font-weight:700;color:var(--green)}
+.card a{display:inline-block;margin-top:12px;font-size:13px;color:var(--green);text-decoration:none;font-weight:600}
+</style>
+<p class="sub">{{ cx_company.full_address }}</p>
+<div class="grid">
+  {% if cx_is_owner %}
+  <div class="card">
+    <h3>Sub Users</h3>
+    <div class="val">{{ sub_user_count }} / {{ sub_user_max }}</div>
+    <a href="{% url 'cxapp_sub_user_list' %}">Manage sub-users →</a>
+  </div>
+  {% endif %}
+  <div class="card">
+    <h3>Company Profile</h3>
+    <div class="val">View</div>
+    <a href="{% url 'cxapp_company_profile' %}">Edit profile →</a>
+  </div>
+  {% if cx_can_employees %}
+  <div class="card">
+    <h3>Designations</h3>
+    <div class="val">Wage Code</div>
+    <a href="{% url 'cxapp_designation_list' %}">Manage designations →</a>
+  </div>
+  {% endif %}
+  {% if cx_can_wages %}
+  <div class="card">
+    <h3>Loans &amp; Advances</h3>
+    <div class="val">Payroll</div>
+    <a href="{% url 'cxapp_list_loans' %}">Loans →</a> · <a href="{% url 'cxapp_list_advances' %}">Advances →</a>
+  </div>
+  <div class="card">
+    <h3>Increment &amp; Arrear</h3>
+    <div class="val">Pay Revision</div>
+    <a href="{% url 'cxapp_list_increments' %}">Increments →</a> · <a href="{% url 'cxapp_list_arrears' %}">Arrears →</a>
+  </div>
+  <div class="card">
+    <h3>Full &amp; Final Settlement</h3>
+    <div class="val">Offboarding</div>
+    <a href="{% url 'cxapp_list_fnf' %}">Manage settlements →</a>
+  </div>
+  <div class="card">
+    <h3>Bank Payment Files</h3>
+    <div class="val">NEFT/RTGS/IMPS</div>
+    <a href="{% url 'cxapp_list_bank_batches' %}">Generate/download →</a>
+  </div>
+  <div class="card">
+    <h3>Biometric/RFID</h3>
+    <div class="val">Attendance</div>
+    <a href="{% url 'cxapp_list_devices' %}">Devices →</a> · <a href="{% url 'cxapp_list_shifts' %}">Shifts →</a>
+  </div>
+  <div class="card">
+    <h3>Assets</h3>
+    <div class="val">Tools &amp; Machines</div>
+    <a href="{% url 'cxapp_list_assets' %}">Manage assets →</a>
+  </div>
+  <div class="card">
+    <h3>Expense Claims</h3>
+    <div class="val">Reimbursements</div>
+    <a href="{% url 'cxapp_list_expense_claims' %}">Review claims →</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

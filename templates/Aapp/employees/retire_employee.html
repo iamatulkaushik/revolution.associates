@@ -1,0 +1,41 @@
+{% extends 'Aapp/base.html' %}
+{% block title %}Retire Employee{% endblock %}
+{% load static %}
+{% block content %}
+<div class="main-content">
+    <div class="container">
+        <div class="quickupdate" style="max-width:520px;">
+            <h2>Retire / Separate — {{ emp.name }}</h2><hr>
+            <table class="data-table" style="background:transparent;box-shadow:none;min-width:unset;margin-bottom:15px;">
+                <tbody>
+                    <tr><td>Code</td><td>{{ emp.employeecode }}</td></tr>
+                    <tr><td>Designation</td><td>{{ emp.designationID.designationname }}</td></tr>
+                    <tr><td>Date of Joining</td><td>{{ emp.dateofjoining|date:"d M Y" }}</td></tr>
+                </tbody>
+            </table>
+            <form method="post">
+                {% csrf_token %}
+                <table class="data-table" style="background:transparent;box-shadow:none;min-width:unset;">
+                    <tbody>
+                        <tr>
+                            <td><label>Date of Retirement</label></td>
+                            <td><input type="date" name="dateofretirement" value="{{ emp.dateofretirement|date:'Y-m-d' }}"></td>
+                        </tr>
+                        <tr>
+                            <td><label>Date of Leaving</label></td>
+                            <td><input type="date" name="dateofleaving" value="{{ emp.dateofleaving|date:'Y-m-d' }}"></td>
+                        </tr>
+                        <tr>
+                            <td><label>Leaving Reason</label></td>
+                            <td><input type="text" name="leaving_reason" value="{{ emp.leaving_reason }}" placeholder="Resignation / Retirement / Termination..."></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <br>
+                <button type="submit" class="button">Confirm</button>
+                <a href="{% url 'list_employee' %}" class="button" style="margin-left:10px;">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,92 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}Revolution HRMS{% endblock %}</title>
+    <link rel="icon" type="image/ico" href="{% static 'favicon.ico' %}" />
+    <link
+      rel="prefetch"
+      href="{% static 'fonts/Infinitude.ttf' %}"
+      as="font"
+      type="font/ttf"
+      crossorigin
+    />
+    <link
+      rel="prefetch"
+      href="{% static 'fonts/Ubuntu-R.ttf' %}"
+      as="font"
+      type="font/ttf"
+      crossorigin
+    />
+<style>
+  @font-face {
+    font-family: 'Ubuntu';
+    src: url('{% static "fonts/Ubuntu-R.ttf" %}') format('truetype');
+  }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--navy:#0f2027;--green:#2a9d8f;--gold:#e9c46a;--cream:#f0f4f8;--sidebar-w:240px}
+body{font-family:'Ubuntu',system-ui,sans-serif;background:var(--cream);color:var(--navy)}
+a{color:inherit}
+input[type="text"], select, textarea{font-family:'Ubuntu',sans-serif}
+/* ── Sidebar ── */
+.cx-sidebar{position:fixed;top:0;left:0;width:var(--sidebar-w);height:100vh;overflow-y:auto;
+  background:linear-gradient(180deg,#0f2027 0%,#16323d 100%);color:#fff;display:flex;flex-direction:column;
+  padding:20px 0}
+.cx-sidebar-brand{display:flex;align-items:center;gap:10px;padding:0 20px 20px;border-bottom:1px solid rgba(255,255,255,.08);margin-bottom:12px}
+.cx-sidebar-logo{width:34px;height:34px;border-radius:8px;background:var(--green);display:flex;align-items:center;
+  justify-content:center;font-weight:700;font-size:16px;flex-shrink:0}
+.cx-sidebar-company{font-size:13px;font-weight:600;line-height:1.3}
+.cx-sidebar-role{font-size:10.5px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.05em}
+.cx-sidebar-section{padding:6px 12px;margin-bottom:6px}
+.cx-sidebar-label{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.35);
+  padding:10px 12px 4px}
+.cx-nav-item{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;border-radius:8px;
+  font-size:13.5px;text-decoration:none;color:rgba(255,255,255,.85);margin-bottom:2px}
+.cx-nav-item:hover{background:rgba(255,255,255,.06)}
+.cx-nav-item.active{background:rgba(42,157,143,.18);color:#fff;font-weight:600}
+.cx-nav-badge{background:#e63946;color:#fff;font-size:10px;font-weight:700;border-radius:999px;
+  padding:1px 6px;line-height:1.4}
+.cx-sidebar-footer{margin-top:auto;padding:12px 12px 0;border-top:1px solid rgba(255,255,255,.08)}
+.cx-nav-logout{color:rgba(255,255,255,.6)}
+
+/* ── Content ── */
+.cx-content{margin-left:var(--sidebar-w);min-height:100vh}
+.cx-topbar{background:#fff;border-bottom:1px solid #dde5ed;padding:14px 28px;display:flex;
+  justify-content:space-between;align-items:center;position:sticky;top:0;z-index:5}
+.cx-topbar h1{font-size:18px;font-weight:600}
+.cx-topbar-actions a,.cx-topbar-actions button{font-size:13px}
+.cx-page{padding:28px}
+
+@media (max-width:900px){
+  :root{--sidebar-w:0px}
+  .cx-sidebar{display:none}
+  .cx-content{margin-left:0}
+}
+</style>
+{% block extra_head %}{% endblock %}
+</head>
+<body>
+  {% include 'Cxapp/_sidebar.html' %}
+  <div class="cx-content">
+    {% block topbar %}
+    <div class="cx-topbar">
+      <h1>{% block page_title %}{% endblock %}</h1>
+      <div class="cx-topbar-actions">{% block topbar_actions %}{% endblock %}</div>
+    </div>
+    {% endblock %}
+    <div class="cx-page">
+      {% if messages %}
+        {% for message in messages %}
+          <div style="background:{% if message.tags == 'success' %}#eafaf5{% elif message.tags == 'info' %}#eef6fb{% else %}#fdecea{% endif %};
+            border-left:4px solid {% if message.tags == 'success' %}var(--green){% elif message.tags == 'info' %}#4a90c2{% else %}#e63946{% endif %};
+            border-radius:8px;padding:12px 16px;margin-bottom:20px;font-size:13.5px;">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+      {% block content %}{% endblock %}
+    </div>
+  </div>
+{% block extra_body %}{% endblock %}
+</body>
+</html>

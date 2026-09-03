@@ -1,0 +1,163 @@
+{% extends "Sapp/base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+{% if messages %}
+<div class="messages-container">
+{% for message in messages %}
+<div class="message-alert {% if message.tags == 'error' %}message-error{% elif message.tags == 'warning' %}message-warning{% else %}message-success{% endif %}" role="alert">{{ message }}</div>
+{% endfor %}
+</div>
+{% endif %}
+
+
+<div class="section-header">
+  <h2>Superadmin Dashboard</h2>
+  <div class="section-actions">
+    <a href="{% url 'create_company' %}" class="button btn-primary">+ Company</a>
+    <a href="{% url 'create_associate' %}" class="button">+ Associate</a>
+    <a href="{% url 'issue_license' %}" class="button">+ License</a>
+    <a href="{% url 'audit_log_list' %}" class="button">Audit Trail</a>
+  </div>
+</div>
+
+<div class="stat-grid">
+  <div class="stat-card" style="--accent-color:#e63946">
+    <div class="stat-icon">П</div>
+    <div class="stat-value"><a href="{% url 'list_company' %}" style="color:inherit">{{ CompanyDetails|length }}</a></div>
+    <div class="stat-label">Total Companies</div>
+  </div>
+  <div class="stat-card" style="--accent-color:#457b9d">
+    <div class="stat-icon">ı</div>
+    <div class="stat-value"><a href="{% url 'list_associates' %}" style="color:inherit">{{ associates_count }}</a></div>
+    <div class="stat-label">Associates</div>
+  </div>
+  <div class="stat-card" style="--accent-color:#2a9d8f">
+    <div class="stat-icon">У</div>
+    <div class="stat-value"><a href="{% url 'sapp_list_subusers' %}" style="color:inherit">{{ subusers_count }}</a></div>
+    <div class="stat-label">Sub Users</div>
+  </div>
+  <div class="stat-card" style="--accent-color:#ff6f61">
+    <div class="stat-icon">Ē</div>
+    <div class="stat-value"><a href="{% url 'list_licenses' %}" style="color:inherit">{{ LicenseDetails|length }}</a></div>
+    <div class="stat-label">Licenses</div>
+  </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-5);margin-bottom:var(--sp-5)">
+
+  <!-- Associates -->
+  <div class="card">
+    <div class="card-header">
+      <h3>Associates</h3>
+      <div class="card-actions">
+        <a href="{% url 'create_associate' %}" class="button btn-sm" style="background:rgba(255,255,255,.15);color:#fff;border-color:rgba(255,255,255,.2)">+ New</a>
+      </div>
+    </div>
+    <div style="overflow-y:auto;max-height:320px">
+      {% if associates_list %}
+      <table class="data-table">
+        <thead><tr><th>Name</th><th>ID</th><th>Status</th><th></th></tr></thead>
+        <tbody>
+          {% for a in associates_list %}
+          <tr>
+            <td><strong>{{ a.user.get_full_name|default:a.user.username }}</strong></td>
+            <td class="text-muted text-sm">{{ a.associate_id }}</td>
+            <td>
+              {% if a.is_active %}<span class="badge badge-success">Active</span>
+              {% else %}<span class="badge badge-danger">Disabled</span>{% endif %}
+            </td>
+            <td><a href="{% url 'alter_associate' a.id %}" class="action-edit">Edit</a></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div style="text-align:center;padding:var(--sp-6);color:var(--c-muted)">No associates yet.</div>
+      {% endif %}
+    </div>
+    <div style="padding:var(--sp-3) var(--sp-5);border-top:1px solid var(--c-border);text-align:center">
+      <a href="{% url 'list_associates' %}" class="button btn-sm">View All Associates</a>
+    </div>
+  </div>
+
+  <!-- Sub Users -->
+  <div class="card">
+    <div class="card-header">
+      <h3>Sub Users</h3>
+      <div class="card-actions">
+        <a href="{% url 'create_subuser' %}" class="button btn-sm" style="background:rgba(255,255,255,.15);color:#fff;border-color:rgba(255,255,255,.2)">+ New</a>
+      </div>
+    </div>
+    <div style="overflow-y:auto;max-height:320px">
+      {% if subusers_list %}
+      <table class="data-table">
+        <thead><tr><th>Name</th><th>Role</th><th>Status</th><th></th></tr></thead>
+        <tbody>
+          {% for s in subusers_list %}
+          <tr>
+            <td><strong>{{ s.user.get_full_name|default:s.user.username }}</strong></td>
+            <td class="text-muted text-sm">{{ s.role|title }}</td>
+            <td>
+              {% if s.is_active %}<span class="badge badge-success">Active</span>
+              {% else %}<span class="badge badge-danger">Disabled</span>{% endif %}
+            </td>
+            <td><a href="{% url 'sapp_alter_subuser' s.id %}" class="action-edit">Edit</a></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div style="text-align:center;padding:var(--sp-6);color:var(--c-muted)">No sub users yet.</div>
+      {% endif %}
+    </div>
+    <div style="padding:var(--sp-3) var(--sp-5);border-top:1px solid var(--c-border);text-align:center">
+      <a href="{% url 'sapp_list_subusers' %}" class="button btn-sm">View All Sub Users</a>
+    </div>
+  </div>
+
+</div>
+
+<!-- Licenses -->
+<div class="card">
+  <div class="card-header">
+    <h3>Licenses</h3>
+    <div class="card-actions">
+      <a href="{% url 'issue_license' %}" class="button btn-sm" style="background:rgba(255,255,255,.15);color:#fff;border-color:rgba(255,255,255,.2)">+ Issue</a>
+    </div>
+  </div>
+  {% if LicenseDetails %}
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead><tr><th>Company</th><th>Type</th><th>Key</th><th>Expires</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody>
+        {% for lic in LicenseDetails %}
+        <tr>
+          <td><strong>{{ lic.company.company_name }}</strong></td>
+          <td class="text-muted">{{ lic.get_license_type_display }}</td>
+          <td class="text-sm" style="font-family:monospace">{{ lic.license_key }}</td>
+          <td class="text-muted text-sm">{{ lic.expiry_date|default:"—" }}</td>
+          <td>
+            {% if lic.status == 'active' %}<span class="badge badge-success">Active</span>
+            {% elif lic.status == 'suspended' %}<span class="badge badge-warn">Suspended</span>
+            {% else %}<span class="badge badge-danger">{{ lic.get_status_display }}</span>{% endif %}
+          </td>
+          <td>
+            <div class="action-cell">
+              <a href="{% url 'alter_license' lic.license_id %}" class="action-edit">Edit</a>
+              <a href="{% url 'revoke_suspend_license' lic.license_id %}" class="action-delete">Manage</a>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div style="text-align:center;padding:var(--sp-8);color:var(--c-muted)">No licenses issued yet. <a href="{% url 'issue_license' %}">Issue the first license</a>.</div>
+  {% endif %}
+  <div style="padding:var(--sp-3) var(--sp-5);border-top:1px solid var(--c-border);text-align:center">
+    <a href="{% url 'list_licenses' %}" class="button btn-sm">View All Licenses</a>
+  </div>
+</div>
+
+{% endblock %}

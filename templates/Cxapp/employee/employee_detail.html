@@ -1,0 +1,119 @@
+{% extends 'Cxapp/_base.html' %}
+{% block title %}{{ employee.name }} · {{ cx_company.company_name }}{% endblock %}
+{% block page_title %}{{ employee.name }}{% endblock %}
+{% block content %}
+<style>
+.wrap{max-width:900px;margin:0 auto;padding:32px 24px}
+.header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px}
+.header h1{font-size:24px}
+.header .code{font-size:13px;color:#6b7c93}
+.gates{display:flex;gap:8px;flex-wrap:wrap}
+.gate{font-size:11px;padding:3px 10px;border-radius:999px;font-weight:600}
+.gate.open{background:rgba(42,157,143,.1);color:var(--green)}
+.gate.closed{background:#fdecea;color:#e63946}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.card{background:#fff;border-radius:12px;padding:20px;box-shadow:0 4px 20px rgba(15,32,39,.06)}
+.card h3{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:#6b7c93;margin-bottom:12px;
+  display:flex;justify-content:space-between;align-items:center}
+.card h3 a{font-size:11.5px;color:var(--green);text-decoration:none;text-transform:none;letter-spacing:0}
+.field-row{display:flex;justify-content:space-between;font-size:13.5px;padding:4px 0;border-bottom:1px dashed #eef2f6}
+.field-row .lbl{color:#6b7c93}
+.empty{font-size:13px;color:#6b7c93;font-style:italic}
+.restricted{font-size:12.5px;color:#a67c00;background:#fff8e1;padding:8px 12px;border-radius:6px}
+.nominee-row{display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:1px dashed #eef2f6}
+.nominee-pct{font-weight:700;color:var(--green)}
+</style>
+<div class="header">
+    <div>
+      
+      <p class="code">{{ employee.employee_code }} · {{ employee.designation.designation_name }}</p>
+    </div>
+    <div class="gates">
+      <span class="gate {% if gates.epf %}open{% else %}closed{% endif %}">EPF {% if gates.epf %}✓{% else %}✗{% endif %}</span>
+      <span class="gate {% if gates.esi %}open{% else %}closed{% endif %}">ESI {% if gates.esi %}✓{% else %}✗{% endif %}</span>
+      <span class="gate {% if gates.labour %}open{% else %}closed{% endif %}">Labour {% if gates.labour %}✓{% else %}✗{% endif %}</span>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h3>Address <a href="{% url 'cxapp_employee_address_edit' employee.employee_id %}">{% if address %}Edit{% else %}Add{% endif %}</a></h3>
+      {% if address %}
+        <div class="field-row"><span class="lbl">Address</span><span>{{ address.address }}</span></div>
+        <div class="field-row"><span class="lbl">State</span><span>{{ address.state }}</span></div>
+        <div class="field-row"><span class="lbl">District</span><span>{{ address.district }}</span></div>
+        <div class="field-row"><span class="lbl">PIN</span><span>{{ address.pin }}</span></div>
+      {% else %}<p class="empty">Not added yet.</p>{% endif %}
+    </div>
+
+    <div class="card">
+      <h3>Contact <a href="{% url 'cxapp_employee_contact_edit' employee.employee_id %}">{% if contact %}Edit{% else %}Add{% endif %}</a></h3>
+      {% if contact %}
+        <div class="field-row"><span class="lbl">Mobile</span><span>{{ contact.mobile }}</span></div>
+        <div class="field-row"><span class="lbl">Phone</span><span>{{ contact.phone|default:"—" }}</span></div>
+        <div class="field-row"><span class="lbl">Email</span><span>{{ contact.email|default:"—" }}</span></div>
+      {% else %}<p class="empty">Not added yet.</p>{% endif %}
+    </div>
+
+    <div class="card">
+      <h3>Statutory IDs <a href="{% url 'cxapp_employee_statutory_edit' employee.employee_id %}">{% if statutory %}Edit{% else %}Add{% endif %}</a></h3>
+      {% if statutory %}
+        <div class="field-row"><span class="lbl">UAN</span><span>{{ statutory.uan_number|default:"—" }}</span></div>
+        <div class="field-row"><span class="lbl">ESI No.</span><span>{{ statutory.esi_number|default:"—" }}</span></div>
+        <div class="field-row"><span class="lbl">Labour ID</span><span>{{ statutory.labour_id|default:"—" }}</span></div>
+      {% else %}<p class="empty">Not added yet.</p>{% endif %}
+    </div>
+
+    <div class="card">
+      <h3>Employment <a href="{% url 'cxapp_employee_employment_edit' employee.employee_id %}">{% if employment %}Edit{% else %}Add{% endif %}</a></h3>
+      {% if employment %}
+        <div class="field-row"><span class="lbl">Type</span><span>{{ employment.employment_type }}</span></div>
+        <div class="field-row"><span class="lbl">Date of Joining</span><span>{{ employment.date_of_joining }}</span></div>
+        <div class="field-row"><span class="lbl">DOJ ESI</span><span>{{ employment.doj_esi|default:"—" }}</span></div>
+        <div class="field-row"><span class="lbl">DOJ EPF</span><span>{{ employment.doj_epf|default:"—" }}</span></div>
+      {% else %}<p class="empty">Not added yet.</p>{% endif %}
+    </div>
+
+    {% if can_manage %}
+    <div class="card">
+      <h3>Employee Login</h3>
+      <div class="field-row">
+        <span class="lbl">Status</span>
+        <span>{% if has_login %}Login active{% else %}No login set{% endif %}</span>
+      </div>
+      <a class="btn" href="{% url 'cxapp_employee_set_password' employee.employee_id %}">
+        {% if has_login %}Reset Password{% else %}Generate Password{% endif %}
+      </a>
+    </div>
+
+    <div class="card">
+      <h3>KYC <a href="{% url 'cxapp_employee_kyc_edit' employee.employee_id %}">{% if kyc %}Edit{% else %}Add{% endif %}</a></h3>
+      {% if kyc %}
+        <div class="field-row"><span class="lbl">Aadhaar</span><span>•••• •••• {{ kyc.aadhar_number|slice:"-4:" }}</span></div>
+        <div class="field-row"><span class="lbl">PAN</span><span>{{ kyc.pan_number|default:"—" }}</span></div>
+      {% else %}<p class="empty">Not added yet.</p>{% endif %}
+    </div>
+
+    <div class="card">
+      <h3>Banking <a href="{% url 'cxapp_employee_banking_edit' employee.employee_id %}">{% if banking %}Edit{% else %}Add{% endif %}</a></h3>
+      {% if banking %}
+        <div class="field-row"><span class="lbl">Account</span><span>•••• {{ banking.account_number|slice:"-4:" }}</span></div>
+        <div class="field-row"><span class="lbl">Bank</span><span>{{ banking.bank }}</span></div>
+        <div class="field-row"><span class="lbl">IFSC</span><span>{{ banking.bank_ifsc }}</span></div>
+      {% else %}<p class="empty">Not added yet.</p>{% endif %}
+    </div>
+
+    <div class="card">
+      <h3>Nominees <a href="{% url 'cxapp_employee_nominee_add' employee.employee_id %}">+ Add</a></h3>
+      {% for n in nominees %}
+        <div class="nominee-row"><span>{{ n.nominee_name }} ({{ n.relation }})</span><span class="nominee-pct">{{ n.percentage }}%</span></div>
+      {% empty %}<p class="empty">No nominees yet.</p>{% endfor %}
+    </div>
+    {% else %}
+    <div class="card">
+      <h3>Sensitive Details</h3>
+      <p class="restricted">KYC, banking, and nominee details are restricted to the owner and HR role.</p>
+    </div>
+    {% endif %}
+  </div>
+{% endblock %}

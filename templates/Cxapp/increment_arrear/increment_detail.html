@@ -1,0 +1,17 @@
+{% extends 'Cxapp/_base.html' %}
+{% block title %}Increment Detail{% endblock %}
+{% block page_title %}Increment — {{ increment.employee.name }}{% endblock %}
+{% block content %}
+<div class="wrap" style="max-width:600px;margin:0 auto;padding:32px 24px">
+<table style="width:100%;border-collapse:collapse;background:#fff">
+    <tr><td><strong>Effective From</strong></td><td>{{ increment.effective_from_month }}/{{ increment.effective_from_year }}</td></tr>
+    <tr><td><strong>Old Basic Pay</strong></td><td>Rs. {{ increment.old_basic_pay }}</td></tr>
+    <tr><td><strong>New Basic Pay</strong></td><td>Rs. {{ increment.new_basic_pay }}</td></tr>
+    <tr><td><strong>Increase</strong></td><td>Rs. {{ increment.basic_increase }} ({{ increment.increase_percent }}%)</td></tr>
+    <tr><td><strong>New DA</strong></td><td>Rs. {{ increment.new_da }}</td></tr>
+    <tr><td><strong>Reason</strong></td><td>{{ increment.reason }}</td></tr>
+    <tr><td><strong>Status</strong></td><td>{{ increment.get_status_display }}</td></tr>
+</table>
+<p><a href="{% url 'cxapp_list_increments' %}">Back to Increments</a></p>
+</div>
+{% endblock %}

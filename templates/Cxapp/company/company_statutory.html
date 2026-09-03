@@ -1,0 +1,98 @@
+{% extends 'Cxapp/_base.html' %}
+{% block title %}Statutory Registrations · {{ cx_company.company_name }}{% endblock %}
+{% block page_title %}Statutory Registrations{% endblock %}
+{% block content %}
+<style>
+.gate-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+.gate{font-size:11.5px;padding:4px 12px;border-radius:999px;font-weight:600}
+.gate.open{background:rgba(42,157,143,.1);color:var(--green)}
+.gate.closed{background:#fdecea;color:#e63946}
+.card{background:#fff;border-radius:12px;padding:28px;box-shadow:0 4px 20px rgba(15,32,39,.06);max-width:820px}
+fieldset{border:none;margin-bottom:24px}
+legend{font-size:12px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px}
+.row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.fg{margin-bottom:14px}
+.fg label{display:block;font-size:11px;font-weight:600;color:#6b7c93;text-transform:uppercase;margin-bottom:4px}
+.fg input{width:100%;font-size:14px;padding:9px 12px;border:1.5px solid #dde5ed;border-radius:7px;background:var(--cream)}
+.btn{padding:12px 24px;background:linear-gradient(135deg,#0f2027,#2a9d8f);color:#fff;border:none;
+  border-radius:8px;font-weight:600;cursor:pointer}
+.gate-note{font-size:12.5px;color:#6b7c93;margin-bottom:20px}
+</style>
+
+<p class="gate-note">These registration numbers directly control payroll deductions and compliance exports — no registration on file means no deduction is made for that scheme.</p>
+
+<div class="gate-row">
+  <span class="gate {% if gates.shop_act %}open{% else %}closed{% endif %}">Shop Act {% if gates.shop_act %}✓{% else %}✗{% endif %}</span>
+  <span class="gate {% if gates.epf %}open{% else %}closed{% endif %}">EPF {% if gates.epf %}✓{% else %}✗{% endif %}</span>
+  <span class="gate {% if gates.esi %}open{% else %}closed{% endif %}">ESI {% if gates.esi %}✓{% else %}✗{% endif %}</span>
+  <span class="gate {% if gates.labour %}open{% else %}closed{% endif %}">Labour {% if gates.labour %}✓{% else %}✗{% endif %}</span>
+  <span class="gate {% if gates.income_tax %}open{% else %}closed{% endif %}">Income Tax (TAN) {% if gates.income_tax %}✓{% else %}✗{% endif %}</span>
+</div>
+
+<div class="card">
+  <form method="post">
+    {% csrf_token %}
+
+    <fieldset>
+      <legend>EPF</legend>
+      <div class="row">
+        <div class="fg"><label>EPFO Number</label>{{ form.epfo }}</div>
+        <div class="fg"><label>Registration Date</label>{{ form.epfo_date }}</div>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>ESI</legend>
+      <div class="row">
+        <div class="fg"><label>ESIC Number</label>{{ form.esic }}</div>
+        <div class="fg"><label>Registration Date</label>{{ form.esic_date }}</div>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>GST</legend>
+      <div class="row">
+        <div class="fg"><label>GST Number</label>{{ form.gst }}</div>
+        <div class="fg"><label>Registration Date</label>{{ form.gst_date }}</div>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Shop & Establishments Act</legend>
+      <div class="row">
+        <div class="fg"><label>Registration Number</label>{{ form.shop_act }}</div>
+        <div class="fg"><label>Registration Date</label>{{ form.shop_act_date }}</div>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Labour Welfare Fund</legend>
+      <div class="row">
+        <div class="fg"><label>Registration Number</label>{{ form.labour }}</div>
+        <div class="fg"><label>Valid From</label>{{ form.labour_from }}</div>
+        <div class="fg"><label>Valid To</label>{{ form.labour_to }}</div>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>PSARA</legend>
+      <div class="row">
+        <div class="fg"><label>Registration Number</label>{{ form.psara }}</div>
+        <div class="fg"><label>Valid From</label>{{ form.psara_from }}</div>
+        <div class="fg"><label>Valid To</label>{{ form.psara_to }}</div>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Factory License</legend>
+      <div class="row">
+        <div class="fg"><label>Registration Number</label>{{ form.factory }}</div>
+        <div class="fg"><label>Valid From</label>{{ form.factory_from }}</div>
+        <div class="fg"><label>Valid To</label>{{ form.factory_to }}</div>
+      </div>
+    </fieldset>
+
+    <button type="submit" class="btn">Save Statutory Details</button>
+  </form>
+</div>
+{% endblock %}

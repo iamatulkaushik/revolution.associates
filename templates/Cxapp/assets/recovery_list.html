@@ -1,0 +1,26 @@
+{% extends 'Cxapp/_base.html' %}
+{% block title %}Asset Recoveries{% endblock %}
+{% block page_title %}Asset Recoveries{% endblock %}
+{% block content %}
+<div class="wrap" style="max-width:960px;margin:0 auto;padding:32px 24px">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+    <h2>Asset Recoveries</h2>
+    <a href="{% url 'cxapp_create_asset_recovery' %}" class="btn" style="padding:10px 18px;background:#2a9d8f;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">Raise Recovery</a>
+</div>
+<table style="width:100%;border-collapse:collapse;background:#fff">
+    <tr><th>Asset</th><th>Emp Code</th><th>Name</th><th>Reason</th><th>Amount</th><th>Status</th></tr>
+    {% for r in recoveries %}
+    <tr>
+        <td>{{ r.asset.asset_name }}</td>
+        <td>{{ r.employee.employee_code }}</td>
+        <td>{{ r.employee.name }}</td>
+        <td>{{ r.get_reason_display }}</td>
+        <td>Rs. {{ r.recovery_amount }}</td>
+        <td>{{ r.get_status_display }}</td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="6">No recoveries raised yet.</td></tr>
+    {% endfor %}
+</table>
+</div>
+{% endblock %}

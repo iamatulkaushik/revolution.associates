@@ -1,0 +1,21 @@
+{% extends 'Cxapp/_base.html' %}
+{% block title %}Employee Mappings{% endblock %}
+{% block page_title %}Mappings — {{ device.device_name }}{% endblock %}
+{% block content %}
+<div class="wrap" style="max-width:800px;margin:0 auto;padding:32px 24px">
+<a href="{% url 'cxapp_create_device_mapping' device.device_id %}" class="btn" style="padding:10px 18px;background:#2a9d8f;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">Map Employee</a>
+<table style="width:100%;border-collapse:collapse;background:#fff;margin-top:16px">
+    <tr><th>Emp Code</th><th>Name</th><th>Device User ID</th><th>Status</th></tr>
+    {% for m in mappings %}
+    <tr>
+        <td>{{ m.employee.employee_code }}</td>
+        <td>{{ m.employee.name }}</td>
+        <td>{{ m.device_user_id }}</td>
+        <td>{% if m.is_active %}Active{% else %}Inactive{% endif %}</td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="4">No employees mapped yet.</td></tr>
+    {% endfor %}
+</table>
+</div>
+{% endblock %}

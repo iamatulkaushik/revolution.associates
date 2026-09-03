@@ -1,0 +1,37 @@
+{% extends 'Aapp/base.html' %}
+{% block title %}Branch Details{% endblock %}
+{% block content %}
+<div class="section-header">
+  <h2>Branch Details</h2>
+  <div class="section-actions">
+    {% if branch %}<a href="{% url 'alter_branch' branch.branchid %}" class="button btn-primary">Edit Branch</a>{% endif %}
+    <a href="{% url 'branch_list' %}" class="button">← All Branches</a>
+  </div>
+</div>
+{% if messages %}
+<div class="messages-container">
+  {% for message in messages %}<div class="message-alert {% if message.tags == 'error' %}message-error{% else %}message-success{% endif %}" role="alert">{{ message }}</div>{% endfor %}
+</div>
+{% endif %}
+{% if branch %}
+<div class="card" style="max-width:600px">
+  <div class="card-header"><h3>{{ branch.branch_name }}</h3></div>
+  <div class="card-body">
+    <table class="data-table">
+      <tbody>
+        <tr><th style="width:160px;background:var(--c-bg);font-size:11px;color:var(--c-muted);text-transform:uppercase;letter-spacing:.06em">Branch Name</th><td>{{ branch.branch_name }}</td></tr>
+        <tr><th>Branch Code</th><td>{{ branch.branch_code|default:"—" }}</td></tr>
+        <tr><th>Company</th><td>{{ branch.companyid.company_name }}</td></tr>
+        <tr><th>Address</th><td>{{ branch.branch_address|default:"—" }}</td></tr>
+        <tr><th>Email</th><td>{{ branch.branch_email|default:"—" }}</td></tr>
+        <tr><th>Contact Person</th><td>{{ branch.contact_person|default:"—" }}</td></tr>
+        <tr><th>Contact Mobile</th><td>{{ branch.contact_mobile|default:"—" }}</td></tr>
+        <tr><th>Created</th><td>{{ branch.created_at }}</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="card"><div class="card-body text-center text-muted" style="padding:var(--sp-8)">Branch not found.</div></div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,44 @@
+{% extends 'Aapp/base.html' %}
+{% block title %}Company List{% endblock %}
+{% block content %}
+<div class="main-content">
+<h2>Company List</h2>
+
+{% if companies %}
+<p>Total Companies: <strong>{{ companies|length }}</strong></p>
+<table class="data-table">
+    <thead>
+        <tr>
+            <th>Company Name</th>
+            <th>PAN</th>
+            <th>Mobile</th>
+            <th>Email</th>
+            <th>Start Date</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for company in companies %}
+        <tr>
+            <td>{{ company.company_name }}</td>
+            <td>{{ company.pan }}</td>
+            <td>{{ company.mobile }}</td>
+            <td>{{ company.email1 }}</td>
+            <td>{{ company.start_date }}</td>
+            <td>
+                <a href="{% url 'alter_company_associate' company.company_id %}" title="Company Basics Update" class="button edit"></a>
+                <a href="{% url 'alter_company_statutory' company.company_id %}" title="Company Statutory Update" class="button statuary"></a>
+                <a href="{% url 'mark_inactive_company' company.company_id %}" title="Mark Inactive" class="button inactive"></a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>No companies available.</p>
+{% endif %}
+<br>
+<br>
+<a href="{% url 'create_company_associate' %}" class="button">Create New Company</a>
+</div>
+{% endblock %}

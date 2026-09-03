@@ -1,0 +1,217 @@
+{% extends "Sapp/base.html" %}
+{% block title %}Update Company{% endblock %}
+{% load static %}
+{% block additionalcss_js %}
+<script>
+  function loadDistricts() {
+    const stateSelect = document.querySelector('#id_state_id');
+    const districtSelect = document.querySelector('#id_district_id');
+    if (!stateSelect || !districtSelect) return;
+
+    stateSelect.addEventListener('change', function () {
+      const stateId = this.value;
+      if (!stateId) {
+        districtSelect.innerHTML = '<option value="">---------</option>';
+        return;
+      }
+
+      fetch(`/admin/get_districts/${stateId}/`)
+        .then(response => response.json())
+        .then(data => {
+          districtSelect.innerHTML = '<option value="">---------</option>';
+          data.forEach(district => {
+            districtSelect.innerHTML += `<option value="${district.id}">${district.name}</option>`;
+          });
+        })
+        .catch(error => {
+          console.error('Error loading districts:', error);
+          districtSelect.innerHTML = '<option value="">Error loading districts</option>';
+        });
+    });
+  }
+  document.addEventListener('DOMContentLoaded', loadDistricts);
+</script>
+
+{% endblock %}
+{% block content %}
+{% if messages %}
+<div class="messages-container">
+  {% for message in messages %}
+  <div
+    class="message-alert {% if message.tags == 'error' %}message-error{% elif message.tags == 'warning' %}message-warning{% else %}message-success{% endif %}"
+    role="alert">{{ message }}</div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<div class="form-container">
+  <h2>Update Company Details</h2>
+  <form method="post">
+    {% csrf_token %}
+    <div class="form-section">
+      <h3>Basic Information</h3>
+      <div class="form-group">
+        <label>Company Name *</label>
+        {{form.company_name}}
+        {{form.tagline1}}
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Start Date *</label>
+          {{form.start_date}}
+          <label>Shut Date</label>
+          {{form.shut_date}}
+        </div>
+      </div>
+    </div>
+    <div class="form-section">
+      <h3>Address</h3>
+      <div class="form-group">
+        <label>Address</label>
+        {{form.address1}}
+        {{form.address2}}
+        {{form.address3}}
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>State *</label>
+          {{form.state_id}}
+        </div>
+        <div class="form-group">
+          <label>District * | PIN</label>
+          {{form.district_id}}-
+          {{form.pin}}
+        </div>
+      </div>
+      <div class="form-group">
+        <label>PIN Code</label>
+      </div>
+    </div>
+    <div class="form-section">
+      <h3>Contact</h3>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Mobile *</label>
+          {{form.mobile}}
+          {{form.mobile2}}
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Phone</label>
+          {{form.phone}}
+          {{form.phone2}}
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Email *</label>
+          {{form.email1}}
+          {{form.email2}}
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Website</label>
+        {{form.website}}
+      </div>
+    </div>
+    <div class="form-section">
+      <h3>Statutory</h3>
+      <div class="form-row">
+        <div class="form-group">
+          <label>PAN *</label>
+          {{form.pan}}
+        </div>
+        <div class="form-group">
+          <label>TAN</label>
+          {{form.tan}}
+        </div>
+      </div>
+      <div class="form-group">
+        <label>CIN</label>
+        {{form.cin}}
+      </div>
+    </div>
+    <div class="form-section">
+      <h3>Bank Details</h3>
+      <div class="form-group">
+        <label>Bank Name</label>
+        {{form.bank_id}}
+        {{form.branch_address}}
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Account Number | IFSC Code</label>
+          {{form.account}}
+          {{form.ifsc}}
+        </div>
+      </div>
+    </div>
+    <button type="submit" class="button btn-primary">Update Company</button>
+  </form>
+</div>
+
+<div class="form-container">
+  <h2>Company Owner</h2>
+  {% if current_owner %}
+  <p class="text-muted">
+    Current owner: <strong>{{ current_owner.user.username }}</strong>
+    (Owner ID: {{ current_owner.owner_id }}) —
+    {{ current_owner.get_status_display }}
+  </p>
+  {% else %}
+  <p class="text-muted">No owner assigned yet.</p>
+  {% endif %}
+
+  <form method="post" action="{% url 'assign_company_owner' company.company_id %}" id="ownerForm">
+    {% csrf_token %}
+
+    <div class="form-group">
+      <label><input type="radio" name="mode" value="existing" checked onclick="toggleOwnerMode()"> Assign existing
+        user</label>
+      <label><input type="radio" name="mode" value="new" onclick="toggleOwnerMode()"> Create new user</label>
+    </div>
+
+    <div id="existingUserBlock" class="form-group">
+      <label>Select User</label>
+      <select name="user_id">
+        <option value="">---------</option>
+        {% for u in eligible_users %}
+        <option value="{{ u.id }}" {% if current_owner.user_id == u.id %}selected{% endif %}>{{ u.username }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div id="newUserBlock" class="form-row" style="display:none">
+      <div class="form-group"><label>Username</label><input type="text" name="username"></div>
+      <div class="form-group"><label>Email</label><input type="email" name="email"></div>
+      <div class="form-group"><label>Password</label><input type="password" name="password1"></div>
+      <div class="form-group"><label>Confirm Password</label><input type="password" name="password2"></div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Owner ID</label>
+        <input type="text" name="owner_id" value="{{ current_owner.owner_id|default:'' }}"
+          placeholder="Auto-generated if blank">
+      </div>
+      <div class="form-group">
+        <label>Mobile</label>
+        <input type="text" name="mobile" value="{{ current_owner.mobile|default:'' }}">
+      </div>
+    </div>
+
+    <button type="submit" class="button btn-primary">
+      {% if current_owner %}Update Owner{% else %}Assign Owner{% endif %}
+    </button>
+  </form>
+</div>
+
+<script>
+  function toggleOwnerMode() {
+    const isNew = document.querySelector('input[name="mode"][value="new"]').checked;
+    document.getElementById('existingUserBlock').style.display = isNew ? 'none' : 'block';
+    document.getElementById('newUserBlock').style.display = isNew ? 'flex' : 'none';
+  }
+</script>
+{% endblock %}

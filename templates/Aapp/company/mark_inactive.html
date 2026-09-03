@@ -1,0 +1,15 @@
+{% extends 'Aapp/base.html' %}
+{% block title %}Mark Company Inactive{% endblock %}
+{% block content %}
+<div class="main-content">
+<h2>Mark Company Inactive</h2>
+
+<p>Are you sure you want to mark <strong>{{ company.company_name }}</strong> as inactive?</p>
+<p>This will remove the company from the selection list and set the shut date to today.</p>
+
+<form method="post">
+    {% csrf_token %}
+    <button type="submit" class="button">Confirm Mark Inactive</button>
+    <a href="{% url 'list_company_associate' %}" class="button">Cancel</a>
+</form></div>
+{% endblock %}

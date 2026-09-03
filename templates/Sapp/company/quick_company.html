@@ -1,0 +1,67 @@
+{% extends "Sapp/base.html" %}
+{% block title %}Quick Company{% endblock %}
+{% load static %}
+{% block additionalcss_js %}
+
+{% endblock %}
+{% block content %}
+{% if messages %}
+<div class="messages-container">
+{% for message in messages %}
+<div class="message-alert {% if message.tags == 'error' %}message-error{% elif message.tags == 'warning' %}message-warning{% else %}message-success{% endif %}" role="alert">{{ message }}</div>
+{% endfor %}
+</div>
+{% endif %}
+
+<div class="container">
+<div class="header">
+<h2>Quick Company Registration</h2>
+<a href="{% url 'list_company' %}" class="button" style="width:auto">View All Companies</a>
+</div>
+<div class="quick-grid">
+<div class="form-section">
+<h3 class="section-title">Create New Company</h3>
+<form method="post">
+{% csrf_token %}
+<div class="form-group">
+<label>Company Name *</label>
+{{form.company_name}}
+</div>
+<div class="form-group">
+<label>Start Date *</label>
+{{form.start_date}}
+</div>
+<div class="form-group">
+<label>Mobile *</label>
+{{form.mobile}}
+</div>
+<div class="form-group">
+<label>Email *</label>
+{{form.email1}}
+</div>
+<div class="form-group">
+<label>PAN *</label>
+{{form.pan}}
+</div>
+<button type="submit" class="button">Create Company</button>
+</form>
+</div>
+<div class="form-section">
+<h3 class="section-title">Recent Companies</h3>
+<div class="companies-grid">
+{% for company in recent_companies %}
+<div class="company-card">
+<h4>{{company.company_name}}</h4>
+<p><strong>PAN:</strong> {{company.pan}}</p>
+<p><strong>Mobile:</strong> {{company.mobile}}</p>
+<p><strong>Email:</strong> {{company.email1}}</p>
+<p><strong>Created:</strong> {{company.start_date}}</p>
+</div>
+{% empty %}
+<p>No companies created yet.</p>
+{% endfor %}
+</div>
+</div>
+</div>
+</div>
+{% endblock %}

@@ -1,0 +1,131 @@
+{% extends "Sapp/base.html" %}
+{% block title %}Disable/Suspend Sub User{% endblock %}
+{% load static %}
+{% block additionalcss_js %}
+
+{% endblock %}
+{% block content %}
+{% if messages %}
+<div class="messages-container">
+{% for message in messages %}
+<div class="message-alert {% if message.tags == 'error' %}message-error{% elif message.tags == 'warning' %}message-warning{% else %}message-success{% endif %}" role="alert">{{ message }}</div>
+{% endfor %}
+</div>
+{% endif %}
+
+<div class="container">
+<h2 style="color:#dc3545;margin-bottom:25px">🚫 Disable/Suspend Sub User</h2>
+<div class="user-info">
+<h3>{{subuser.user.get_full_name}} <span class="role-badge">{{subuser.role|title}}</span></h3>
+<div class="info-grid">
+<p><strong>Username:</strong> {{subuser.user.username}}</p>
+<p><strong>Email:</strong> {{subuser.user.email}}</p>
+<p><strong>Mobile:</strong> {{subuser.mobile|default:"Not provided"}}</p>
+<p><strong>Status:</strong> 
+{% if subuser.is_active %}
+<span class="status-badge status-active">Active</span>
+{% else %}
+<span class="status-badge status-disabled">Disabled</span>
+{% endif %}
+</p>
+</div>
+<p><strong>Company Access:</strong> {{subuser.get_companies.count}} companies</p>
+{% if subuser.suspension_end_time %}
+<div class="suspension-info">
+<p><strong>⏰ Suspension Status:</strong> Suspended until {{subuser.suspension_end_time|date:"M d, Y H:i"}}</p>
+</div>
+{% endif %}
+</div>
+
+<div class="associate-info">
+<h4>👤 Associate: {{subuser.associate.user.get_full_name}} ({{subuser.associate.associate_id}})</h4>
+<p><strong>Associate Status:</strong> 
+{% if subuser.associate.is_active %}
+<span class="status-badge status-active">Active</span>
+{% else %}
+<span class="status-badge status-disabled">Disabled</span>
+{% endif %}
+</p>
+<p><strong>Associate Companies:</strong> {{subuser.associate.get_companies.count}} companies</p>
+</div>
+
+<div class="action-section">
+<h4>⚠️ Action Required</h4>
+<p>Choose the appropriate action for this sub user:</p>
+<ul>
+<li><strong>Suspend 24h:</strong> Temporarily block login and system access for 24 hours</li>
+<li><strong>Disable:</strong> Permanently disable the sub user account</li>
+<li><strong>Enable:</strong> Restore full access to the system</li>
+</ul>
+<p><small style="color:#856404"><strong>Note:</strong> Sub user access is also dependent on their associate's status.</small></p>
+</div>
+
+<form method="post" id="actionForm">
+{% csrf_token %}
+<div class="form-group">
+<label>Action Type</label>
+<select name="action_type" class="form-control" required onchange="updateButtons()">
+<option value="">Select Action</option>
+<option value="suspend_24h">Suspend for 24 Hours</option>
+<option value="disable">Disable Permanently</option>
+<option value="enable">Enable User</option>
+</select>
+</div>
+<div class="form-group">
+<label>Reason</label>
+<textarea name="reason" class="form-control" rows="3" placeholder="Enter reason for this action" required></textarea>
+</div>
+<div class="actions">
+<a href="{% url 'sapp_list_subusers' %}" class="button">Cancel</a>
+<button type="submit" class="button btn-primary" name="action" value="suspend_24h" class="button" id="suspendBtn" style="display:none">
+🕒 Suspend 24h
+</button>
+<button type="submit" class="button btn-primary" name="action" value="disable" class="button btn-danger" id="disableBtn" style="display:none">
+🚫 Disable User
+</button>
+<button type="submit" class="button btn-primary" name="action" value="enable" class="button btn-success" id="enableBtn" style="display:none">
+✅ Enable User
+</button>
+</div>
+</form>
+</div>
+<script>
+function updateButtons() {
+const actionType = document.querySelector('[name="action_type"]').value;
+const suspendBtn = document.getElementById('suspendBtn');
+const disableBtn = document.getElementById('disableBtn');
+const enableBtn = document.getElementById('enableBtn');
+
+// Hide all buttons
+suspendBtn.style.display = 'none';
+disableBtn.style.display = 'none';
+enableBtn.style.display = 'none';
+
+// Show relevant button
+if (actionType === 'suspend_24h') {
+suspendBtn.style.display = 'inline-block';
+} else if (actionType === 'disable') {
+disableBtn.style.display = 'inline-block';
+} else if (actionType === 'enable') {
+enableBtn.style.display = 'inline-block';
+}
+}
+
+document.getElementById('actionForm').addEventListener('submit', function(e) {
+const actionType = document.querySelector('[name="action_type"]').value;
+let confirmMsg = '';
+
+if (actionType === 'suspend_24h') {
+confirmMsg = 'Suspend this sub user for 24 hours?';
+} else if (actionType === 'disable') {
+confirmMsg = 'Permanently disable this sub user? This action can be reversed later.';
+} else if (actionType === 'enable') {
+confirmMsg = 'Enable this sub user and restore full access?';
+}
+
+if (!confirm(confirmMsg)) {
+e.preventDefault();
+}
+});
+</script>
+{% endblock %}

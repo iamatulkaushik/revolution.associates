@@ -1,0 +1,65 @@
+{% extends 'Aapp/base.html' %}
+{% block title %}Add Attendance{% endblock %}
+{% block content %}
+<div class="main-content">
+    {% if messages %}{% for m in messages %}
+    <div class="message-alert {% if m.tags == 'success' %}message-success{% else %}message-error{% endif %}">{{ m }}</div>
+    {% endfor %}{% endif %}
+    <form method="post">
+        {% csrf_token %}
+        <h2 style="padding:10px;">Add Attendance — {{ company.company_name }}</h2>
+        <div class="container_boxed">
+            <h2>Attendance Details</h2><hr>
+            <label>Employee <span style="color:var(--Color1)">*</span></label>
+            <select class="large" name="employee_id" id="emp_select" required onchange="fillCode(this)">
+                <option value="">-- Select Employee --</option>
+                {% for emp in employees %}
+                <option value="{{ emp.employeeid }}" data-code="{{ emp.employeecode }}">{{ emp.name }} ({{ emp.employeecode }})</option>
+                {% endfor %}
+            </select><br>
+            <label>Emp Code</label>
+            <input type="text" class="sml" name="emp_code" id="emp_code" readonly><br>
+            <label>Branch</label>
+            <select class="medium" name="branchid">
+                <option value="">-- Select --</option>
+                {% for b in branches %}<option value="{{ b.branchid }}">{{ b.branch_name }}</option>{% endfor %}
+            </select>
+            <label>Division</label>
+            <input type="text" class="medium" name="divisionid" placeholder="Division (optional)"><br>
+            <label>Month <span style="color:var(--Color1)">*</span></label>
+            <select class="sml" name="salary_month" required>
+                <option value="">--</option>
+                {% for val, label in months %}<option value="{{ val }}">{{ label }}</option>{% endfor %}
+            </select>
+            <label>Year <span style="color:var(--Color1)">*</span></label>
+            <select class="sml" name="salary_year" required>
+                <option value="">--</option>
+                {% for val, label in years %}<option value="{{ val }}">{{ label }}</option>{% endfor %}
+            </select><br>
+            <label>Working Days</label>
+            <input type="number" class="sml" name="working_days" value="0" min="0" step="0.5">
+            <label>Holidays</label>
+            <input type="number" class="sml" name="holidays" value="0" min="0" step="0.5"><br>
+            <label>Casual Leaves</label>
+            <input type="number" class="sml" name="casual_leaves" value="0" min="0" step="0.5">
+            <label>Earned Leaves</label>
+            <input type="number" class="sml" name="earned_leaves" value="0" min="0" step="0.5"><br>
+            <label>Sick Leaves</label>
+            <input type="number" class="sml" name="sick_leaves" value="0" min="0" step="0.5">
+            <label>Comp Leaves</label>
+            <input type="number" class="sml" name="comp_leaves" value="0" min="0" step="0.5"><br>
+            <label>Work Pay Days</label>
+            <input type="number" class="sml" name="work_pay" value="0" min="0" step="0.5"><br>
+        </div>
+        <div style="margin:15px 10px;">
+            <button type="submit" class="button">Save</button>
+            <a href="{% url 'list_attendance' %}" class="button" style="margin-left:10px;">Cancel</a>
+        </div>
+    </form>
+</div>
+<script>
+function fillCode(sel) {
+    document.getElementById('emp_code').value = sel.options[sel.selectedIndex].dataset.code || '';
+}
+</script>
+{% endblock %}

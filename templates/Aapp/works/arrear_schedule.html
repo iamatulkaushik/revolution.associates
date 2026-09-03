@@ -1,0 +1,29 @@
+{% extends 'Aapp/base.html' %}
+{% block title %}Arrear Schedule{% endblock %}
+{% block content %}
+<div class="main-content">
+<h2>Arrear Statement — {{ arrear.employee.name }}</h2>
+
+<table class="data-table">
+    <tr><td><strong>Arrear Period</strong></td><td>{{ arrear.arrear_month }}/{{ arrear.arrear_year }}</td></tr>
+    <tr><td><strong>Payout Month</strong></td><td>{{ arrear.payout_month }}/{{ arrear.payout_year }}</td></tr>
+    <tr><td><strong>Old Basic Paid</strong></td><td>Rs. {{ arrear.old_basic_paid }}</td></tr>
+    <tr><td><strong>Revised Basic</strong></td><td>Rs. {{ arrear.revised_basic }}</td></tr>
+    <tr><td><strong>Gross Shortfall</strong></td><td>Rs. {{ arrear.gross_shortfall }}</td></tr>
+</table>
+
+<h3>Statutory Deduction Recompute (Separate Schedule)</h3>
+<table class="data-table">
+    <tr><td><strong>PF Recompute</strong></td><td>Rs. {{ arrear.pf_recompute }}</td></tr>
+    <tr><td><strong>Labour Welfare Recompute</strong></td><td>Rs. {{ arrear.labour_recompute }}</td></tr>
+    <tr><td><strong>Professional Tax Recompute</strong></td><td>Rs. {{ arrear.pt_recompute }}</td></tr>
+    <tr><td><strong>Income Tax Recompute</strong></td><td>Rs. {{ arrear.income_tax_recompute }}</td></tr>
+    <tr><td><strong>Net Arrear Payable</strong></td><td>Rs. {{ arrear.net_arrear_payable }}</td></tr>
+</table>
+
+<p>
+    <a href="{{ download_url }}" class="button">Download PDF</a>
+    <a href="{% url 'list_arrears' %}" class="button">Back to Arrears</a>
+</p>
+</div>
+{% endblock %}

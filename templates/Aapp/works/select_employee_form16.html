@@ -1,0 +1,28 @@
+{% extends 'Aapp/base.html' %}
+{% block title %}Form 16{% endblock %}
+{% block content %}
+<div class="main-content">
+<h2>Generate Form 16 — {{ company.company_name }}</h2>
+{% if messages %}{% for message in messages %}<div class="{% if message.tags == 'error' %}error{% else %}success{% endif %}">{{ message }}</div>{% endfor %}{% endif %}
+
+<p>Only employees with a PAN on file appear below (required to issue Form 16).</p>
+
+<table class="data-table">
+    <tr><th>Emp Code</th><th>Name</th><th>PAN</th><th>Action</th></tr>
+    {% for emp in employees %}
+    <tr>
+        <td>{{ emp.employeecode }}</td>
+        <td>{{ emp.name }}</td>
+        <td>{{ emp.pan_number }}</td>
+        <td>
+            <form method="get" action="{% url 'download_form16' emp.pk default_fy %}" style="display:inline">
+                <a href="{% url 'download_form16' emp.pk default_fy %}" class="button">Download Form 16 ({{ default_fy }})</a>
+            </form>
+        </td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="4">No employees with PAN on file yet.</td></tr>
+    {% endfor %}
+</table>
+</div>
+{% endblock %}

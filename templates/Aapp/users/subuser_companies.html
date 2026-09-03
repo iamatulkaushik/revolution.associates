@@ -1,0 +1,84 @@
+{% extends 'Aapp/base.html' %}
+{% block title %}Company Access{% endblock %}
+{% load static %}
+{% block content %}
+<div class="main-content">
+    <div class="container">
+        {% if messages %}
+            {% for message in messages %}
+            <div class="message-alert {% if message.tags == 'success' %}message-success{% else %}message-error{% endif %}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+
+        <h2 style="margin-bottom:15px;">Company Access — {{ subuser.user.username }}</h2>
+
+        <div style="display:inline-block; vertical-align:top; width:48%; margin-right:2%;">
+            <div class="quickupdate">
+                <h2>Assigned Companies ({{ assigned.count }})</h2><hr>
+                {% if assigned %}
+                <table class="data-table">
+                    <thead>
+                        <tr><th>Company</th><th>Action</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for company in assigned %}
+                        <tr>
+                            <td>{{ company.company_name }}</td>
+                            <td>
+                                <form method="post" style="display:inline;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="deallocate">
+                                    <input type="hidden" name="company_id" value="{{ company.company_id }}">
+                                    <button type="submit" class="button" style="font-size:11px; padding:3px 10px; border-color:var(--Color1); color:var(--Color1);">Remove</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <p style="color:#999; font-style:italic; padding:15px;">No companies assigned.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div style="display:inline-block; vertical-align:top; width:48%;">
+            <div class="quickupdate">
+                <h2>Available Companies</h2><hr>
+                {% with unassigned=available %}
+                {% if available %}
+                <table class="data-table">
+                    <thead>
+                        <tr><th>Company</th><th>Action</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for company in available %}
+                        {% if company not in assigned %}
+                        <tr>
+                            <td>{{ company.company_name }}</td>
+                            <td>
+                                <form method="post" style="display:inline;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="allocate">
+                                    <input type="hidden" name="company_id" value="{{ company.company_id }}">
+                                    <button type="submit" class="button" style="font-size:11px; padding:3px 10px; border-color:#28a745; color:#28a745;">Allocate</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endif %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <p style="color:#999; font-style:italic; padding:15px;">No companies available.</p>
+                {% endif %}
+                {% endwith %}
+            </div>
+        </div>
+
+        <div style="margin-top:20px; clear:both;">
+            <a href="{% url 'list_subusers' %}" class="button">Back to Sub Users</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,89 @@
+{% extends 'Aapp/base.html' %}
+{% block title %}Bulk Update Statutory Fields{% endblock %}
+{% block content %}
+<div class="main-content">
+    {% if messages %}{% for m in messages %}
+    <div class="message-alert {% if m.tags == 'success' %}message-success{% else %}message-error{% endif %}">{{ m }}</div>
+    {% endfor %}{% endif %}
+
+    <div style="display:flex; justify-content:space-between; align-items:center; padding:10px;">
+        <h2>Bulk Update — UAN / ESIC / PAN / Labour ID — {{ company.company_name }}</h2>
+        <a href="{% url 'list_employee' %}" class="button">&larr; Back to Employees</a>
+    </div>
+
+    <div class="container_boxed">
+        <p style="font-size:13px;margin-bottom:10px;">
+            Showing <strong>{{ employees|length }}</strong> active employee(s) missing at least one of:
+            UAN / EPF Member ID, ESIC Number, PAN Number, or Labour ID.
+            Leave a field blank to keep it unchanged — only fields you fill in will be saved.
+        </p>
+    </div>
+
+    {% if employees %}
+    <form method="post">
+        {% csrf_token %}
+        <div class="container_boxed" style="margin-top:10px;overflow-x:auto;">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Code</th>
+                        <th>Name</th>
+                        <th>Designation</th>
+                        <th>UAN / EPF No.</th>
+                        <th>EPF Member ID</th>
+                        <th>ESIC Number</th>
+                        <th>PAN Number</th>
+                        <th>Labour ID</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for emp in employees %}
+                    <tr>
+                        <td>
+                            <input type="hidden" name="employee_id" value="{{ emp.employeeid }}">
+                            {{ emp.employeecode }}
+                        </td>
+                        <td>{{ emp.name }}</td>
+                        <td>{{ emp.designationID.designationname }}</td>
+                        <td>
+                            {% if emp.uan_number %}{{ emp.uan_number }}
+                            {% else %}<input type="text" name="uan_number_{{ emp.employeeid }}" maxlength="50" style="width:120px;" placeholder="UAN">{% endif %}
+                        </td>
+                        <td>
+                            {% if emp.epf_memberID %}{{ emp.epf_memberID }}
+                            {% else %}<input type="text" name="epf_memberID_{{ emp.employeeid }}" maxlength="100" style="width:140px;" placeholder="EPF Member ID">{% endif %}
+                        </td>
+                        <td>
+                            {% if emp.esic_number %}{{ emp.esic_number }}
+                            {% else %}<input type="text" name="esic_number_{{ emp.employeeid }}" maxlength="10" style="width:100px;" placeholder="ESIC No.">{% endif %}
+                        </td>
+                        <td>
+                            {% if emp.pan_number %}{{ emp.pan_number }}
+                            {% else %}<input type="text" name="pan_number_{{ emp.employeeid }}" maxlength="10" style="width:100px;text-transform:uppercase;" placeholder="PAN">{% endif %}
+                        </td>
+                        <td>
+                            {% if emp.labour_id %}{{ emp.labour_id }}
+                            {% else %}<input type="text" name="labour_id_{{ emp.employeeid }}" maxlength="50" style="width:110px;" placeholder="Labour ID">{% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div style="padding:14px 10px;">
+            <button type="submit" class="button" onclick="return confirm('Save entered values for all rows? Blank fields will be left unchanged.')">
+                Save All Updates
+            </button>
+            <a href="{% url 'list_employee' %}" class="button" style="margin-left:10px;">Cancel</a>
+        </div>
+    </form>
+    {% else %}
+    <div class="container_boxed" style="margin-top:10px;">
+        <p style="text-align:center;color:#999;font-style:italic;padding:30px;">
+            All active employees already have UAN/EPF, ESIC, PAN, and Labour ID filled in.
+        </p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

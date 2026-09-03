@@ -1,0 +1,26 @@
+{% extends 'Cxapp/_base.html' %}
+{% block title %}Biometric Devices{% endblock %}
+{% block page_title %}Biometric/RFID Devices{% endblock %}
+{% block content %}
+<div class="wrap" style="max-width:960px;margin:0 auto;padding:32px 24px">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+    <h2>Biometric/RFID Devices</h2>
+    <a href="{% url 'cxapp_create_device' %}" class="btn" style="padding:10px 18px;background:#2a9d8f;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">Register Device</a>
+</div>
+<table style="width:100%;border-collapse:collapse;background:#fff">
+    <tr><th>Name</th><th>Type</th><th>Serial</th><th>Status</th><th>Last Sync</th><th></th></tr>
+    {% for d in devices %}
+    <tr>
+        <td>{{ d.device_name }}</td>
+        <td>{{ d.get_device_type_display }}</td>
+        <td>{{ d.device_serial }}</td>
+        <td>{% if d.is_active %}Active{% else %}Inactive{% endif %}</td>
+        <td>{{ d.last_sync_at|default:"Never" }}</td>
+        <td><a href="{% url 'cxapp_list_device_mappings' d.device_id %}">Map Employees</a></td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="6">No devices registered yet.</td></tr>
+    {% endfor %}
+</table>
+</div>
+{% endblock %}

@@ -1,0 +1,134 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Owner Login · Revolution HRMS</title>
+  <link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
+  <link rel="preload" href="{% static 'fonts/Infinitude.ttf' %}" as="font" type="font/ttf" crossorigin>
+  <link rel="preload" href="{% static 'fonts/Ubuntu-R.ttf' %}" as="font" type="font/ttf" crossorigin>
+  <style>
+    @font-face{font-family:'Infinitude';src:url("{% static 'fonts/Infinitude.ttf' %}") format('truetype');font-display:swap}
+    @font-face{font-family:'Ubuntu';src:url("{% static 'fonts/Ubuntu-R.ttf' %}") format('truetype');font-display:swap}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--navy:#0f2027;--green:#2a9d8f;--green-h:#238577;--gold:#e9c46a;--cream:#f0f4f8;
+          --font-b:'Ubuntu',system-ui,sans-serif;--font-h:'Infinitude','Ubuntu',sans-serif}
+    html,body{height:100%;font-family:var(--font-b)}
+    body{background:var(--cream);display:flex;min-height:100vh}
+    .shell{display:flex;width:100%;min-height:100vh}
+
+    /* Left brand panel */
+    .brand{flex:1.1;background:linear-gradient(155deg,#0f2027 0%,#203a43 60%,#2a9d8f 160%);
+           color:#fff;padding:48px 52px;display:flex;flex-direction:column;
+           justify-content:space-between;position:relative;overflow:hidden}
+    .brand::before{content:'';position:absolute;right:-80px;top:-80px;width:340px;height:340px;
+      border-radius:50%;background:rgba(42,157,143,.1);pointer-events:none}
+    .brand::after{content:'';position:absolute;left:-50px;bottom:-50px;width:260px;height:260px;
+      border-radius:50%;background:rgba(233,196,106,.07);pointer-events:none}
+    .brand-logo{font-family:var(--font-h);font-size:54px;color:var(--green);line-height:1;margin-bottom:6px;position:relative;z-index:1}
+    .brand-name{font-size:11px;font-weight:600;color:rgba(255,255,255,.5);letter-spacing:.14em;text-transform:uppercase;margin-bottom:40px;position:relative;z-index:1}
+    .brand-tagline{font-family:var(--font-h);font-size:28px;line-height:1.35;color:#fff;margin-bottom:6px;position:relative;z-index:1}
+    .brand-sub{font-size:13px;color:rgba(255,255,255,.5);margin-bottom:48px;position:relative;z-index:1}
+    .feature-list{display:grid;gap:22px;position:relative;z-index:1}
+    .fi{display:flex;align-items:flex-start;gap:14px}
+    .fi-icon{font-family:var(--font-h);font-size:28px;color:var(--green);line-height:1;flex-shrink:0}
+    .fi h4{font-size:13.5px;font-weight:600;color:#fff;margin-bottom:3px}
+    .fi p{font-size:12px;color:rgba(255,255,255,.5);line-height:1.5}
+    .brand-footer{font-size:11px;color:rgba(255,255,255,.3);position:relative;z-index:1}
+
+    /* Right form panel */
+    .form-panel{flex:.75;background:#fff;padding:48px 52px;
+                display:flex;flex-direction:column;justify-content:center;min-width:340px}
+    .owner-badge{display:inline-flex;padding:3px 12px;border-radius:999px;
+      background:rgba(42,157,143,.1);color:var(--green);
+      border:1px solid rgba(42,157,143,.25);font-size:11px;font-weight:700;
+      letter-spacing:.1em;text-transform:uppercase;margin-bottom:20px}
+    .form-head{margin-bottom:32px}
+    .form-head h2{font-family:var(--font-h);font-size:26px;color:var(--navy);margin-bottom:6px}
+    .form-head p{font-size:13px;color:#6b7c93}
+    .fg{display:flex;flex-direction:column;gap:5px;margin-bottom:20px}
+    .fg label{font-size:11.5px;font-weight:600;color:#6b7c93;text-transform:uppercase;letter-spacing:.06em}
+    .fg input{font-family:var(--font-b);font-size:15px;color:var(--navy);background:var(--cream);
+      border:1.5px solid #dde5ed;border-radius:8px;padding:11px 14px;width:100%;
+      outline:none;transition:border-color .2s,box-shadow .2s}
+    .fg input:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(42,157,143,.15)}
+    .err{background:#fdecea;border-left:4px solid #e63946;border-radius:6px;
+      padding:10px 14px;margin-bottom:20px;font-size:13px;color:#7d2027}
+    .btn-login{width:100%;padding:13px;
+      background:linear-gradient(135deg,#0f2027,#2a9d8f);color:#fff;border:none;
+      border-radius:8px;font-family:var(--font-b);font-size:15px;font-weight:600;
+      cursor:pointer;transition:all .2s;margin-bottom:18px}
+    .btn-login:hover{filter:brightness(1.1);transform:translateY(-1px);box-shadow:0 4px 16px rgba(42,157,143,.3)}
+    .btn-login:active{transform:none}
+    .btn-login:focus{outline:2px solid var(--green);outline-offset:3px}
+    .login-links{display:flex;justify-content:space-between;font-size:12.5px}
+    .login-links a{color:var(--green);text-decoration:none;transition:color .2s}
+    .login-links a:hover{color:var(--navy)}
+    .login-footer{margin-top:auto;padding-top:36px;font-size:11px;color:#9fb0c2;text-align:center}
+
+    @media(max-width:720px){.shell{flex-direction:column}.brand{padding:32px 28px;flex:none}.form-panel{padding:32px 28px;flex:none}}
+    @media(prefers-reduced-motion:reduce){*{transition-duration:.01ms !important}}
+  </style>
+</head>
+<body>
+<div class="shell">
+
+  <div class="brand">
+    <div>
+      <div class="brand-logo">Ň</div>
+      <div class="brand-name">Revolution Associates HRMS</div>
+      <div class="brand-tagline">Company Owner Portal</div>
+      <div class="brand-sub">Secure read-only access to your company data</div>
+    </div>
+    <div class="feature-list">
+      <div class="fi"><div class="fi-icon">ı</div>
+        <div><h4>Employee Records</h4><p>View your full workforce at a glance.</p></div></div>
+      <div class="fi"><div class="fi-icon">Ɠ</div>
+        <div><h4>Payroll & Salary PDFs</h4><p>Download salary slips, sheets and abstracts.</p></div></div>
+      <div class="fi"><div class="fi-icon">Ē</div>
+        <div><h4>Statutory Compliance</h4><p>EPF, ESI, Gratuity, Bonus — all registers.</p></div></div>
+      <div class="fi"><div class="fi-icon">Ƶ</div>
+        <div><h4>Reports & Letterheads</h4><p>Quotations, notices and company profile PDF.</p></div></div>
+    </div>
+    <div class="brand-footer">© 2024–2026 Revolution Associates · All rights reserved</div>
+  </div>
+
+  <div class="form-panel">
+    <div>
+      <div class="owner-badge">Owner Portal</div>
+      <div class="form-head">
+        <h2>Sign In</h2>
+        <p>Use the credentials provided by your associate.</p>
+      </div>
+      {% if form.errors %}
+      <div class="err" role="alert">Invalid username or password. Please try again.</div>
+      {% endif %}
+      {% if messages %}
+        {% for message in messages %}
+        <div class="err" role="alert">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+      <form method="post" novalidate>
+        {% csrf_token %}
+        <div class="fg">
+          <label for="id_username">Username</label>
+          {{ form.username }}
+        </div>
+        <div class="fg">
+          <label for="id_password">Password</label>
+          {{ form.password }}
+        </div>
+        <button type="submit" class="btn-login">Sign In</button>
+      </form>
+      <div class="login-links">
+        <a href="{% url 'capp_password_reset_request' %}">Forgot password?</a>
+        <a href="#">Terms &amp; Privacy</a>
+      </div>
+    </div>
+    <div class="login-footer">Revolution Associates HRMS · Company Owner Portal</div>
+  </div>
+
+</div>
+</body>
+</html>

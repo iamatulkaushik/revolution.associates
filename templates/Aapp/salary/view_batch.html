@@ -1,0 +1,108 @@
+{% extends 'Aapp/base.html' %}
+{% block title %}{{ month_name }} {{ batch.year }} Salary Batch{% endblock %}
+{% block content %}
+
+<div class="section-header">
+  <h2>Salary Batch — {{ month_name }} {{ batch.year }}</h2>
+  <div class="section-actions">
+    {% if batch.status == 'PROCESSED' %}
+    <a href="{% url 'process_salary_batch' batch.id %}" class="button">Re-process</a>
+    <a href="{% url 'approve_salary_batch' batch.id %}" class="button btn-success" onclick="return confirm('Approve this batch? It cannot be edited afterwards.')">Approve Batch</a>
+    {% endif %}
+    {% if batch.status != 'APPROVED' %}
+    <a href="{% url 'delete_salary_batch' batch.id %}" class="button btn-danger">Delete</a>
+    {% endif %}
+    <a href="{% url 'export_salary_register' batch.id %}" class="button">Export Register (Excel)</a>
+    <a href="{% url 'export_bank_advice' batch.id %}" class="button">Bank Advice (Excel)</a>
+    <a href="{% url 'download_all_slips' batch.month batch.year %}" class="button">Download All Slips (PDF)</a>
+    <a href="{% url 'email_all_slips' batch.month batch.year %}" class="button" onclick="return confirm('Email payslips to every employee in this batch with an email on file?')">Email All Payslips</a>
+    <a href="{% url 'salary_dashboard' %}" class="button">← Back</a>
+  </div>
+</div>
+
+{% if messages %}
+<div class="messages-container">
+  {% for message in messages %}
+  <div class="message-alert {% if message.tags == 'error' %}message-error{% elif message.tags == 'warning' %}message-warning{% else %}message-success{% endif %}" role="alert">{{ message }}</div>
+  {% endfor %}
+</div>
+{% endif %}
+
+{% if errors %}
+<div class="message-alert message-warning" style="margin-bottom:var(--sp-5)">
+  <div>
+    <strong>{{ errors|length }} employee(s) skipped during processing:</strong>
+    <ul style="margin:var(--sp-2) 0 0 var(--sp-4)">
+      {% for err in errors %}<li>{{ err }}</li>{% endfor %}
+    </ul>
+  </div>
+</div>
+{% endif %}
+
+<div class="stat-grid">
+  <div class="stat-card" style="--accent-color:var(--c-primary)">
+    <span class="stat-value">{{ batch.total_employees }}</span>
+    <span class="stat-label">Employees Processed</span>
+  </div>
+  <div class="stat-card" style="--accent-color:var(--c-info,var(--c-primary))">
+    <span class="stat-value">₹{{ batch.total_gross }}</span>
+    <span class="stat-label">Total Gross</span>
+  </div>
+  <div class="stat-card" style="--accent-color:var(--c-warn)">
+    <span class="stat-value">₹{{ batch.total_deductions }}</span>
+    <span class="stat-label">Total Deductions</span>
+  </div>
+  <div class="stat-card" style="--accent-color:var(--c-success)">
+    <span class="stat-value">₹{{ batch.total_net }}</span>
+    <span class="stat-label">Total Net Pay</span>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h3>Employee Salary Slips</h3>
+    <span style="color:rgba(255,255,255,.7);font-size:13px">
+      {% if batch.status == 'APPROVED' %}<span class="badge badge-success">Approved</span>
+      {% elif batch.status == 'PROCESSED' %}<span class="badge badge-info">Processed</span>
+      {% else %}<span class="badge badge-muted">Draft</span>{% endif %}
+    </span>
+  </div>
+  {% if slips %}
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Code</th><th>Employee</th><th>Paid Days</th><th>Gross</th>
+          <th>PF</th><th>ESI</th><th>PT</th><th>Total Ded.</th><th>Net Pay</th><th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for slip in slips %}
+        <tr>
+          <td>{{ slip.employee_id.employeecode }}</td>
+          <td>{{ slip.employee_id.name }}</td>
+          <td>{{ slip.paid_days }} / {{ slip.working_days }}</td>
+          <td>₹{{ slip.gross_earnings }}</td>
+          <td>₹{{ slip.pf_deduction }}</td>
+          <td>₹{{ slip.esi_deduction }}</td>
+          <td>₹{{ slip.professional_tax }}</td>
+          <td>₹{{ slip.total_deductions }}</td>
+          <td><strong>₹{{ slip.net_pay }}</strong></td>
+          <td>
+            <a href="{% url 'view_salary_slip' slip.id %}" class="action-edit">View</a>
+            · <a href="{% url 'download_salary_slip' slip.id %}" class="action-edit">PDF</a>
+            · <a href="{% url 'email_salary_slip' slip.id %}" class="action-edit" onclick="return confirm('Email this payslip to {{ slip.employee_id.email|default:"the employee" }}?')">Email</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="card-body text-center text-muted" style="padding:var(--sp-6)">
+    No slips generated yet. <a href="{% url 'process_salary_batch' batch.id %}">Process this batch</a>.
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}

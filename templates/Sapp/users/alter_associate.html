@@ -1,0 +1,115 @@
+{% extends "Sapp/base.html" %}
+{% block title %}Update Associate{% endblock %}
+{% load static %}
+{% block additionalcss_js %}
+
+{% endblock %}
+{% block content %}
+{% if messages %}
+<div class="messages-container">
+{% for message in messages %}
+<div class="message-alert {% if message.tags == 'error' %}message-error{% elif message.tags == 'warning' %}message-warning{% else %}message-success{% endif %}" role="alert">{{ message }}</div>
+{% endfor %}
+</div>
+{% endif %}
+
+<div class="form-container">
+    <h2>Update Associate: {{associate.user.get_full_name}}</h2>
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-section">
+            <h3>User Information</h3>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" name="username" class="form-control" value="{{associate.user.username}}">
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" name="email" class="form-control" value="{{associate.user.email}}">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>First Name</label>
+                    <input type="text" name="first_name" class="form-control" value="{{associate.user.first_name}}">
+                </div>
+                <div class="form-group">
+                    <label>Last Name</label>
+                    <input type="text" name="last_name" class="form-control" value="{{associate.user.last_name}}">
+                </div>
+            </div>
+        </div>
+        <div class="form-section">
+            <h3>Associate Details</h3>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Associate ID</label>
+                    <input type="text" name="associate_id" class="form-control" value="{{associate.associate_id}}"
+                        readonly>
+                </div>
+                <div class="form-group">
+                    <label>Mobile</label>
+                    <input type="tel" name="mobile" class="form-control" value="{{associate.mobile}}">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Address</label>
+                <textarea name="address" class="form-control" rows="3">{{associate.address}}</textarea>
+            </div>
+            <div class="form-group">
+                <label>Active Status</label>
+                <select name="is_active" class="form-control">
+                    <option value="True" {% if associate.is_active %}selected{% endif %}>Active</option>
+                    <option value="False" {% if not associate.is_active %}selected{% endif %}>Inactive</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-section">
+            <h3>Company Access Management</h3>
+            <div class="form-group">
+                <label>Assign New Companies</label>
+                <select name="companies" class="form-control" multiple>
+                    {% for company in all_companies %}
+                    <option value="{{company.company_id}}" {% if company in associate.get_companies %}selected{% endif %}>
+                        {{company.company_name}} - {{company.pan}}
+                    </option>
+                    {% endfor %}
+                </select>
+                <small style="color:#666">Hold Ctrl to select multiple companies</small>
+            </div>
+            <h4>Currently Attached Companies ({{associate.get_companies.count}})</h4>
+            <div class="companies-grid">
+                {% for company in associate.get_companies %}
+                <div class="company-card">
+                    <h5>{{company.company_name}}</h5>
+                    <p><strong>PAN:</strong> {{company.pan}}</p>
+                    <p><strong>Mobile:</strong> {{company.mobile}}</p>
+                    <p><strong>Added:</strong> {{associate.company_added_date}}</p>
+                    <div class="company-actions">
+                        <button type="button" class="button"
+                            onclick="removeCompany({{company.company_id}})">
+                            Remove Access
+                        </button>
+                    </div>
+                </div>
+                {% empty %}
+                <p style="color:#666;font-style:italic">No companies attached to this associate.</p>
+                {% endfor %}
+            </div>
+        </div>
+        <button type="submit" class="button btn-primary">Update Associate</button>
+        <a href="{% url 'reset_associate_password' associate.id %}" class="button">Reset Password</a>
+    </form>
+</div>
+<script>
+    function removeCompany(companyId) {
+        if (confirm('Remove company access for this associate?')) {
+            fetch(`/remove-company-access/${companyId}/`, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value }
+            }).then(() => location.reload());
+        }
+    }
+</script>
+{% endblock %}

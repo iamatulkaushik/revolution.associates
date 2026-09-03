@@ -1,0 +1,48 @@
+{% extends 'Aapp/base.html' %}
+{% block title %}Create Company{% endblock %}
+{% block content %}
+<div class="main-content">
+<h2>Create Company</h2>
+
+{% if messages %}
+{% for message in messages %}
+<div class="{% if message.tags == 'error' %}error{% else %}success{% endif %}">{{ message }}</div>
+{% endfor %}
+{% endif %}
+
+<form method="post">
+    {% csrf_token %}
+    <table class="data-table">
+        <tr>
+            <td><label for="company_name">Company Name:</label></td>
+            <td><input type="text" id="company_name" name="company_name" required></td>
+        </tr>
+        <tr>
+            <td><label for="start_date">Start Date:</label></td>
+            <td><input type="date" id="start_date" name="start_date" max="{{ today }}" required></td>
+        </tr>
+        <tr>
+            <td><label for="mobile">Mobile:</label></td>
+            <td><input type="text" id="mobile" name="mobile" maxlength="10" required></td>
+        </tr>
+        <tr>
+            <td><label for="email1">Email:</label></td>
+            <td><input type="email" id="email1" name="email1" required></td>
+        </tr>
+        <tr>
+            <td><label for="pan">PAN:</label></td>
+            <td><input type="text" id="pan" name="pan" maxlength="10" required></td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <button type="submit" class="button">Create Company</button>
+                <a href="{% url 'list_company_associate' %}" class="button">Cancel</a>
+            </td>
+        </tr>
+    </table>
+</form></div>
+
+<script>
+document.getElementById('start_date').max = new Date().toISOString().split('T')[0];
+</script>
+{% endblock %}
