@@ -1,0 +1,21 @@
+{% if page_obj.paginator.num_pages > 1 %}
+<div class="pager-controls" style="display:flex;align-items:center;gap:8px;margin:10px 0;flex-wrap:wrap;">
+    {% if page_obj.has_previous %}
+        <a href="?page=1" class="button">&laquo; First</a>
+        <a href="?page={{ page_obj.previous_page_number }}" class="button">&lsaquo; Prev</a>
+    {% else %}
+        <button type="button" class="button" disabled>&laquo; First</button>
+        <button type="button" class="button" disabled>&lsaquo; Prev</button>
+    {% endif %}
+
+    <span style="margin:0 6px;">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }} ({{ page_obj.paginator.count }} rows)</span>
+
+    {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}" class="button">Next &rsaquo;</a>
+        <a href="?page={{ page_obj.paginator.num_pages }}" class="button">Last &raquo;</a>
+    {% else %}
+        <button type="button" class="button" disabled>Next &rsaquo;</button>
+        <button type="button" class="button" disabled>Last &raquo;</button>
+    {% endif %}
+</div>
+{% endif %}

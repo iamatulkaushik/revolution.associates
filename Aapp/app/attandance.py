@@ -6,6 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.http import HttpResponse
 from django.urls import reverse
+from datetime import date
 from Sapp.app.company import Company
 from Aapp.app.branch_department import branch
 from Aapp.app.employee import employee
@@ -167,9 +168,14 @@ def list_attendance(request):
     if not company:
         messages.warning(request, 'Please select a company first.')
         return redirect('aapp_dashboard')
-    records = attendance.objects.filter(companyid=company).select_related('employee_id', 'branchid')
+    records = attendance.objects.filter(companyid=company).select_related('employee_id', 'branchid').order_by('-salary_year', '-salary_month', 'employee_id__name')
+
+    from django.core.paginator import Paginator
+    paginator = Paginator(records, 10)
+    page_obj = paginator.get_page(request.GET.get('page'))
+
     return render(request, 'Aapp/attendance/list_attendance.html',
-                  {'records': records, 'company': company})
+                  {'records': page_obj, 'page_obj': page_obj, 'company': company})
 
 
 # ── add ───────────────────────────────────────────────────────────────────────
@@ -183,6 +189,8 @@ def add_attendance(request):
 
     employees = employee.objects.filter(CompanyID=company, is_working=True).order_by('name')
     branches  = branch.objects.filter(companyid=company)
+    current_year = date.today().year
+    years = [(y, y) for y in range(current_year - 5, current_year + 1)]
 
     if request.method == 'POST':
         p     = request.POST
@@ -223,7 +231,7 @@ def add_attendance(request):
 
     return render(request, 'Aapp/attendance/add_attendance.html', {
         'employees': employees, 'branches': branches,
-        'months': MONTH_CHOICES, 'company': company,
+        'months': MONTH_CHOICES, 'years': years, 'company': company,
     })
 
 
@@ -278,8 +286,9 @@ def bulk_attendance(request):
         messages.warning(request, 'Please select a company first.')
         return redirect('aapp_dashboard')
 
-    employees = employee.objects.filter(CompanyID=company, is_working=True).order_by('name')
     branches  = branch.objects.filter(companyid=company)
+    current_year = date.today().year
+    years = [(y, y) for y in range(current_year - 5, current_year + 1)]
 
     if request.method == 'POST':
         p          = request.POST
@@ -324,9 +333,11 @@ def bulk_attendance(request):
         messages.success(request, f"{created} record(s) saved, {skipped} skipped (already exist).")
         return redirect('list_attendance')
 
+    employees = employee.objects.filter(CompanyID=company, is_working=True).order_by('name')
+
     return render(request, 'Aapp/attendance/bulk_attendance.html', {
         'employees': employees, 'branches': branches,
-        'months': MONTH_CHOICES, 'company': company,
+        'months': MONTH_CHOICES, 'years': YEAR_CHOICES, 'company': company,
     })
 
 

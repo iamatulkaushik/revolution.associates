@@ -30,6 +30,7 @@ from Cxapp.app.process import (
     cxapp_salary_list, cxapp_salary_process, cxapp_salary_bulk_process,
     cxapp_salary_detail, cxapp_salary_reprocess, cxapp_salary_slip_pdf,
     cxapp_email_salary_slip, cxapp_email_all_slips,
+    cxapp_grand_total_report, cxapp_wages_register_report, cxapp_wages_slip_bulk_report,
 )
 from Cxapp.app.loans_advances import (
     cxapp_list_loans, cxapp_create_loan, cxapp_view_loan_schedule,
@@ -149,6 +150,9 @@ urlpatterns = [
     path('salary/<int:salary_id>/pdf/',       cxapp_salary_slip_pdf,   name='cxapp_salary_slip_pdf'),
     path('salary/<int:salary_id>/email/',     cxapp_email_salary_slip, name='cxapp_email_salary_slip'),
     path('salary/email-all/<int:month>/<int:year>/', cxapp_email_all_slips, name='cxapp_email_all_slips'),
+    path('salary/reports/grand-total/<int:month>/<int:year>/', cxapp_grand_total_report, name='cxapp_grand_total_report'),
+    path('salary/reports/wages-register/<int:month>/<int:year>/', cxapp_wages_register_report, name='cxapp_wages_register_report'),
+    path('salary/reports/wages-slip-bulk/<int:month>/<int:year>/', cxapp_wages_slip_bulk_report, name='cxapp_wages_slip_bulk_report'),
 
     # ── Loans & Advances — Cxapp/app/loans_advances.py ───────────────────────
     path('loans/',                          cxapp_list_loans,           name='cxapp_list_loans'),

@@ -6,7 +6,7 @@ from django.shortcuts import redirect
 from django.contrib.auth.decorators import login_required
 
 from Sapp.app import bank
-from Sapp.app import state_district
+from Sapp.app.state_district import State, District
 
 # User role choices
 USER_ROLES = [

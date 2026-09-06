@@ -55,8 +55,8 @@ def cx_salary_slip_pdf(salary):
 
     emp_info = [
         [('Employee Name', salary.employee_name.title()), ('Employee Code', salary.employee_code)],
-        [('Designation', salary.designation.designation_name), ('Date of Joining', str(salary.date_of_joining.strftime('%d-%b-%Y') or '—'))],
-        [('PAN', pan), ('UAN', salary.uan or '—')],
+        [('Designation', salary.designation.designation_name), ('Date of Joining', salary.date_of_joining.strftime('%d/%m/%Y') if salary.date_of_joining else '—')],
+        [('PAN', pan), ('UAN / EPF No.', salary.uan or '—')],
         [('ESI No.', salary.esi or '—'), ('Bank Account', bank)],
     ]
     flat_pairs = []
@@ -140,7 +140,7 @@ def cx_salary_slip_pdf(salary):
     story.append(Paragraph(
         f'<b>Net Amount in Words:</b> {amount_in_words(salary.total_amount)}', s['Small'],
     ))
-    story.append(Spacer(1, 8 * mm))
+    story.append(Spacer(1, 20 * mm))
 
     sig_ts = TableStyle([
         ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
@@ -164,5 +164,7 @@ def cx_salary_slip_pdf(salary):
         'title': f'Salary Slip — {month_name} {salary.salary_year}',
         'doc_date': date.today(),
         'ref': f'EMP/{salary.employee_code}/{salary.salary_month}/{salary.salary_year}',
+        'hide_pan': True,
+        'hide_generated_by': True,
     }
     return build_pdf(story, company=company, doc_meta=doc_meta, **company.pdf_letterhead_kwargs())

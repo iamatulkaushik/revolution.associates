@@ -71,6 +71,8 @@ from Aapp.app.salary_processing import (
     export_salary_register, export_bank_advice,
     download_salary_template, import_salary_structures,
     pf_report, esi_report,
+    grand_total_report_pdf, wages_register_report_pdf,
+    wages_slip_report_pdf, wages_slip_bulk_pdf,
 )
 
 # Minimum Wages Form V / Payment of Wages Form IV — annual returns
@@ -386,6 +388,10 @@ urlpatterns = [
 
     path('salary/reports/pf/', pf_report, name='pf_report'),
     path('salary/reports/esi/', esi_report, name='esi_report'),
+    path('salary/reports/grand-total/', grand_total_report_pdf, name='grand_total_report_pdf'),
+    path('salary/reports/wages-register/', wages_register_report_pdf, name='wages_register_report_pdf'),
+    path('salary/reports/wages-slip/<int:slip_id>/', wages_slip_report_pdf, name='wages_slip_report_pdf'),
+    path('salary/reports/wages-slip-bulk/', wages_slip_bulk_pdf, name='wages_slip_bulk_pdf'),
 
     # ════════════════════════════════════════════════════════════════════════
     # EPF & MP ACT 1952 — Form 2 (Nomination), Monthly ECR

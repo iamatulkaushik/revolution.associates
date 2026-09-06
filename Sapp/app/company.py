@@ -134,6 +134,8 @@ class company_statury(models.Model):
     labour = models.CharField(max_length=15, null=True, blank=True)
     labour_from = models.DateField(null=True, blank=True)
     labour_to = models.DateField(null=True, blank=True)
+    pt_number = models.CharField(max_length=15, null=True, blank=True)
+    pt_date = models.DateField(null=True, blank=True)
     psara = models.CharField(max_length=15, null=True, blank=True)
     psara_from = models.DateField(null=True, blank=True)
     psara_to = models.DateField(null=True, blank=True)
@@ -246,7 +248,7 @@ class create_company_form_superadmin(forms.ModelForm):
             model = company_statury
             fields = ['company', 'epfo', 'epfo_date', 'esic', 'esic_date', 'gst', 'gst_date',
                       'shop_act', 'shop_act_date', 'labour', 'labour_from', 'labour_to',
-                      'psara', 'psara_from', 'psara_to']
+                      'psara', 'psara_from', 'psara_to', 'pt_number', 'pt_date']
             widgets = {
                 'company': forms.Select(attrs={'class': 'form-control'}),
                 'epfo': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'EPFO Number'}),
@@ -263,6 +265,8 @@ class create_company_form_superadmin(forms.ModelForm):
                 'psara': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'PSARA License Number'}),
                 'psara_from': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
                 'psara_to': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+                'pt_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Professional Tax Registration Number'}),
+                'pt_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             }
         def clean_epfo(self):
             epfo = self.cleaned_data.get('epfo')
@@ -483,6 +487,8 @@ def create_company_statutory(request):
             psara=request.POST.get('psara', ''),
             psara_from=request.POST.get('psara_from') or None,
             psara_to=request.POST.get('psara_to') or None,
+            pt_number=request.POST.get('pt_number', ''),
+            pt_date=request.POST.get('pt_date') or None,
             factory=request.POST.get('factory', ''),
             factory_from=request.POST.get('factory_from') or None,
             factory_to=request.POST.get('factory_to') or None,
@@ -523,6 +529,8 @@ def alter_company_statutory(request, company_id):
         statutory.psara = request.POST.get('psara', '')
         statutory.psara_from = request.POST.get('psara_from') or None
         statutory.psara_to = request.POST.get('psara_to') or None
+        statutory.pt_number = request.POST.get('pt_number', '')
+        statutory.pt_date = request.POST.get('pt_date') or None
         statutory.factory = request.POST.get('factory', '')
         statutory.factory_from = request.POST.get('factory_from') or None
         statutory.factory_to = request.POST.get('factory_to') or None

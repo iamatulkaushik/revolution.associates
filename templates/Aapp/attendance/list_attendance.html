@@ -46,6 +46,7 @@
             {% endfor %}
         </tbody>
     </table>
+    {% include 'partials/pagination.html' %}
     {% else %}
     <p style="text-align:center;color:#999;font-style:italic;padding:30px;">No attendance records found.</p>
     {% endif %}

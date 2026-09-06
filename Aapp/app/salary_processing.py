@@ -113,6 +113,10 @@ class salary_slip(models.Model):
     other_deduction = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     total_deductions = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
+    # Tax-exempt approved expense reimbursements (medical/travel/conveyance bills),
+    # added into net_pay but excluded from gross/taxable earnings.
+    reimbursement = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+
     net_pay = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
     # Employer Cost
@@ -1266,3 +1270,109 @@ def esi_report(request):
         'esi_employer_rate': 'per designation',
     }
     return render(request, 'Aapp/salary/esi_report.html', context)
+
+
+# =====================================================================
+# STATUTORY REPORTS — PDF EXPORTS
+# =====================================================================
+
+def _report_batch_and_slips(request):
+    """Shared helper: resolve company/batch/slips from month+year query params."""
+    company_obj = _get_selected_company(request)
+    if not company_obj:
+        return None, None, None, None, None
+    month = int(request.GET.get('month', timezone.now().month))
+    year = int(request.GET.get('year', timezone.now().year))
+    batch = salary_processing.objects.filter(
+        company_id=company_obj, month=month, year=year
+    ).first()
+    slips = list(
+        salary_slip.objects.filter(processing_id=batch)
+        .select_related('employee_id', 'designation_id')
+        .order_by('employee_id__employeecode')
+    ) if batch else []
+    return company_obj, batch, slips, month, year
+
+
+def grand_total_report_pdf(request):
+    """Grand Total of Salary/Wages — company-level PDF summary."""
+    from Aapp.app.statutory_reports_pdf import grand_total_pdf
+    company_obj, batch, slips, month, year = _report_batch_and_slips(request)
+    if not company_obj:
+        messages.warning(request, 'Please select a company first.')
+        return redirect('aapp_dashboard')
+    if not batch:
+        messages.warning(request, 'No salary processed for this month/year.')
+        return redirect('salary_dashboard')
+    pdf_bytes = grand_total_pdf(company_obj, slips, month, year)
+    resp = HttpResponse(pdf_bytes, content_type='application/pdf')
+    resp['Content-Disposition'] = f'inline; filename="grand_total_{month}_{year}.pdf"'
+    return resp
+
+
+def wages_register_report_pdf(request):
+    """Salary/Wages Register — per-employee ledger PDF."""
+    from Aapp.app.statutory_reports_pdf import wages_register_pdf
+    company_obj, batch, slips, month, year = _report_batch_and_slips(request)
+    if not company_obj:
+        messages.warning(request, 'Please select a company first.')
+        return redirect('aapp_dashboard')
+    if not batch:
+        messages.warning(request, 'No salary processed for this month/year.')
+        return redirect('salary_dashboard')
+    pdf_bytes = wages_register_pdf(company_obj, slips, month, year)
+    resp = HttpResponse(pdf_bytes, content_type='application/pdf')
+    resp['Content-Disposition'] = f'inline; filename="wages_register_{month}_{year}.pdf"'
+    return resp
+
+
+def wages_slip_report_pdf(request, slip_id):
+    """Single-employee Wages Slip PDF (contractor/Payment of Wages Act format)."""
+    from Aapp.app.statutory_reports_pdf import wages_slip_pdf
+    company_obj = _get_selected_company(request)
+    if not company_obj:
+        messages.warning(request, 'Please select a company first.')
+        return redirect('aapp_dashboard')
+    slip = salary_slip.objects.filter(
+        pk=slip_id, company_id=company_obj
+    ).select_related('employee_id', 'designation_id', 'processing_id').first()
+    if not slip:
+        messages.error(request, 'Salary slip not found.')
+        return redirect('salary_dashboard')
+    pdf_bytes = wages_slip_pdf(company_obj, slip)
+    resp = HttpResponse(pdf_bytes, content_type='application/pdf')
+    resp['Content-Disposition'] = f'inline; filename="wages_slip_{slip.employee_id.employeecode}.pdf"'
+    return resp
+
+
+def wages_slip_bulk_pdf(request):
+    """All employees' Wages Slips for the month, one PDF (one slip per page)."""
+    from Aapp.app.statutory_reports_pdf import wages_slip_pdf
+    from Aapp.app.pdf_engine import build_pdf
+    from reportlab.platypus import PageBreak
+
+    company_obj, batch, slips, month, year = _report_batch_and_slips(request)
+    if not company_obj:
+        messages.warning(request, 'Please select a company first.')
+        return redirect('aapp_dashboard')
+    if not batch or not slips:
+        messages.warning(request, 'No salary processed for this month/year.')
+        return redirect('salary_dashboard')
+
+    # Concatenate individual slip PDFs page-by-page using pypdf,
+    # since each slip already has its own letterhead build.
+    from pypdf import PdfReader, PdfWriter
+    writer = PdfWriter()
+    for slip in slips:
+        pdf_bytes = wages_slip_pdf(company_obj, slip)
+        reader = PdfReader(__import__('io').BytesIO(pdf_bytes))
+        for page in reader.pages:
+            writer.add_page(page)
+
+    import io
+    out = io.BytesIO()
+    writer.write(out)
+    out.seek(0)
+    resp = HttpResponse(out.read(), content_type='application/pdf')
+    resp['Content-Disposition'] = f'inline; filename="wages_slips_{month}_{year}.pdf"'
+    return resp

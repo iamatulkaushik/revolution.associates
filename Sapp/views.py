@@ -22,7 +22,7 @@ from Sapp.app.user import (
     can_user_access_system,
 )
 from Sapp.app.license import License
-from Sapp.app.state_district import District
+from Sapp.app.state_district import District, State
 from Sapp.decorators import superadmin_required
 from Capp.models import CompanyOwnerProfile
 

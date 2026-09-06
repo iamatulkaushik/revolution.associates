@@ -1,4 +1,5 @@
 {% extends 'Aapp/base.html' %}
+{% load static %}
 {% block title %}Process Batch — {{ month_name }} {{ batch.year }}{% endblock %}
 {% block content %}
 
@@ -65,13 +66,13 @@
     </div>
   </div>
   <div class="table-wrap">
-    <table class="data-table">
+    <table class="data-table" id="slips-table">
       <thead>
         <tr><th>Code</th><th>Employee</th><th>Paid Days</th><th>Gross</th><th>Deductions</th><th>Net Pay</th></tr>
       </thead>
       <tbody>
         {% for slip in slips %}
-        <tr>
+        <tr class="paginate-row">
           <td>{{ slip.employee_id.employeecode }}</td>
           <td>{{ slip.employee_id.name }}</td>
           <td>{{ slip.paid_days }}</td>
@@ -82,8 +83,13 @@
         {% endfor %}
       </tbody>
     </table>
+    <div id="slips-table-pager"></div>
   </div>
 </div>
 {% endif %}
 
+<script src="{% static 'js/table_paginate.js' %}"></script>
+<script>
+    paginateTable('slips-table', 'slips-table-pager', 10, 15);
+</script>
 {% endblock %}

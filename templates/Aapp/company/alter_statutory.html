@@ -54,6 +54,12 @@
             <td><input type="date" id="psara_to" name="psara_to" value="{{ statutory.psara_to|date:'Y-m-d' }}"></td>
         </tr>
         <tr>
+            <td><label for="pt_number">Professional Tax No.:</label></td>
+            <td><input type="text" id="pt_number" name="pt_number" value="{{ statutory.pt_number }}" maxlength="15"></td>
+            <td><label for="pt_date">Registration Date:</label></td>
+            <td><input type="date" id="pt_date" name="pt_date" value="{{ statutory.pt_date|date:'Y-m-d' }}"></td>
+        </tr>
+        <tr>
             <td colspan="2">
                 <button type="submit" class="button">Update Statutory</button>
                 <a href="{% url 'list_company_associate' %}" class="button">Cancel</a>

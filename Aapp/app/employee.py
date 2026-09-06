@@ -11,7 +11,7 @@ from Aapp.app.branch_department import branch, department
 import openpyxl
 from openpyxl.styles import Font, PatternFill, Alignment
 from io import BytesIO
-from datetime import datetime
+from datetime import datetime, date
 
 class employee(models.Model):
     # Personal data
@@ -91,6 +91,24 @@ class employee(models.Model):
         db_table = 'employee'
         ordering = ['employeeid']
 
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        super().clean()
+        errors = {}
+        today = date.today()
+        if self.dateofjoining and self.dateofjoining > today:
+            errors['dateofjoining'] = 'Date of joining cannot be in the future.'
+        if self.dateofbirth and self.dateofbirth > today:
+            errors['dateofbirth'] = 'Date of birth cannot be in the future.'
+        if self.dateofbirth and self.dateofjoining and self.dateofjoining < self.dateofbirth:
+            errors['dateofjoining'] = 'Date of joining cannot be before date of birth.'
+        if self.dateofbirth and self.dateofjoining:
+            age_at_joining = (self.dateofjoining - self.dateofbirth).days / 365.25
+            if age_at_joining < 14:
+                errors['dateofjoining'] = 'Employee must be at least 14 years old as of date of joining.'
+        if errors:
+            raise ValidationError(errors)
+
     def __str__(self):
         return f"{self.employeecode} - {self.name}"
 
@@ -155,14 +173,17 @@ def _form_ctx(company):
 # ── list ─────────────────────────────────────────────────────────────────────
 def list_employee(request):
     from django.contrib import messages
+    from django.core.paginator import Paginator
     company = _company_ctx(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
         return redirect('aapp_dashboard')
     employees = employee.objects.filter(CompanyID=company).select_related(
-        'designationID', 'branchID', 'departmentID')
+        'designationID', 'branchID', 'departmentID').order_by('name')
+    paginator = Paginator(employees, 10)
+    page_obj = paginator.get_page(request.GET.get('page'))
     return render(request, 'Aapp/employees/list_employee.html',
-                  {'employees': employees, 'company': company})
+                  {'employees': page_obj, 'page_obj': page_obj, 'company': company})
 
 
 # ── create ────────────────────────────────────────────────────────────────────
@@ -631,6 +652,25 @@ def bulk_excel_upload_Employees(request):
                     dateofjoining = datetime.strptime(dateofjoining, '%Y-%m-%d').date()
             except (ValueError, TypeError):
                 error_rows.append(f"Row {row_num}: Invalid date format. Use YYYY-MM-DD.")
+                errors += 1
+                continue
+
+            today = date.today()
+            if dateofjoining > today:
+                error_rows.append(f"Row {row_num}: Date of joining ({dateofjoining}) cannot be in the future.")
+                errors += 1
+                continue
+            if dateofbirth > today:
+                error_rows.append(f"Row {row_num}: Date of birth ({dateofbirth}) cannot be in the future.")
+                errors += 1
+                continue
+            if dateofjoining < dateofbirth:
+                error_rows.append(f"Row {row_num}: Date of joining cannot be before date of birth.")
+                errors += 1
+                continue
+            age_at_joining = (dateofjoining - dateofbirth).days / 365.25
+            if age_at_joining < 14:
+                error_rows.append(f"Row {row_num}: Employee must be at least 14 years old as of date of joining.")
                 errors += 1
                 continue
 

@@ -114,9 +114,9 @@ def salary_slip_pdf(salary_slip_obj):
     emp_info = [
         [('Employee Name', emp.name),
          ('Employee Code', emp.employeecode)],
-        [('Designation', getattr(emp, 'designation_name', None) or getattr(getattr(emp, 'designation', None), 'designation_name', '—') or '—'),
-         ('Department', getattr(emp, 'department_name', None) or '—')],
-        [('Date of Joining', str(getattr(emp, 'date_of_joining', '—') or '—')),
+        [('Designation', emp.designationID.designationname),
+         ('Department', emp.departmentID.department_name)],
+        [('Date of Joining', emp.dateofjoining.strftime('%d/%m/%Y') if emp.dateofjoining else '—'),
          ('Bank Account', getattr(emp, 'bank_account', '—') or '—')],
         [('PAN', getattr(emp, 'pan_number', '—') or '—'),
          ('UAN', getattr(emp, 'uan_number', '—') or '—')],
@@ -168,7 +168,7 @@ def salary_slip_pdf(salary_slip_obj):
     ]
     earn_ts = table_style(header_bg=STEEL)
     earn_ts.add('ALIGN', (1, 1), (1, -1), 'RIGHT')
-    earn_ts.add('FONTNAME', (-1, -1), (-1, -1), 'Helvetica-Bold')
+    earn_ts.add('FONTNAME', (-1, -1), (-1, -1), 'Ubuntu')
     earn_tbl = Table(earn_data, colWidths=[half * 0.6, half * 0.4], style=earn_ts)
 
     # Deductions table
@@ -224,7 +224,7 @@ def salary_slip_pdf(salary_slip_obj):
         f'<b>Net Amount in Words:</b> {amount_in_words(r.net_pay)}',
         s['Small'],
     ))
-    story.append(Spacer(1, 8 * mm))
+    story.append(Spacer(1, 20 * mm))
 
     # ── Signature row ─────────────────────────────────────────────────────────
     sig_ts = TableStyle([
@@ -251,6 +251,8 @@ def salary_slip_pdf(salary_slip_obj):
         'title': f'Salary Slip — {month_name} {year}',
         'doc_date': date.today(),
         'ref': f'EMP/{emp.employeecode}/{month}/{year}',
+        'hide_pan': True,
+        'hide_generated_by': True,
     }
     return build_pdf(story, company=co, doc_meta=doc_meta, **co.pdf_letterhead_kwargs())
 

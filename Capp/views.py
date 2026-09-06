@@ -482,3 +482,35 @@ def capp_letterhead(request, doc_type):
     # Override session company temporarily so pdf_views._company() returns owner's company
     request.session['selected_company_id'] = request.owned_company.company_id
     return download_letterhead_doc(request, doc_type)
+
+
+@access_required('reports')
+def capp_grand_total_report(request):
+    """Proxy to Aapp's Grand Total of Salary/Wages PDF, scoped to owned_company."""
+    from Aapp.app.salary_processing import grand_total_report_pdf
+    request.session['selected_company_id'] = request.owned_company.company_id
+    return grand_total_report_pdf(request)
+
+
+@access_required('reports')
+def capp_wages_register_report(request):
+    """Proxy to Aapp's Salary/Wages Register PDF, scoped to owned_company."""
+    from Aapp.app.salary_processing import wages_register_report_pdf
+    request.session['selected_company_id'] = request.owned_company.company_id
+    return wages_register_report_pdf(request)
+
+
+@access_required('reports')
+def capp_wages_slip_report(request, slip_id):
+    """Proxy to Aapp's single-employee Wages Slip PDF, scoped to owned_company."""
+    from Aapp.app.salary_processing import wages_slip_report_pdf
+    request.session['selected_company_id'] = request.owned_company.company_id
+    return wages_slip_report_pdf(request, slip_id)
+
+
+@access_required('reports')
+def capp_wages_slip_bulk_report(request):
+    """Proxy to Aapp's bulk Wages Slip PDF (all employees), scoped to owned_company."""
+    from Aapp.app.salary_processing import wages_slip_bulk_pdf
+    request.session['selected_company_id'] = request.owned_company.company_id
+    return wages_slip_bulk_pdf(request)

@@ -495,7 +495,97 @@ def _email_all_slips(request, month, year):
         failed_names = ', '.join(f"{r['name']} ({r['reason']})" for r in failed[:5])
         more = f" and {len(failed) - 5} more" if len(failed) > 5 else ''
         messages.warning(request, f'{len(failed)} payslip(s) not sent: {failed_names}{more}.')
-    if not results:
-        messages.error(request, 'No salary records found for the selected period.')
-
     return redirect('cxapp_salary_list')
+
+
+# ── Statutory reports (Grand Total / Wages Register) — Owner + HR only ────────
+
+def cxapp_grand_total_report(request, month, year):
+    from Cxapp.views import cx_login_required
+    return cx_login_required(_grand_total_report)(request, month, year)
+
+
+def _grand_total_report(request, month, year):
+    from django.http import HttpResponse
+    from Cxapp.app.statutory_reports_pdf import cx_grand_total_pdf
+
+    if not _can_manage_payroll(request):
+        messages.error(request, 'You do not have permission to view reports.')
+        return redirect('cxapp_dashboard')
+
+    salaries = list(CxSalary.objects.filter(
+        company=request.cx_owner_profile, salary_month=month, salary_year=year
+    ).select_related('employee', 'designation'))
+
+    if not salaries:
+        messages.warning(request, 'No salary processed for this month/year.')
+        return redirect('cxapp_salary_list')
+
+    pdf_bytes = cx_grand_total_pdf(request.cx_owner_profile, salaries, month, year)
+    response = HttpResponse(pdf_bytes, content_type='application/pdf')
+    response['Content-Disposition'] = f'inline; filename="grand_total_{month}_{year}.pdf"'
+    return response
+
+
+def cxapp_wages_register_report(request, month, year):
+    from Cxapp.views import cx_login_required
+    return cx_login_required(_wages_register_report)(request, month, year)
+
+
+def _wages_register_report(request, month, year):
+    from django.http import HttpResponse
+    from Cxapp.app.statutory_reports_pdf import cx_wages_register_pdf
+
+    if not _can_manage_payroll(request):
+        messages.error(request, 'You do not have permission to view reports.')
+        return redirect('cxapp_dashboard')
+
+    salaries = list(CxSalary.objects.filter(
+        company=request.cx_owner_profile, salary_month=month, salary_year=year
+    ).select_related('employee', 'designation'))
+
+    if not salaries:
+        messages.warning(request, 'No salary processed for this month/year.')
+        return redirect('cxapp_salary_list')
+
+    pdf_bytes = cx_wages_register_pdf(request.cx_owner_profile, salaries, month, year)
+    response = HttpResponse(pdf_bytes, content_type='application/pdf')
+    response['Content-Disposition'] = f'inline; filename="wages_register_{month}_{year}.pdf"'
+    return response
+
+
+def cxapp_wages_slip_bulk_report(request, month, year):
+    from Cxapp.views import cx_login_required
+    return cx_login_required(_wages_slip_bulk_report)(request, month, year)
+
+
+def _wages_slip_bulk_report(request, month, year):
+    import io
+    from django.http import HttpResponse
+    from pypdf import PdfReader, PdfWriter
+    from Cxapp.app.salary_pdf import cx_salary_slip_pdf
+
+    if not _can_manage_payroll(request):
+        messages.error(request, 'You do not have permission to view payslips.')
+        return redirect('cxapp_dashboard')
+
+    salaries = list(CxSalary.objects.filter(
+        company=request.cx_owner_profile, salary_month=month, salary_year=year
+    ).select_related('employee', 'designation'))
+
+    if not salaries:
+        messages.warning(request, 'No salary processed for this month/year.')
+        return redirect('cxapp_salary_list')
+
+    writer = PdfWriter()
+    for sal in salaries:
+        reader = PdfReader(io.BytesIO(cx_salary_slip_pdf(sal)))
+        for page in reader.pages:
+            writer.add_page(page)
+
+    out = io.BytesIO()
+    writer.write(out)
+    out.seek(0)
+    response = HttpResponse(out.read(), content_type='application/pdf')
+    response['Content-Disposition'] = f'inline; filename="wages_slips_{month}_{year}.pdf"'
+    return response

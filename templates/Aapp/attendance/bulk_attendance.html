@@ -1,4 +1,5 @@
 {% extends 'Aapp/base.html' %}
+{% load static %}
 {% block title %}Bulk Attendance{% endblock %}
 {% block content %}
 <div class="main-content">
@@ -21,7 +22,7 @@
                 {% for val, label in years %}<option value="{{ val }}">{{ label }}</option>{% endfor %}
             </select>
             <label>Branch</label>
-            <select class="medium" name="branchid">
+            <select class="medium" name="branchid" id="branch_filter" onchange="filterByBranch(this.value)">
                 <option value="">-- All --</option>
                 {% for b in branches %}<option value="{{ b.branchid }}">{{ b.branch_name }}</option>{% endfor %}
             </select>
@@ -33,7 +34,7 @@
             <label style="width:auto;margin-bottom:8px;">
                 <input type="checkbox" id="select_all" onchange="toggleAll(this)"> Select All
             </label>
-            <table class="data-table">
+            <table class="data-table" id="attendance-table">
                 <thead>
                     <tr>
                         <th><input type="checkbox" id="select_all_hdr" onchange="toggleAll(this)"></th>
@@ -44,7 +45,7 @@
                 </thead>
                 <tbody>
                     {% for emp in employees %}
-                    <tr>
+                    <tr class="emp-row paginate-row" data-branch="{{ emp.branchID_id|default_if_none:'' }}">
                         <td><input type="checkbox" name="employee_ids" value="{{ emp.employeeid }}" class="emp-chk"></td>
                         <td>{{ emp.employeecode }}</td>
                         <td>{{ emp.name }}</td>
@@ -59,6 +60,7 @@
                     {% endfor %}
                 </tbody>
             </table>
+            <div id="attendance-table-pager"></div>
         </div>
         <div style="margin:15px 10px;">
             <button type="submit" class="button">Save Bulk Attendance</button>
@@ -68,9 +70,28 @@
 </div>
 <script>
 function toggleAll(src) {
-    document.querySelectorAll('.emp-chk').forEach(c => c.checked = src.checked);
+    document.querySelectorAll('.emp-chk').forEach(c => {
+        const row = c.closest('tr');
+        if (row.style.display !== 'none') c.checked = src.checked;
+    });
     document.getElementById('select_all').checked = src.checked;
     document.getElementById('select_all_hdr').checked = src.checked;
 }
+
+function filterByBranch(branchId) {
+    document.querySelectorAll('.emp-row').forEach(row => {
+        const match = !branchId || row.dataset.branch === branchId;
+        row.dataset.filteredOut = match ? 'false' : 'true';
+        if (!match) {
+            const chk = row.querySelector('.emp-chk');
+            if (chk) chk.checked = false;
+        }
+    });
+    refreshPagination('attendance-table');
+}
+</script>
+<script src="{% static 'js/table_paginate.js' %}"></script>
+<script>
+    paginateTable('attendance-table', 'attendance-table-pager', 10, 15);
 </script>
 {% endblock %}

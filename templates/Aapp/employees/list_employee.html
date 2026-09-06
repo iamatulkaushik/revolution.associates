@@ -51,6 +51,7 @@
                 {% endfor %}
             </tbody>
         </table>
+        {% include 'partials/pagination.html' %}
         {% else %}
         <p style="text-align:center;color:#999;font-style:italic;padding:30px;">No employees found for this company.</p>
         {% endif %}

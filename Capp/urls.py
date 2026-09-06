@@ -11,6 +11,8 @@ from Capp.views import (
     capp_bonus, capp_maternity, capp_lwf,
     capp_compliance,
     capp_company_profile_pdf, capp_letterhead,
+    capp_grand_total_report, capp_wages_register_report,
+    capp_wages_slip_report, capp_wages_slip_bulk_report,
 )
 
 # NOTE: Capp/urls.py is the ROOT urlconf for the 'capp' host in django-hosts.
@@ -57,4 +59,8 @@ urlpatterns = [
     # ── Reports & Documents ───────────────────────────────────────────────────
     path('reports/company-profile.pdf/',      capp_company_profile_pdf, name='capp_company_profile_pdf'),
     path('reports/letterhead/<str:doc_type>/', capp_letterhead,         name='capp_letterhead'),
+    path('reports/grand-total/', capp_grand_total_report, name='capp_grand_total_report'),
+    path('reports/wages-register/', capp_wages_register_report, name='capp_wages_register_report'),
+    path('reports/wages-slip/<int:slip_id>/', capp_wages_slip_report, name='capp_wages_slip_report'),
+    path('reports/wages-slip-bulk/', capp_wages_slip_bulk_report, name='capp_wages_slip_bulk_report'),
 ]
