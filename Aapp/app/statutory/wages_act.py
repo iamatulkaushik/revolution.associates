@@ -292,7 +292,7 @@ def form_x_wages_register_pdf(company, slips, month, year):
     from reportlab.lib.pagesizes import A4, landscape
 
     s = doc_styles()
-    mname = _month_name(month)
+    mname = month_name(slips.processing_id.month)
     story = [
         Paragraph('FORM X — REGISTER OF WAGES', s['Title']),
         Paragraph('[See Rule 26 — Minimum Wages (Central) Rules, 1950]', s['Subtitle']),
@@ -351,4 +351,4 @@ def form_x_wages_register_pdf(company, slips, month, year):
     doc_meta = {'title': f'Form X — Register of Wages — {mname} {year}', 'doc_date': date.today()}
     return build_pdf(story, company=company, doc_meta=doc_meta,
                       margins={'top': 30, 'bottom': 20, 'left': 8, 'right': 8},
-                      pagesize=landscape(A4), **_letterhead_kwargs(company))
+                      pagesize=landscape(A4), **letterhead_kwargs(company))
