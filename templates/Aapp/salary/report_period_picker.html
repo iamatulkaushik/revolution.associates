@@ -1,0 +1,70 @@
+{% extends 'Aapp/base.html' %}
+{% block title %}Select Report Period{% endblock %}
+{% block content %}
+
+<div class="section-header">
+    <h2>Select Report Period</h2>
+</div>
+
+<div class="card" style="max-width:768px;">
+      <div class="card-body">
+    <form method="get" action="" id="report-picker-form">
+        <label>Month</label>
+        <select name="month" id="report-month" class="medium" onchange="syncYears()" required>
+            {% for val, label in months %}<option value="{{ val }}">{{ label }}</option>{% endfor %}
+        </select>
+        <label>Year</label>
+        <select name="year" id="report-year" class="medium" required>
+        </select>
+
+        <p style="color:#888;font-size:12px;margin-top:8px;">
+            Only months with a processed salary batch are shown.
+        </p>
+
+        <div style="margin-top:18px;display:flex;gap:10px;flex-wrap:wrap;">
+            <button type="button" class="button" onclick="goReport('grand_total_report_pdf')">Grand Total</button>
+            <button type="button" class="button" onclick="goReport('wages_register_report_pdf')">Wages Register</button>
+            <button type="button" class="button" onclick="goReport('pf_report')">PF Report</button>
+            <button type="button" class="button" onclick="goReport('esi_report')">ESI Report</button>
+            <button type="button" class="button" onclick="goReport('wages_slip_bulk_pdf')">Wages Slips (Bulk)</button>
+        </div>
+    </form>
+</div>
+</div>
+
+<script>
+const BATCHES = [
+    {% for b in batches %}{month: {{ b.month }}, year: {{ b.year }}},{% endfor %}
+];
+function syncYears() {
+    const month = parseInt(document.getElementById('report-month').value);
+    const yearSel = document.getElementById('report-year');
+    yearSel.innerHTML = '';
+    BATCHES.filter(b => b.month === month).forEach(b => {
+        const opt = document.createElement('option');
+        opt.value = b.year;
+        opt.textContent = b.year;
+        yearSel.appendChild(opt);
+    });
+}
+document.addEventListener('DOMContentLoaded', () => {
+    if (BATCHES.length) {
+        document.getElementById('report-month').value = BATCHES[0].month;
+    }
+    syncYears();
+});
+
+const REPORT_URLS = {
+    'grand_total_report_pdf': "{% url 'grand_total_report_pdf' %}",
+    'wages_register_report_pdf': "{% url 'wages_register_report_pdf' %}",
+    'pf_report': "{% url 'pf_report' %}",
+    'esi_report': "{% url 'esi_report' %}",
+    'wages_slip_bulk_pdf': "{% url 'wages_slip_bulk_pdf' %}",
+};
+function goReport(name) {
+    const month = document.getElementById('report-month').value;
+    const year = document.getElementById('report-year').value;
+    window.location.href = `${REPORT_URLS[name]}?month=${month}&year=${year}`;
+}
+</script>
+{% endblock %}

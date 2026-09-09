@@ -11,6 +11,7 @@
   <link rel="preload" href="{% static 'fonts/Infinitude.ttf' %}" as="font" type="font/ttf" crossorigin>
   <link rel="preload" href="{% static 'fonts/Ubuntu-R.ttf' %}" as="font" type="font/ttf" crossorigin>
   <link rel="stylesheet" href="{% static 'css/base.css' %}">
+  <link rel="stylesheet" href="{% static 'css/icons.css' %}">
   {% block additionalcss_js %}{% endblock %}
 </head>
 <body>
@@ -42,10 +43,10 @@
             <span class="nav-chevron">&#9658;</span>
           </button>
           <ul class="nav-sub">
-            <li><a href="{% url 'list_company_associate' %}" class="nav-link">Companies</a></li>
-            <li><a href="{% url 'branch_list' %}" class="nav-link">Branches</a></li>
-            <li><a href="{% url 'department_list' %}" class="nav-link">Departments</a></li>
-            <li><a href="{% url 'list_designation' %}" class="nav-link">Designations</a></li>
+            <li><a href="{% url 'list_company_associate' %}" class="nav-link companies">Companies</a></li>
+            <li><a href="{% url 'branch_list' %}" class="nav-link branches">Branches</a></li>
+            <li><a href="{% url 'department_list' %}" class="nav-link departments">Departments</a></li>
+            <li><a href="{% url 'list_designation' %}" class="nav-link designations">Designations</a></li>
           </ul>
         </li>
 
@@ -98,8 +99,7 @@
             <li><a href="{% url 'salary_dashboard' %}" class="nav-link">Dashboard</a></li>
             <li><a href="{% url 'create_salary_batch' %}" class="nav-link">Process Salary</a></li>
             <li><a href="{% url 'list_salary_structures' %}" class="nav-link">Salary Structures</a></li>
-            <li><a href="{% url 'pf_report' %}" class="nav-link">PF Report</a></li>
-            <li><a href="{% url 'esi_report' %}" class="nav-link">ESI Report</a></li>
+            <li><a href="{% url 'report_period_picker' %}" class="nav-link">Statutory Reports</a></li>
           </ul>
         </li>
 

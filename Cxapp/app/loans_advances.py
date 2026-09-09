@@ -87,6 +87,8 @@ class CxLoanAdvanceBase(models.Model):
         if not self.interest_rate_annual:
             return self.principal_amount
         instalments = self.number_of_instalments or self._derived_instalment_count()
+        if not instalments:
+            return self.principal_amount
         years = Decimal(instalments) / Decimal('12')
         interest = self.principal_amount * (self.interest_rate_annual / Decimal('100')) * years
         return _round(self.principal_amount + interest)
@@ -94,7 +96,13 @@ class CxLoanAdvanceBase(models.Model):
     def _derived_instalment_count(self):
         if not self.fixed_deduction_amount:
             return 0
-        total = self.total_payable if self.interest_rate_annual else self.principal_amount
+        if self.interest_rate_annual:
+            approx_count = int(self.principal_amount // self.fixed_deduction_amount) or 1
+            years = Decimal(approx_count) / Decimal('12')
+            interest = self.principal_amount * (self.interest_rate_annual / Decimal('100')) * years
+            total = _round(self.principal_amount + interest)
+        else:
+            total = self.principal_amount
         full = int(total // self.fixed_deduction_amount)
         remainder = total - (full * self.fixed_deduction_amount)
         return full + (1 if remainder > 0 else 0)
@@ -116,10 +124,13 @@ class CxLoanAdvanceBase(models.Model):
                 if m > 12:
                     m, y = 1, y + 1
         else:
+            if not self.fixed_deduction_amount or self.fixed_deduction_amount <= 0:
+                return schedule
             remaining = total
             m, y = self.deduction_start_month, self.deduction_start_year
             i = 1
-            while remaining > 0:
+            max_instalments = 1200
+            while remaining > 0 and i <= max_instalments:
                 amount = min(self.fixed_deduction_amount, remaining)
                 schedule.append({'instalment_no': i, 'month': m, 'year': y, 'amount': _round(amount)})
                 remaining -= amount

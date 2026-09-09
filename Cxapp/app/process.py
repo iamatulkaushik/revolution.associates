@@ -479,23 +479,15 @@ def cxapp_email_all_slips(request, month, year):
 
 
 def _email_all_slips(request, month, year):
-    from Cxapp.app.payslip_email import send_bulk_cx_payslip_emails
+    from Cxapp.app.tasks import queue_bulk_cx_payslip_emails
 
     if not _can_manage_payroll(request):
         messages.error(request, 'You do not have permission to email payslips.')
         return redirect('cxapp_dashboard')
 
-    results = send_bulk_cx_payslip_emails(request.cx_owner_profile, month, year)
-    sent = sum(1 for r in results if r['success'])
-    failed = [r for r in results if not r['success']]
-
-    if sent:
-        messages.success(request, f'Emailed {sent} payslip(s) successfully.')
-    if failed:
-        failed_names = ', '.join(f"{r['name']} ({r['reason']})" for r in failed[:5])
-        more = f" and {len(failed) - 5} more" if len(failed) > 5 else ''
-        messages.warning(request, f'{len(failed)} payslip(s) not sent: {failed_names}{more}.')
-    return redirect('cxapp_salary_list')
+    job = queue_bulk_cx_payslip_emails(request.cx_owner_profile.pk, month, year, request.user.pk)
+    messages.info(request, 'Emailing payslips in the background. This page will update automatically.')
+    return redirect('cxapp_batch_job_status_page', job_id=job.id)
 
 
 # ── Statutory reports (Grand Total / Wages Register) — Owner + HR only ────────
@@ -560,32 +552,19 @@ def cxapp_wages_slip_bulk_report(request, month, year):
 
 
 def _wages_slip_bulk_report(request, month, year):
-    import io
-    from django.http import HttpResponse
-    from pypdf import PdfReader, PdfWriter
-    from Cxapp.app.salary_pdf import cx_salary_slip_pdf
+    from Cxapp.app.tasks import queue_bulk_cx_wages_slip_pdf
 
     if not _can_manage_payroll(request):
         messages.error(request, 'You do not have permission to view payslips.')
         return redirect('cxapp_dashboard')
 
-    salaries = list(CxSalary.objects.filter(
+    exists = CxSalary.objects.filter(
         company=request.cx_owner_profile, salary_month=month, salary_year=year
-    ).select_related('employee', 'designation'))
-
-    if not salaries:
+    ).exists()
+    if not exists:
         messages.warning(request, 'No salary processed for this month/year.')
         return redirect('cxapp_salary_list')
 
-    writer = PdfWriter()
-    for sal in salaries:
-        reader = PdfReader(io.BytesIO(cx_salary_slip_pdf(sal)))
-        for page in reader.pages:
-            writer.add_page(page)
-
-    out = io.BytesIO()
-    writer.write(out)
-    out.seek(0)
-    response = HttpResponse(out.read(), content_type='application/pdf')
-    response['Content-Disposition'] = f'inline; filename="wages_slips_{month}_{year}.pdf"'
-    return response
+    job = queue_bulk_cx_wages_slip_pdf(request.cx_owner_profile.pk, month, year, request.user.pk)
+    messages.info(request, 'Building bulk wages slip PDF in the background. This page will update automatically.')
+    return redirect('cxapp_batch_job_status_page', job_id=job.id)

@@ -16,6 +16,13 @@ class designation(models.Model):
     basicpay = models.DecimalField(max_digits=10, decimal_places=2)
     hra = models.DecimalField(max_digits=10, decimal_places=2)
     da = models.DecimalField(max_digits=10, decimal_places=2)
+    # Statutory minimum wage rate for this designation/scheduled employment,
+    # as notified by the appropriate government — required for Form X
+    # (Register of Wages) under the Minimum Wages (Central) Rules, 1950.
+    # Kept separate from actual basicpay/da above, since Form X displays
+    # minimum-payable and actual-paid side by side.
+    min_wage_basic = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    min_wage_da = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     medicalallowance = models.DecimalField(max_digits=10, decimal_places=2)
     conveyance = models.DecimalField(max_digits=10, decimal_places=2)
     lunchallowance = models.DecimalField(max_digits=10, decimal_places=2)
@@ -68,6 +75,10 @@ class createDesignationForm(forms.Form):
     basicpay = forms.DecimalField(max_digits=10, decimal_places=2, required=False)
     hra = forms.DecimalField(max_digits=10, decimal_places=2, required=False)
     da = forms.DecimalField(max_digits=10, decimal_places=2, required=False)
+    min_wage_basic = forms.DecimalField(max_digits=10, decimal_places=2, required=False,
+        label='Minimum Wage — Basic', help_text='Statutory minimum basic rate for this designation (Form X)')
+    min_wage_da = forms.DecimalField(max_digits=10, decimal_places=2, required=False,
+        label='Minimum Wage — D.A.', help_text='Statutory minimum D.A. rate for this designation (Form X)')
     medicalallowance = forms.DecimalField(max_digits=10, decimal_places=2, required=False)
     conveyance = forms.DecimalField(max_digits=10, decimal_places=2, required=False)
     lunchallowance = forms.DecimalField(max_digits=10, decimal_places=2, required=False)
@@ -118,6 +129,8 @@ class createDesignationForm(forms.Form):
             basicpay=self.cleaned_data['basicpay'],
             hra=self.cleaned_data['hra'],
             da=self.cleaned_data['da'],
+            min_wage_basic=self.cleaned_data.get('min_wage_basic') or 0,
+            min_wage_da=self.cleaned_data.get('min_wage_da') or 0,
             medicalallowance=self.cleaned_data['medicalallowance'],
             conveyance=self.cleaned_data['conveyance'],
             lunchallowance=self.cleaned_data['lunchallowance'],
@@ -227,6 +240,8 @@ def create_designation(request):
                 basicpay=request.POST.get('basicpay', 0) or 0,
                 hra=request.POST.get('hra', 0) or 0,
                 da=request.POST.get('da', 0) or 0,
+                min_wage_basic=request.POST.get('min_wage_basic', 0) or 0,
+                min_wage_da=request.POST.get('min_wage_da', 0) or 0,
                 medicalallowance=request.POST.get('medicalallowance', 0) or 0,
                 conveyance=request.POST.get('conveyance', 0) or 0,
                 lunchallowance=request.POST.get('lunchallowance', 0) or 0,

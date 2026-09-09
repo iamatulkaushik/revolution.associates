@@ -1,0 +1,75 @@
+{% extends 'Cxapp/_base.html' %}
+{% block title %}Bulk Job Status{% endblock %}
+{% block page_title %}Bulk Job Status{% endblock %}
+{% block content %}
+
+<div style="max-width:700px;margin:0 auto;padding:24px">
+  <h2>
+    {% if job.job_type == 'email' %}Bulk Payslip Email{% else %}Bulk Payslip PDF{% endif %}
+    — {{ job.month }}/{{ job.year }}
+  </h2>
+
+  <div id="job-status-body" data-job-id="{{ job.id }}">
+    <p>Status: <strong id="job-status-text">{{ job.get_status_display }}</strong></p>
+    <div id="job-result" style="display:none">
+      <p id="job-counts"></p>
+      <ul id="job-failed-list"></ul>
+      <a id="job-download-link" style="display:none">Download PDF</a>
+    </div>
+    <div id="job-error" style="display:none;color:#c0392b"></div>
+  </div>
+
+  <a href="{% url 'cxapp_salary_list' %}">← Back to Salary</a>
+</div>
+
+<script>
+(function () {
+  var jobId = document.getElementById('job-status-body').dataset.jobId;
+  var statusUrl = '/cxapp/salary/bulk-job/' + jobId + '/status.json';
+  var statusText = document.getElementById('job-status-text');
+  var resultBox = document.getElementById('job-result');
+  var countsEl = document.getElementById('job-counts');
+  var failedListEl = document.getElementById('job-failed-list');
+  var downloadLink = document.getElementById('job-download-link');
+  var errorBox = document.getElementById('job-error');
+
+  function poll() {
+    fetch(statusUrl, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        statusText.textContent = data.status;
+
+        if (data.status === 'done') {
+          resultBox.style.display = 'block';
+          countsEl.textContent = data.sent_count + ' succeeded, ' + data.failed_count + ' failed.';
+          failedListEl.innerHTML = '';
+          (data.failed_detail || []).forEach(function (f) {
+            var li = document.createElement('li');
+            li.textContent = f.name + ' — ' + f.reason;
+            failedListEl.appendChild(li);
+          });
+          if (data.download_url) {
+            downloadLink.href = data.download_url;
+            downloadLink.style.display = 'inline-block';
+          }
+          return;
+        }
+
+        if (data.status === 'failed') {
+          errorBox.style.display = 'block';
+          errorBox.textContent = 'Job failed: ' + (data.error || 'Unknown error.');
+          return;
+        }
+
+        setTimeout(poll, 3000);
+      })
+      .catch(function () {
+        setTimeout(poll, 5000);
+      });
+  }
+
+  poll();
+})();
+</script>
+
+{% endblock %}

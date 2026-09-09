@@ -407,27 +407,16 @@ def email_salary_slip(request, wages_id):
 def email_all_slips(request, month, year):
     """
     POST /wages/email-all-slips/<month>/<year>/
-    Emails payslips to every employee with a wage record and an email
-    on file for the selected company/month/year. Shows a summary of
-    successes/failures rather than a single blanket message.
+    Queues a background job to email payslips to every employee with a
+    wage record and an email on file for the selected company/month/year.
+    Redirects to a status page instead of blocking the request.
     """
-    from Aapp.app.payslip_email import send_bulk_payslip_emails
+    from Aapp.app.tasks import queue_bulk_payslip_emails
 
     company = _company(request)
     if not company:
         raise Http404('No company selected.')
 
-    results = send_bulk_payslip_emails(company, month, year)
-    sent = sum(1 for r in results if r['success'])
-    failed = [r for r in results if not r['success']]
-
-    if sent:
-        messages.success(request, f'Emailed {sent} payslip(s) successfully.')
-    if failed:
-        failed_names = ', '.join(f"{r['name']} ({r['reason']})" for r in failed[:5])
-        more = f" and {len(failed) - 5} more" if len(failed) > 5 else ''
-        messages.warning(request, f'{len(failed)} payslip(s) not sent: {failed_names}{more}.')
-    if not results:
-        messages.error(request, 'No wage records found for the selected period.')
-
-    return redirect(request.META.get('HTTP_REFERER', 'aapp_dashboard'))
+    job = queue_bulk_payslip_emails(company.pk, month, year, request.user.pk)
+    messages.info(request, 'Emailing payslips in the background. This page will update automatically.')
+    return redirect('batch_job_status_page', job_id=job.id)

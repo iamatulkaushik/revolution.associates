@@ -75,3 +75,4 @@ from Cxapp.app.license import CxPlan  # noqa: E402,F401
 from Cxapp.app.attandance import CxAttendance, CxAttendanceMaternity  # noqa: E402,F401
 from Cxapp.app.process import CxSalary, CxSalaryLine  # noqa: E402,F401
 from Cxapp.app.employee_portal import CxEmployeeAuth  # noqa: E402,F401
+from Cxapp.app.batch_job import CxBatchJob  # noqa: E402,F401

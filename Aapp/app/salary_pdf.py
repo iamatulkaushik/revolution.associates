@@ -34,6 +34,7 @@ from reportlab.lib.colors import HexColor
 from Aapp.app.pdf_engine import (
     build_pdf, doc_styles, INR, amount_in_words,
     table_style, total_row_style, section_divider, kv_table,
+    net_wages_bar, signature_row,
     NAVY, STEEL, TEAL, CORAL, CREAM, LIGHT, WHITE, MUTED,
 )
 
@@ -196,27 +197,7 @@ def salary_slip_pdf(salary_slip_obj):
     story.append(Spacer(1, 5 * mm))
 
     # ── Net Wages summary bar ─────────────────────────────────────────────────
-    net_data = [
-        [Paragraph('<b>GROSS WAGES</b>', s['TableHeader']),
-         Paragraph(INR(r.gross_earnings), s['TableHeader']),
-         Paragraph('<b>TOTAL DEDUCTIONS</b>', s['TableHeader']),
-         Paragraph(INR(r.total_deductions), s['TableHeader']),
-         Paragraph('<b>NET WAGES</b>', s['TableHeader']),
-         Paragraph(INR(r.net_pay), s['TableHeader'])],
-    ]
-    net_ts = TableStyle([
-        ('BACKGROUND',    (0, 0), (-1, -1), NAVY),
-        ('TEXTCOLOR',     (0, 0), (-1, -1), WHITE),
-        ('FONTNAME',      (0, 0), (-1, -1), 'Helvetica-Bold'),
-        ('FONTSIZE',      (0, 0), (-1, -1), 10),
-        ('ALIGN',         (0, 0), (-1, -1), 'CENTER'),
-        ('VALIGN',        (0, 0), (-1, -1), 'MIDDLE'),
-        ('TOPPADDING',    (0, 0), (-1, -1), 7),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 7),
-        ('LINEAFTER',     (0, 0), (-2, -1), 0.5, TEAL),
-    ])
-    cw = [AVAIL / 6] * 6
-    story.append(Table(net_data, colWidths=cw, style=net_ts))
+    story.append(net_wages_bar(INR(r.gross_earnings), INR(r.total_deductions), INR(r.net_pay), AVAIL))
     story.append(Spacer(1, 3 * mm))
 
     # Amount in words
@@ -227,30 +208,23 @@ def salary_slip_pdf(salary_slip_obj):
     story.append(Spacer(1, 20 * mm))
 
     # ── Signature row ─────────────────────────────────────────────────────────
-    sig_ts = TableStyle([
-        ('ALIGN',   (0, 0), (-1, -1), 'CENTER'),
-        ('VALIGN',  (0, 0), (-1, -1), 'BOTTOM'),
-        ('FONTNAME',(0, 0), (-1, -1), 'Helvetica'),
-        ('FONTSIZE',(0, 0), (-1, -1), 8),
-        ('LINEABOVE', (0, 0), (0, 0), 0.5, MUTED),
-        ('LINEABOVE', (-1, 0), (-1, 0), 0.5, MUTED),
-    ])
-    sig_data = [[
-        Paragraph("Employee's Signature", s['Small']),
-        '',
-        Paragraph("Authorised Signatory", s['Small']),
-    ]]
-    story.append(Table(sig_data, colWidths=[AVAIL * 0.35, AVAIL * 0.3, AVAIL * 0.35], style=sig_ts))
+    story.append(signature_row(AVAIL))
     story.append(Spacer(1, 3 * mm))
     story.append(Paragraph(
         'This is a computer-generated document. No signature is required if sent digitally.',
         s['Small'],
     ))
 
+    branch_name = emp.branchID.branch_name if emp.branchID_id else ''
+    department_name = emp.departmentID.department_name if emp.departmentID_id else ''
+    branch_dept_parts = [p for p in [f'Branch: {branch_name}' if branch_name else '',
+                                      f'Department: {department_name}' if department_name else ''] if p]
+
     doc_meta = {
         'title': f'Salary Slip — {month_name} {year}',
         'doc_date': date.today(),
         'ref': f'EMP/{emp.employeecode}/{month}/{year}',
+        'branch_dept': '   |   '.join(branch_dept_parts),
         'hide_pan': True,
         'hide_generated_by': True,
     }

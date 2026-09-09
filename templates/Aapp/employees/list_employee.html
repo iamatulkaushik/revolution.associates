@@ -21,11 +21,10 @@
         <table class="data-table">
             <thead>
                 <tr>
-                    <th>Code</th>
-                    <th>Name</th>
+                    <th>Emp Code<br/>Name | Father's Name</th>
                     <th>Designation</th>
-                    <th>Branch</th>
-                    <th>Mobile</th>
+                    <th>Branch / Department</th>
+                    <th>Mobile<br/>Email</th>
                     <th>DOJ</th>
                     <th>Status</th>
                     <th>Actions</th>
@@ -34,18 +33,21 @@
             <tbody>
                 {% for emp in employees %}
                 <tr>
-                    <td>{{ emp.employeecode }}</td>
-                    <td>{{ emp.name }}</td>
+                    <td>{{ emp.employeecode }}<br/>{{ emp.name }} | {{ emp.fathername }}</td>
                     <td>{{ emp.designationID.designationname }}</td>
-                    <td>{{ emp.branchID.branch_name }}</td>
-                    <td>{{ emp.mobile }}</td>
+                    <td>{{ emp.branchID.branch_name }} / {{ emp.departmentID.department_name }}</td>
+                    <td>{{ emp.mobile }}<br/>{{ emp.email }}</td>
                     <td>{{ emp.dateofjoining|date:"d M Y" }}</td>
                     <td>{% if emp.dateofretirement %}Retired{% elif emp.is_working %}Active{% else %}Disabled{% endif %}</td>
                     <td>
-                        <a href="{% url 'alter_employee' emp.employeeid %}" class="button" style="font-size:11px;padding:3px 8px;">Edit</a>
-                        <a href="{% url 'disable_employee' emp.employeeid %}" class="button" style="font-size:11px;padding:3px 8px;">{% if emp.is_working %}Disable{% else %}Enable{% endif %}</a>
-                        <a href="{% url 'retire_employee' emp.employeeid %}" class="button" style="font-size:11px;padding:3px 8px;">Retire</a>
-                        <a href="{% url 'delete_employee' emp.employeeid %}" class="button" style="font-size:11px;padding:3px 8px;color:var(--Color1);border-color:var(--Color1);">Delete</a>
+                        <a href="{% url 'alter_employee' emp.employeeid %}" class="employee edit" title="Edit {{ emp.name }}"></a>
+                        <a href="{% url 'retire_employee' emp.employeeid %}" title="Retire {{ emp.name }}" class="employee retire" ></a>
+                        <a href="{% url 'delete_employee' emp.employeeid %}" title="Delete {{ emp.name }}" class="employee delete"></a>
+                        {% if emp.is_working %}
+                        <a href="{% url 'disable_employee' emp.employeeid %}" title="{% if emp.is_working %}Disable{% else %}Enable{% endif %} {{ emp.name }}" class="employee {% if emp.is_working %}disable{% else %}enable{% endif %}">
+                            {% else %}
+                        <a href="{% url 'disable_employee' emp.employeeid %}" title="{% if emp.is_working %}Disable{% else %}Enable{% endif %} {{ emp.name }}" class="employee {% if emp.is_working %}disable{% else %}enable{% endif %}">
+                            {% endif %}</a>
                     </td>
                 </tr>
                 {% endfor %}

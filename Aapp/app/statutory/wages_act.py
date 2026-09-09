@@ -1,34 +1,29 @@
 """
-Aapp/app/statutory_reports_pdf.py
-==================================
-PDF variants of legacy Saral-style monthly reports:
+Aapp/app/statutory/wages_act.py
+=================================
+Payment of Wages Act, 1936 — statutory reports:
   - Grand Total of Salary/Wages (company-level summary)
-  - Salary/Wages Register (per-employee earnings/deductions ledger)
+  - Salary/Wages Register (per-employee ledger, landscape, with final
+    abstract page)
   - Wages Slip (contractor-style single-employee wage slip)
 
 All figures sourced from Aapp.app.salary_processing.salary_slip — no
 new calculation, pure presentation via the shared pdf_engine.
 """
 
-import calendar
 from datetime import date
 from decimal import Decimal
 
 from reportlab.lib.units import mm
-from reportlab.platypus import Paragraph, Spacer, Table, TableStyle
+from reportlab.lib.pagesizes import A4, landscape
+from reportlab.platypus import Paragraph, Spacer, Table, TableStyle, PageBreak
 
 from Aapp.app.pdf_engine import (
     build_pdf, doc_styles, INR, amount_in_words,
-    table_style, total_row_style, NAVY, STEEL, LIGHT, WHITE, CREAM,
+    table_style, total_row_style, signature_row,
+    NAVY, STEEL, LIGHT, WHITE, CREAM,
 )
-
-
-def _month_name(month):
-    return calendar.month_name[int(month)]
-
-
-def _sum(slips, field):
-    return sum((getattr(s, field) or Decimal('0')) for s in slips)
+from Aapp.app.statutory.common import month_name, sum_field, letterhead_kwargs
 
 
 # =====================================================================
@@ -41,7 +36,7 @@ def grand_total_pdf(company, slips, month, year):
     PF/ESI/LWF breakup, net payment, days summary.
     """
     s = doc_styles()
-    mname = _month_name(month)
+    mname = month_name(month)
     story = [
         Paragraph('GRAND TOTAL OF SALARY / WAGES', s['Title']),
         Paragraph(f'For the month of {mname}, {year}', s['Subtitle']),
@@ -59,7 +54,7 @@ def grand_total_pdf(company, slips, month, year):
     earn_data = [[Paragraph('Earning Head', s['TableHeader']), Paragraph('Amount (₹)', s['TableHeader'])]]
     total_earning = Decimal('0')
     for label, field in earning_fields:
-        amt = _sum(slips, field)
+        amt = sum_field(slips, field)
         if amt:
             earn_data.append([label, INR(amt)])
         total_earning += amt
@@ -83,7 +78,7 @@ def grand_total_pdf(company, slips, month, year):
     ded_data = [[Paragraph('Deduction Head', s['TableHeader']), Paragraph('Amount (₹)', s['TableHeader'])]]
     total_deduction = Decimal('0')
     for label, field in ded_fields:
-        amt = _sum(slips, field)
+        amt = sum_field(slips, field)
         if amt:
             ded_data.append([label, INR(amt)])
         total_deduction += amt
@@ -97,8 +92,8 @@ def grand_total_pdf(company, slips, month, year):
     story += [ded_tbl, Spacer(1, 6 * mm)]
 
     net_payment = total_earning - total_deduction
-    pf_employer = _sum(slips, 'pf_employer_contribution')
-    esi_employer = _sum(slips, 'esi_employer_contribution')
+    pf_employer = sum_field(slips, 'pf_employer_contribution')
+    esi_employer = sum_field(slips, 'esi_employer_contribution')
 
     summary_data = [
         ['Total Employees', str(len(slips))],
@@ -121,7 +116,7 @@ def grand_total_pdf(company, slips, month, year):
     story.append(Paragraph(f'<b>Net Payment in Words:</b> {amount_in_words(net_payment)}', s['Small']))
 
     doc_meta = {'title': f'Grand Total — {mname} {year}', 'doc_date': date.today()}
-    return build_pdf(story, company=company, doc_meta=doc_meta, **_letterhead_kwargs(company))
+    return build_pdf(story, company=company, doc_meta=doc_meta, **letterhead_kwargs(company))
 
 
 # =====================================================================
@@ -131,7 +126,7 @@ def grand_total_pdf(company, slips, month, year):
 def wages_register_pdf(company, slips, month, year):
     """Per-employee row ledger — one row per employee, all earning/deduction columns."""
     s = doc_styles()
-    mname = _month_name(month)
+    mname = month_name(month)
     story = [
         Paragraph('SALARY / WAGES REGISTER', s['Title']),
         Paragraph(f'For the month of {mname}, {year}', s['Subtitle']),
@@ -170,7 +165,7 @@ def wages_register_pdf(company, slips, month, year):
         INR(totals['professional_tax']), INR(other_ded_total), INR(totals['net_pay']),
     ])
 
-    col_w = [20, 55, 90, 75, 50, 45, 45, 55, 45, 40, 40, 55, 55]
+    col_w = [25, 65, 110, 90, 60, 55, 55, 65, 55, 50, 50, 65, 65]
     tbl = Table(data, colWidths=col_w, repeatRows=1)
     ts = table_style()
     ts.add('ALIGN', (4, 1), (-1, -1), 'RIGHT')
@@ -180,9 +175,39 @@ def wages_register_pdf(company, slips, month, year):
     tbl.setStyle(ts)
     story.append(tbl)
 
+    # ── Abstract summary — final page ────────────────────────────────────────
+    story.append(PageBreak())
+    story.append(Paragraph('ABSTRACT OF SALARY / WAGES', s['Title']))
+    story.append(Paragraph(f'For the month of {mname}, {year}', s['Subtitle']))
+    story.append(Spacer(1, 6 * mm))
+
+    abstract_rows = [
+        ('Total Employees', str(len(slips))),
+        ('Total Basic', INR(totals['basic_earned'])),
+        ('Total DA', INR(totals['da_earned'])),
+        ('Total HRA', INR(totals['hra_earned'])),
+        ('Total Gross Earnings', INR(totals['gross_earnings'])),
+        ('Total PF', INR(totals['pf_deduction'])),
+        ('Total ESI', INR(totals['esi_deduction'])),
+        ('Total Professional Tax', INR(totals['professional_tax'])),
+        ('Total Other Deductions', INR(other_ded_total)),
+        ('Total Deductions', INR(totals['total_deductions'])),
+        ('Net Payment', INR(totals['net_pay'])),
+    ]
+    abs_tbl = Table(
+        [[Paragraph(f'<b>{k}</b>', s['Label']), Paragraph(v, s['Value'])] for k, v in abstract_rows],
+        colWidths=[260, 200],
+        style=TableStyle([
+            ('LINEBELOW', (0, 0), (-1, -1), 0.3, LIGHT),
+            ('TOPPADDING', (0, 0), (-1, -1), 4),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+        ]),
+    )
+    story.append(abs_tbl)
+
     doc_meta = {'title': f'Wages Register — {mname} {year}', 'doc_date': date.today()}
     return build_pdf(story, company=company, doc_meta=doc_meta, margins={'top': 30, 'bottom': 20, 'left': 8, 'right': 8},
-                      **_letterhead_kwargs(company))
+                      pagesize=landscape(A4), **letterhead_kwargs(company))
 
 
 # =====================================================================
@@ -193,7 +218,7 @@ def wages_slip_pdf(company, slip):
     """Single-employee wage slip — Payment of Wages Act format."""
     s = doc_styles()
     emp = slip.employee_id
-    mname = _month_name(slip.processing_id.month)
+    mname = month_name(slip.processing_id.month)
     year = slip.processing_id.year
 
     story = [
@@ -239,21 +264,91 @@ def wages_slip_pdf(company, slip):
     story.append(Paragraph(f'<b>Net Wages in Words:</b> {amount_in_words(net)}', s['Small']))
     story.append(Spacer(1, 10 * mm))
 
-    sig_data = [["Employee's Signature", '', "Employer's Signature"]]
-    story.append(Table(sig_data, colWidths=[150, 100, 150], style=TableStyle([
-        ('LINEABOVE', (0, 0), (0, 0), 0.5, NAVY),
-        ('LINEABOVE', (-1, 0), (-1, 0), 0.5, NAVY),
-        ('FONTNAME', (0, 0), (-1, -1), 'Ubuntu'), ('FONTSIZE', (0, 0), (-1, -1), 8),
-    ])))
+    AVAIL = 400  # single-slip content width (points) — matches info/summary table widths above
+    story.append(signature_row(AVAIL, left_label="Employee's Signature", right_label="Employer's Signature"))
 
     doc_meta = {
         'title': f'Wages Slip — {emp.employeecode} — {mname} {year}',
         'doc_date': date.today(),
     }
-    return build_pdf(story, company=company, doc_meta=doc_meta, **_letterhead_kwargs(company))
+    return build_pdf(story, company=company, doc_meta=doc_meta, **letterhead_kwargs(company))
 
 
-def _letterhead_kwargs(company):
-    """Use company's configured letterhead mode if available, else default."""
-    fn = getattr(company, 'pdf_letterhead_kwargs', None)
-    return fn() if callable(fn) else {}
+# =====================================================================
+# 4. FORM X — REGISTER OF WAGES (Minimum Wages (Central) Rules, 1950)
+# =====================================================================
+
+def form_x_wages_register_pdf(company, slips, month, year):
+    """
+    Statutory Register of Wages under Rule 26/Form X of the Minimum
+    Wages (Central) Rules, 1950. Shows minimum-rate-payable alongside
+    actual-rate-paid, per Form X's required column layout.
+
+    Minimum wage rate is sourced from the employee's designation
+    (min_wage_basic / min_wage_da) — set once per designation, not
+    per employee, matching how "scheduled employment" minimum rates
+    are notified in practice.
+    """
+    from reportlab.lib.pagesizes import A4, landscape
+
+    s = doc_styles()
+    mname = _month_name(month)
+    story = [
+        Paragraph('FORM X — REGISTER OF WAGES', s['Title']),
+        Paragraph('[See Rule 26 — Minimum Wages (Central) Rules, 1950]', s['Subtitle']),
+        Paragraph(f'For the month of {mname}, {year}', s['Subtitle']),
+        Spacer(1, 4 * mm),
+    ]
+
+    header = [
+        'Sl.', 'Name of Employee', "Father's/Husband's Name", 'Designation',
+        'Min. Basic', 'Min. D.A.', 'Paid Basic', 'Paid D.A.',
+        'Attendance', 'OT Hrs', 'Gross Wages', 'PF (Er.)',
+        'Deductions', 'Net Wages', 'Date Paid', 'Signature',
+    ]
+    data = [[Paragraph(h, s['TableHeader']) for h in header]]
+
+    for i, sl in enumerate(slips, 1):
+        emp = sl.employee_id
+        desig = sl.designation_id
+        min_basic = getattr(desig, 'min_wage_basic', 0) or 0
+        min_da = getattr(desig, 'min_wage_da', 0) or 0
+        father_husband = getattr(emp, 'fathername', '') or '—'
+
+        row = [
+            str(i),
+            emp.name,
+            father_husband,
+            desig.designationname if desig else '—',
+            INR(min_basic), INR(min_da),
+            INR(sl.basic_earned), INR(sl.da_earned),
+            str(sl.paid_days),
+            str(getattr(sl, 'overtime_hours', 0) or 0),
+            INR(sl.gross_earnings),
+            INR(sl.pf_employer_contribution),
+            INR(sl.total_deductions),
+            INR(sl.net_pay),
+            '',  # Date Paid — filled manually at disbursement
+            '',  # Signature — filled manually at disbursement
+        ]
+        data.append(row)
+
+    col_w = [20, 85, 85, 65, 45, 40, 45, 40, 45, 35, 55, 45, 50, 55, 45, 60]
+    tbl = Table(data, colWidths=col_w, repeatRows=1)
+    ts = table_style()
+    ts.add('ALIGN', (4, 1), (13, -1), 'RIGHT')
+    ts.add('FONTSIZE', (0, 0), (-1, -1), 6.5)
+    tbl.setStyle(ts)
+    story.append(tbl)
+
+    story.append(Spacer(1, 4 * mm))
+    story.append(Paragraph(
+        'Note: "Date Paid" and "Signature" columns to be completed by hand or thumb-impression '
+        'at the time of wage disbursement, per Rule 26(1-A)(b).',
+        s['Small'],
+    ))
+
+    doc_meta = {'title': f'Form X — Register of Wages — {mname} {year}', 'doc_date': date.today()}
+    return build_pdf(story, company=company, doc_meta=doc_meta,
+                      margins={'top': 30, 'bottom': 20, 'left': 8, 'right': 8},
+                      pagesize=landscape(A4), **_letterhead_kwargs(company))

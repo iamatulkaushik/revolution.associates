@@ -93,6 +93,8 @@ class LoanAdvanceBase(models.Model):
         if not self.interest_rate_annual:
             return self.principal_amount
         instalments = self.number_of_instalments or self._derived_instalment_count()
+        if not instalments:
+            return self.principal_amount
         years = Decimal(instalments) / Decimal('12')
         interest = self.principal_amount * (self.interest_rate_annual / Decimal('100')) * years
         return _round(self.principal_amount + interest)
@@ -101,7 +103,19 @@ class LoanAdvanceBase(models.Model):
         """When mode is fixed_amount: how many full instalments + remainder."""
         if not self.fixed_deduction_amount:
             return 0
-        total = self.total_payable if self.interest_rate_annual else self.principal_amount
+        # Use principal + interest directly here — do NOT call self.total_payable,
+        # since total_payable calls this method back when instalment count is
+        # unknown, causing infinite mutual recursion (max recursion depth error).
+        if self.interest_rate_annual:
+            # Interest depends on instalment count, which is what we're solving
+            # for — estimate instalments from principal alone first, then use
+            # that count to compute interest-inclusive total.
+            approx_count = int(self.principal_amount // self.fixed_deduction_amount) or 1
+            years = Decimal(approx_count) / Decimal('12')
+            interest = self.principal_amount * (self.interest_rate_annual / Decimal('100')) * years
+            total = _round(self.principal_amount + interest)
+        else:
+            total = self.principal_amount
         full = int(total // self.fixed_deduction_amount)
         remainder = total - (full * self.fixed_deduction_amount)
         return full + (1 if remainder > 0 else 0)
@@ -127,10 +141,13 @@ class LoanAdvanceBase(models.Model):
                 if m > 12:
                     m, y = 1, y + 1
         else:  # fixed_amount
+            if not self.fixed_deduction_amount or self.fixed_deduction_amount <= 0:
+                return schedule  # can't build a schedule without a positive instalment amount
             remaining = total
             m, y = self.deduction_start_month, self.deduction_start_year
             i = 1
-            while remaining > 0:
+            max_instalments = 1200  # 100 years — hard safety cap against runaway loops
+            while remaining > 0 and i <= max_instalments:
                 amount = min(self.fixed_deduction_amount, remaining)
                 schedule.append({'instalment_no': i, 'month': m, 'year': y, 'amount': _round(amount)})
                 remaining -= amount

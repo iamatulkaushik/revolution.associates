@@ -10,7 +10,7 @@
 {% endfor %}
 {% endif %}
 
-<form method="post">
+<form method="post" id="increment-form">
     {% csrf_token %}
     <table class="data-table">
         {{ form.as_table }}
@@ -23,4 +23,28 @@
     </table>
 </form>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const empSelect = document.getElementById('id_employee');
+    const oldBasic = document.getElementById('id_old_basicpay');
+    const oldHra = document.getElementById('id_old_hra');
+    if (!empSelect) return;
+
+    empSelect.addEventListener('change', function () {
+        const empId = this.value;
+        if (!empId) return;
+        fetch(`{% url 'get_employee_pay_scale' 0 %}`.replace('0', empId))
+            .then(r => r.json())
+            .then(data => {
+                oldBasic.value = data.old_basicpay;
+                oldHra.value = data.old_hra;
+            })
+            .catch(() => {});
+    });
+
+    // Pre-fill on load if an employee is already selected (edit/re-render after error)
+    if (empSelect.value) empSelect.dispatchEvent(new Event('change'));
+});
+</script>
 {% endblock %}

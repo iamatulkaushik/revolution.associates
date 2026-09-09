@@ -100,8 +100,10 @@ class IncrementForm(ModelForm):
                   'new_da', 'new_conveyance', 'new_special_allowance', 'reason']
         widgets = {
             'employee': Select(attrs={'class': 'form-control'}),
-            'effective_from_month': NumberInput(attrs={'class': 'form-control', 'min': 1, 'max': 12}),
-            'effective_from_year': NumberInput(attrs={'class': 'form-control'}),
+            'effective_from_month': Select(
+                choices=[(m, m) for m in range(1, 13)],
+                attrs={'class': 'form-control'}),
+            'effective_from_year': Select(attrs={'class': 'form-control'}),
             'old_basicpay': NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'readonly': True}),
             'old_hra': NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'readonly': True}),
             'new_basicpay': NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
@@ -111,6 +113,12 @@ class IncrementForm(ModelForm):
             'new_special_allowance': NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'reason': Textarea(attrs={'class': 'form-control', 'rows': 2}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        current_year = date.today().year
+        year_choices = [(y, y) for y in range(current_year - 2, current_year + 6)]
+        self.fields['effective_from_year'].widget.choices = year_choices
 
 
 def get_active_increment(employee_obj, month, year):
@@ -201,6 +209,27 @@ def list_increments(request):
 
 
 @login_required
+@login_required
+def get_employee_pay_scale(request, employee_id):
+    """AJAX endpoint: returns current effective basic/HRA for an employee —
+    from an active increment if one exists, else falls back to designation
+    pay scale. Used to auto-fill 'old basic'/'old HRA' on the increment form."""
+    from django.http import JsonResponse
+    company = _company(request)
+    emp = get_object_or_404(employee_model, employeeid=employee_id, CompanyID=company)
+
+    today = date.today()
+    active_inc = get_active_increment(emp, today.month, today.year)
+    if active_inc:
+        basic = active_inc.new_basicpay
+        hra = active_inc.new_hra
+    else:
+        basic = emp.designationID.basicpay
+        hra = emp.designationID.hra
+
+    return JsonResponse({'old_basicpay': str(basic), 'old_hra': str(hra)})
+
+
 def create_increment(request):
     company = _company(request)
     if not company:
@@ -213,6 +242,17 @@ def create_increment(request):
             inc = form.save(commit=False)
             inc.company = company
             inc.created_by = request.user.username
+
+            # Server-side authoritative old_basicpay/old_hra — never trust
+            # client-submitted readonly-field values.
+            today = date.today()
+            prior_inc = get_active_increment(inc.employee, today.month, today.year)
+            if prior_inc:
+                inc.old_basicpay = prior_inc.new_basicpay
+                inc.old_hra = prior_inc.new_hra
+            else:
+                inc.old_basicpay = inc.employee.designationID.basicpay
+                inc.old_hra = inc.employee.designationID.hra
 
             # Supersede any prior active increment for this employee
             Increment.objects.filter(

@@ -1346,10 +1346,10 @@ def wages_slip_report_pdf(request, slip_id):
 
 
 def wages_slip_bulk_pdf(request):
-    """All employees' Wages Slips for the month, one PDF (one slip per page)."""
-    from Aapp.app.statutory_reports_pdf import wages_slip_pdf
-    from Aapp.app.pdf_engine import build_pdf
-    from reportlab.platypus import PageBreak
+    """All employees' Wages Slips for the month — queues a background job
+    and redirects to a status page. Once done, the status page offers a
+    download link instead of streaming the PDF in-request."""
+    from Aapp.app.tasks import queue_bulk_wages_slip_pdf
 
     company_obj, batch, slips, month, year = _report_batch_and_slips(request)
     if not company_obj:
@@ -1359,20 +1359,6 @@ def wages_slip_bulk_pdf(request):
         messages.warning(request, 'No salary processed for this month/year.')
         return redirect('salary_dashboard')
 
-    # Concatenate individual slip PDFs page-by-page using pypdf,
-    # since each slip already has its own letterhead build.
-    from pypdf import PdfReader, PdfWriter
-    writer = PdfWriter()
-    for slip in slips:
-        pdf_bytes = wages_slip_pdf(company_obj, slip)
-        reader = PdfReader(__import__('io').BytesIO(pdf_bytes))
-        for page in reader.pages:
-            writer.add_page(page)
-
-    import io
-    out = io.BytesIO()
-    writer.write(out)
-    out.seek(0)
-    resp = HttpResponse(out.read(), content_type='application/pdf')
-    resp['Content-Disposition'] = f'inline; filename="wages_slips_{month}_{year}.pdf"'
-    return resp
+    job = queue_bulk_wages_slip_pdf(company_obj.pk, month, year, request.user.pk)
+    messages.info(request, 'Building bulk wages slip PDF in the background. This page will update automatically.')
+    return redirect('batch_job_status_page', job_id=job.id)

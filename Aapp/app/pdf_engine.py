@@ -198,6 +198,66 @@ def section_divider(width=None):
     )
 
 
+def net_wages_bar(gross, deductions, net, avail_width):
+    """
+    Shared 3-pair NAVY summary bar: Gross Wages | Total Deductions | Net Wages.
+    Used identically by both Aapp and Cxapp salary slips (data comes from
+    two structurally different models, but the rendered bar is identical).
+
+    Args:
+        gross, deductions, net: pre-formatted amount strings (already run
+            through INR()) — kept as strings so callers control formatting.
+        avail_width: usable content width in points (AVAIL in each caller).
+
+    Returns: a single-row reportlab Table flowable.
+    """
+    styles = doc_styles()
+    net_data = [[
+        Paragraph('<b>Gross Wages</b>', styles['TableHeader']),
+        Paragraph(gross, styles['TableHeader']),
+        Paragraph('<b>Total Deductions</b>', styles['TableHeader']),
+        Paragraph(deductions, styles['TableHeader']),
+        Paragraph('<b>Net Wages</b>', styles['TableHeader']),
+        Paragraph(net, styles['TableHeader']),
+    ]]
+    net_ts = TableStyle([
+        ('BACKGROUND',    (0, 0), (-1, -1), NAVY),
+        ('TEXTCOLOR',     (0, 0), (-1, -1), WHITE),
+        ('FONTNAME',      (0, 0), (-1, -1), _basefont),
+        ('FONTSIZE',      (0, 0), (-1, -1), 10),
+        ('ALIGN',         (0, 0), (-1, -1), 'CENTER'),
+        ('VALIGN',        (0, 0), (-1, -1), 'MIDDLE'),
+        ('TOPPADDING',    (0, 0), (-1, -1), 7),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 7),
+        ('LINEAFTER',     (0, 0), (-2, -1), 0.5, TEAL),
+    ])
+    cw = [avail_width / 6] * 6
+    return Table(net_data, colWidths=cw, style=net_ts)
+
+
+def signature_row(avail_width, left_label="Employee's Signature", right_label="Authorised Signatory"):
+    """
+    Shared two-party signature row used identically by both Aapp and
+    Cxapp salary slips.
+
+    Returns: a single-row reportlab Table flowable.
+    """
+    styles = doc_styles()
+    sig_ts = TableStyle([
+        ('ALIGN',     (0, 0), (-1, -1), 'CENTER'),
+        ('VALIGN',    (0, 0), (-1, -1), 'BOTTOM'),
+        ('FONTNAME',  (0, 0), (-1, -1), _basefont),
+        ('FONTSIZE',  (0, 0), (-1, -1), 8),
+        ('LINEABOVE', (0, 0), (0, 0), 0.5, MUTED),
+        ('LINEABOVE', (-1, 0), (-1, 0), 0.5, MUTED),
+    ])
+    sig_data = [[
+        Paragraph(left_label, styles['Small']), '',
+        Paragraph(right_label, styles['Small']),
+    ]]
+    return Table(sig_data, colWidths=[avail_width * 0.35, avail_width * 0.3, avail_width * 0.35], style=sig_ts)
+
+
 # ── Letterhead canvas — draws header + footer on every page ──────────────────
 
 class LetterheadCanvas:
@@ -248,7 +308,7 @@ class LetterheadCanvas:
 
     def _draw_letterhead(self, page_num):
         c = self.canvas
-        w, h = PAGE_W, PAGE_H
+        w, h = c._pagesize
 
         # ── Header bar (navy gradient simulation) ──────────────────────────────
         c.setFillColor(NAVY)
@@ -315,6 +375,12 @@ class LetterheadCanvas:
         c.setFont(_basefont, 11)
         c.drawString(LEFT_M, meta_y, doc_title)
 
+        branch_dept = self.doc_meta.get('branch_dept', '')
+        if branch_dept:
+            c.setFont(_basefont, 8.5)
+            c.setFillColor(MUTED)
+            c.drawString(LEFT_M, meta_y - 4.5 * mm, branch_dept)
+
         c.setFont(_basefont, 8.5)
         c.setFillColor(MUTED)
         if doc_ref:
@@ -325,9 +391,10 @@ class LetterheadCanvas:
         c.drawRightString(right_x, meta_y, '   |   '.join(meta_right_parts))
 
         # Light rule under meta bar
+        rule_y = meta_y - 2 * mm - (4.5 * mm if branch_dept else 0)
         c.setStrokeColor(LIGHT)
         c.setLineWidth(0.5)
-        c.line(LEFT_M, meta_y - 2 * mm, right_x, meta_y - 2 * mm)
+        c.line(LEFT_M, rule_y, right_x, rule_y)
 
         # ── Footer ──────────────────────────────────────────────────────────────
         footer_y = 12 * mm
@@ -344,6 +411,8 @@ class LetterheadCanvas:
         if self.company.get('tan'):     reg_parts.append(f'TAN: {self.company["tan"]}')
         if self.company.get('registration_no'):
             reg_parts.append(f'Reg: {self.company["registration_no"]}')
+        if self.company.get('epf_no'):   reg_parts.append(f'EPF Regn No.: {self.company["epf_no"]}')
+        if self.company.get('esi_no'):   reg_parts.append(f'ESI Regn No.: {self.company["esi_no"]}')
 
         c.setFont(_basefont, 7)
         c.setFillColor(MUTED)
@@ -407,11 +476,12 @@ class PreprintedLetterheadCanvas:
 
     def _stamp_page_number(self, page_num):
         c = self.canvas
+        page_w, _ = c._pagesize
         c.setFont(_basefont, 7)
         c.setFillColor(MUTED)
         # Small, unobtrusive — bottom-right, inside the reserved margin,
         # clear of typical pre-printed footer graphics/text.
-        c.drawRightString(PAGE_W - RIGHT_M, 8 * mm, f'Page {page_num}')
+        c.drawRightString(page_w - RIGHT_M, 8 * mm, f'Page {page_num}')
 
 
 class OverlayLetterheadCanvas:
@@ -491,7 +561,8 @@ class OverlayLetterheadCanvas:
 
 
 def build_pdf(story, company, doc_meta=None, filename=None,
-               letterhead_mode='drawn', margins=None, background_pdf_path=None):
+               letterhead_mode='drawn', margins=None, background_pdf_path=None,
+               pagesize=None):
     """
     Build a PDF with company letterhead and return bytes.
 
@@ -525,6 +596,9 @@ def build_pdf(story, company, doc_meta=None, filename=None,
         background_pdf_path : required for letterhead_mode='overlay' —
             path to a PDF of the letterhead artwork itself.
 
+        pagesize : reportlab pagesize, e.g. A4 (default) or landscape(A4) —
+            for wide tables like the Wages Register.
+
     Returns:
         bytes — ready for HttpResponse or email attachment
 
@@ -550,6 +624,7 @@ def build_pdf(story, company, doc_meta=None, filename=None,
 
     doc_meta = doc_meta or {}
     buf = io.BytesIO()
+    pagesize = pagesize or A4
 
     m = margins or {}
     top_m    = m.get('top',    TOP_M / mm)    * mm if 'top'    in m else (TOP_M    if letterhead_mode == 'drawn' else 15 * mm)
@@ -559,7 +634,7 @@ def build_pdf(story, company, doc_meta=None, filename=None,
 
     doc = SimpleDocTemplate(
         buf,
-        pagesize=A4,
+        pagesize=pagesize,
         leftMargin=left_m,
         rightMargin=right_m,
         topMargin=top_m,
@@ -610,6 +685,11 @@ def _model_to_dict(company):
     if g('pin'):
         address_line = f"{address_line} - {g('pin')}"
 
+    statutory = getattr(company, 'company_statutry_company', None)
+    statutory = statutory.first() if statutory is not None else None
+    epf_no = getattr(statutory, 'epfo', '') if statutory else ''
+    esi_no = getattr(statutory, 'esic', '') if statutory else ''
+
     return {
         'company_name':    g('company_name'),
         'tagline':         g('tagline1') or g('company_tagline'),
@@ -623,18 +703,23 @@ def _model_to_dict(company):
         'cin':             g('cin'),
         'tan':             g('tan'),
         'registration_no': g('registration_number') or g('factory_license_no'),
+        'epf_no':          epf_no or '',
+        'esi_no':          esi_no or '',
         'logo_path':       g('logo_path') or g('logo'),
     }
 
 
 # ── Convenience: two-column key-value table (for slips, profiles) ────────────
 
-def kv_table(pairs, col_widths=None, label_color=NAVY):
+def kv_table(pairs, col_widths=None, label_color=NAVY, pagesize=None):
     """
     Build a two-column label:value table.
     pairs = [('Label', 'Value'), ...]
+    pagesize: pass landscape(A4) etc. when building for a non-portrait
+              report so column widths match the actual page.
     """
-    avail = PAGE_W - LEFT_M - RIGHT_M
+    pw, _ = pagesize or A4
+    avail = pw - LEFT_M - RIGHT_M
     col_widths = col_widths or [avail * 0.38, avail * 0.62]
     styles = doc_styles()
     data = [

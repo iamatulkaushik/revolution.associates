@@ -129,6 +129,10 @@ from Aapp.app.pdf_views import (
     email_salary_slip, email_all_slips,
 )
 
+from Aapp.app.batch_job_views import (
+    batch_job_status_page, batch_job_status_json, batch_job_download,
+)
+
 from Aapp.app.compliance_tracker import (
     compliance_dashboard, list_compliance_items, add_compliance_item,
     alter_compliance_item, mark_compliance_filed, seed_compliance_calendar,
@@ -392,6 +396,11 @@ urlpatterns = [
     path('salary/reports/wages-register/', wages_register_report_pdf, name='wages_register_report_pdf'),
     path('salary/reports/wages-slip/<int:slip_id>/', wages_slip_report_pdf, name='wages_slip_report_pdf'),
     path('salary/reports/wages-slip-bulk/', wages_slip_bulk_pdf, name='wages_slip_bulk_pdf'),
+
+    # ── Background bulk job status (email + PDF) ─────────────────────────────
+    path('salary/reports/bulk-job/<int:job_id>/', batch_job_status_page, name='batch_job_status_page'),
+    path('salary/reports/bulk-job/<int:job_id>/status.json', batch_job_status_json, name='batch_job_status_json'),
+    path('salary/reports/bulk-job/<int:job_id>/download/', batch_job_download, name='batch_job_download'),
 
     # ════════════════════════════════════════════════════════════════════════
     # EPF & MP ACT 1952 — Form 2 (Nomination), Monthly ECR

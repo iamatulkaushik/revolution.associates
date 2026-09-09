@@ -44,6 +44,7 @@ PARENT_HOST = os.environ.get('DJANGO_PARENT_HOST','localhost')
 
 INSTALLED_APPS = [
     'django_hosts',
+    'django_q',
     'Sapp',
     'Aapp',
     'Capp',
@@ -133,6 +134,19 @@ else:
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
+
+# django-q2 — background task queue, uses Postgres (existing DB) as the
+# broker so no Redis/RabbitMQ service is needed on the Oracle VM.
+Q_CLUSTER = {
+    'name': 'revolution',
+    'workers': int(os.environ.get('Q_CLUSTER_WORKERS', 2)),
+    'recycle': 500,
+    'timeout': 300,
+    'retry': 600,
+    'queue_limit': 50,
+    'bulk': 10,
+    'orm': 'default',
+}
 
 AUTH_PASSWORD_VALIDATORS = [
     {

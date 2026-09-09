@@ -32,6 +32,9 @@ from Cxapp.app.process import (
     cxapp_email_salary_slip, cxapp_email_all_slips,
     cxapp_grand_total_report, cxapp_wages_register_report, cxapp_wages_slip_bulk_report,
 )
+from Cxapp.app.batch_job_views import (
+    cxapp_batch_job_status_page, cxapp_batch_job_status_json, cxapp_batch_job_download,
+)
 from Cxapp.app.loans_advances import (
     cxapp_list_loans, cxapp_create_loan, cxapp_view_loan_schedule,
     cxapp_list_advances, cxapp_create_advance, cxapp_view_advance_schedule,
@@ -153,6 +156,11 @@ urlpatterns = [
     path('salary/reports/grand-total/<int:month>/<int:year>/', cxapp_grand_total_report, name='cxapp_grand_total_report'),
     path('salary/reports/wages-register/<int:month>/<int:year>/', cxapp_wages_register_report, name='cxapp_wages_register_report'),
     path('salary/reports/wages-slip-bulk/<int:month>/<int:year>/', cxapp_wages_slip_bulk_report, name='cxapp_wages_slip_bulk_report'),
+
+    # ── Background bulk job status (email + PDF) ─────────────────────────────
+    path('salary/bulk-job/<int:job_id>/', cxapp_batch_job_status_page, name='cxapp_batch_job_status_page'),
+    path('salary/bulk-job/<int:job_id>/status.json', cxapp_batch_job_status_json, name='cxapp_batch_job_status_json'),
+    path('salary/bulk-job/<int:job_id>/download/', cxapp_batch_job_download, name='cxapp_batch_job_download'),
 
     # ── Loans & Advances — Cxapp/app/loans_advances.py ───────────────────────
     path('loans/',                          cxapp_list_loans,           name='cxapp_list_loans'),

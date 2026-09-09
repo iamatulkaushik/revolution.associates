@@ -23,18 +23,18 @@
             <td>{{ desig.designationname }}</td>
             <td>{% if desig.is_dailywage %}Daily Wage{% else %}Monthly{% endif %}</td>
             <td>{{ desig.dailywage|default:"N/A" }}</td>
-            <td><span title="Basic Pay">{{ desig.basicpay|default:"N/A" }}</span> | <span title="HRA">{{ desig.hra|default:"N/A" }}</span> | <span title="DA">{{ desig.da|default:"N/A" }}</span></br>
-                <span title="Medical Allowance">{{ desig.medicalallowance|default:"N/A" }}</span> | <span title="Conveyance">{{ desig.conveyance|default:"N/A" }}</span> | <span title="Lunch Allowance">{{ desig.lunchallowance|default:"N/A" }}</span></br>
-                <span title="CCA">{{ desig.cca|default:"N/A" }}</span> | <span title="Special Allowance">{{ desig.specialallowance|default:"N/A" }}</span> | <span title="Travel Allowance">{{ desig.travelallowance|default:"N/A" }}</span></br>
-                <span title="Washing Allowance">{{ desig.washingallowance|default:"N/A" }}</span> | <span title="Cycle Allowance">{{ desig.cycleallowance|default:"N/A" }}</span> | <span title="Other 1">{{ desig.other1|default:"N/A" }}</span></br>
+            <td><span title="Basic Pay">{{ desig.basicpay|default:"N/A" }}</span> | <span title="HRA">{{ desig.hra|default:"N/A" }}</span> | <span title="DA">{{ desig.da|default:"N/A" }}</span> |
+                <span title="Medical Allowance">{{ desig.medicalallowance|default:"N/A" }}</span></br><span title="Conveyance">{{ desig.conveyance|default:"N/A" }}</span> | <span title="Lunch Allowance">{{ desig.lunchallowance|default:"N/A" }}</span> |
+                <span title="CCA">{{ desig.cca|default:"N/A" }}</span> | <span title="Special Allowance">{{ desig.specialallowance|default:"N/A" }}</span></br> <span title="Travel Allowance">{{ desig.travelallowance|default:"N/A" }}</span> |
+                <span title="Washing Allowance">{{ desig.washingallowance|default:"N/A" }}</span> | <span title="Cycle Allowance">{{ desig.cycleallowance|default:"N/A" }}</span> | <span title="Other 1">{{ desig.other1|default:"N/A" }}</span> |
                 <span title="Other Allowance">{{ desig.other2|default:"N/A" }}</span>
                 <br>
             </td>
             <td>{% if desig.is_active %}Active{% else %}Inactive{% endif %}</td>
             <td>
-                <a href="{% url 'alter_designation' desig.designationid %}" class="button">Edit</a>
+                <a href="{% url 'alter_designation' desig.designationid %}" title="Modify Designation" class="button edit"></a>
                 {% if desig.is_active %}
-                <a href="{% url 'disable_designation' desig.designationid %}" class="button">Disable</a>
+                <a href="{% url 'disable_designation' desig.designationid %}" title="Inactive Designation" class="button inactive"></a>
                 {% endif %}
             </td>
         </tr>

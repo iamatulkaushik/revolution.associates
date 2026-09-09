@@ -1,8 +1,17 @@
 @font-face {
   font-family: Infinitude;
-  src: url("../fonts/Infinitude.ttf");
+  src: url('../fonts/Infinitude.ttf') format('truetype');
 }
-
+:root{
+    --Edit: #66ddea;
+    --disable: #ff0707;
+    --enable: #45ecff;
+    --delete: #000000;
+    --statuary: #19bb85;
+    --font-dark: #000000;
+    --font-light: #ffffff;
+}
+/***Dashboard Icons****/
 .dashboard:before{
     content:'ŧ';
     font-family: 'Infinitude';
@@ -24,6 +33,44 @@
     padding:0 10px;
     vertical-align: middle;
 }
+
+/***Employee Icons****/
+.employee{
+    font-family: 'Infinitude';
+    font-size: 2.1rem; line-height: 2.1rem;
+    padding:1px 10px;
+    vertical-align: middle;
+    
+    &.add::before{content:'ț';font-size: 2.1rem;};
+    &.edit::before{content:'Ȝ';font-size: 2.1rem;};
+    &.enable::before{content:'Ƞ';font-size: 2.1rem;padding: 2px 8px;};
+    &.disable::before{content:'ȟ';font-size: 2.1rem;padding: 2px 8px;};
+    &.delete::before{content:'Ȟ';font-size: 2.1rem;};
+    &.retire::before{content:'ȡ';font-size: 2.1rem;};
+
+    &.edit:hover{background-color: var(--Edit); border-radius: 5px;};
+    &.enable:hover{background-color: var(--enable); border-radius: 5px;};
+    &.disable:hover{background-color: var(--disable); color:var(--font-light); border-radius: 5px;};
+    &.delete:hover{background-color: var(--delete); color:var(--font-light); border-radius: 5px;};
+    &.retire:hover{background-color: var(--statuary); border-radius: 5px;};
+}
+
+.company{
+    font-family: 'Infinitude';
+    font-size: 3.5rem; line-height: 3.8rem;
+    padding:2px 2px;
+    vertical-align: middle;
+    &.edit::before{content:'ȑ'; font-size: 3.5rem;};
+    &.statuary::before{content:'Ȓ';font-size: 3.5rem;};
+    &.inactive::before{content:'ȓ';font-size: 3.5rem;};
+    
+    &.edit:hover{background-color: var(--Edit); border-radius: 5px;};
+    &.statuary:hover{background-color: var(--statuary); border-radius: 5px;};
+    &.inactive:hover{background-color: var(--disable); color:var(--font-light); border-radius: 5px;};
+}
+
+
+/*****Basic Actions******/
 .edit:before{
     content: 'ÿ';
     font-family: 'Infinitude';
@@ -40,6 +87,20 @@
 }
 .inactive:before{
     content: 'Ʀ';
+    font-family: 'Infinitude';
+    font-size: 25px;
+    padding:0 10px;
+    vertical-align: middle;
+}
+.retire::before{
+    content: 'Ƕ';
+    font-family: 'Infinitude';
+    font-size: 25px;
+    padding:0 10px;
+    vertical-align: middle;
+}
+.delete::before{
+    content: 'Ă';
     font-family: 'Infinitude';
     font-size: 25px;
     padding:0 10px;
@@ -88,7 +149,7 @@
     display: inline-block;
     position: relative;
     min-width: 25vw;        color: var(--Color2);
-    padding:10px 5px;       float: right;
+    padding:10px 5px;
     border-radius: 10px;
     background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
