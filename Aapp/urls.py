@@ -72,7 +72,7 @@ from Aapp.app.salary_processing import (
     download_salary_template, import_salary_structures,
     pf_report, esi_report,
     grand_total_report_pdf, wages_register_report_pdf,
-    wages_slip_report_pdf, wages_slip_bulk_pdf,
+    wages_slip_report_pdf, wages_slip_bulk_pdf, form_x_wages_register_report_pdf,
 )
 
 # Minimum Wages Form V / Payment of Wages Form IV — annual returns
@@ -127,10 +127,6 @@ from Aapp.app.pdf_views import (
     download_salary_abstract, download_company_profile,
     download_letterhead_doc, download_all_slips,
     email_salary_slip, email_all_slips,
-)
-
-from Aapp.app.batch_job_views import (
-    batch_job_status_page, batch_job_status_json, batch_job_download,
 )
 
 from Aapp.app.compliance_tracker import (
@@ -396,11 +392,7 @@ urlpatterns = [
     path('salary/reports/wages-register/', wages_register_report_pdf, name='wages_register_report_pdf'),
     path('salary/reports/wages-slip/<int:slip_id>/', wages_slip_report_pdf, name='wages_slip_report_pdf'),
     path('salary/reports/wages-slip-bulk/', wages_slip_bulk_pdf, name='wages_slip_bulk_pdf'),
-
-    # ── Background bulk job status (email + PDF) ─────────────────────────────
-    path('salary/reports/bulk-job/<int:job_id>/', batch_job_status_page, name='batch_job_status_page'),
-    path('salary/reports/bulk-job/<int:job_id>/status.json', batch_job_status_json, name='batch_job_status_json'),
-    path('salary/reports/bulk-job/<int:job_id>/download/', batch_job_download, name='batch_job_download'),
+    path('salary/reports/form-x-wages-register/', form_x_wages_register_report_pdf, name='form_x_wages_register_report_pdf'),
 
     # ════════════════════════════════════════════════════════════════════════
     # EPF & MP ACT 1952 — Form 2 (Nomination), Monthly ECR
