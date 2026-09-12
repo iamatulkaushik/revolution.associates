@@ -11,19 +11,23 @@
         <div class="container_boxed">
             <h2>Attendance Details</h2><hr>
             <label>Employee <span style="color:var(--Color1)">*</span></label>
-            <select class="large" name="employee_id" id="emp_select" required onchange="fillCode(this)">
+            <select class="large" name="employee_id" id="emp_select" required onchange="fillEmployeeInfo(this)">
                 <option value="">-- Select Employee --</option>
                 {% for emp in employees %}
-                <option value="{{ emp.employeeid }}" data-code="{{ emp.employeecode }}">{{ emp.name }} ({{ emp.employeecode }})</option>
+                <option value="{{ emp.employeeid }}"
+                        data-code="{{ emp.employeecode }}"
+                        data-branch="{{ emp.branchID.branch_name|default:'—' }}"
+                        data-department="{{ emp.departmentID.department_name|default:'—' }}">
+                    {{ emp.name }} ({{ emp.employeecode }})
+                </option>
                 {% endfor %}
-            </select><br>
+            </select>
             <label>Emp Code</label>
             <input type="text" class="sml" name="emp_code" id="emp_code" readonly><br>
             <label>Branch</label>
-            <select class="medium" name="branchid">
-                <option value="">-- Select --</option>
-                {% for b in branches %}<option value="{{ b.branchid }}">{{ b.branch_name }}</option>{% endfor %}
-            </select>
+            <input type="text" class="medium" id="branch_display" readonly>
+            <label>Department</label>
+            <input type="text" class="medium" id="department_display" readonly>
             <label>Division</label>
             <input type="text" class="medium" name="divisionid" placeholder="Division (optional)"><br>
             <label>Month <span style="color:var(--Color1)">*</span></label>
@@ -58,8 +62,11 @@
     </form>
 </div>
 <script>
-function fillCode(sel) {
-    document.getElementById('emp_code').value = sel.options[sel.selectedIndex].dataset.code || '';
+function fillEmployeeInfo(sel) {
+    const opt = sel.options[sel.selectedIndex];
+    document.getElementById('emp_code').value = opt.dataset.code || '';
+    document.getElementById('branch_display').value = opt.dataset.branch || '';
+    document.getElementById('department_display').value = opt.dataset.department || '';
 }
 </script>
 {% endblock %}

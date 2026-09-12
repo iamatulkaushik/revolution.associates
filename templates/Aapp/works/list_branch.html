@@ -10,7 +10,6 @@
     <thead>
         <tr>
             <th>Branch Name</th>
-            <th>Code</th>
             <th>Address</th>
             <th>Email</th>
             <th>Contact Person</th>
@@ -22,14 +21,13 @@
         {% for branch in branches %}
         <tr>
             <td>{{ branch.branch_name }}</td>
-            <td>{{ branch.branch_code|default:"N/A" }}</td>
             <td>{{ branch.branch_address|default:"N/A" }}</td>
             <td>{{ branch.branch_email|default:"N/A" }}</td>
             <td>{{ branch.contact_person|default:"N/A" }}</td>
             <td>{{ branch.contact_mobile|default:"N/A" }}</td>
             <td>
-                <a href="{% url 'alter_branch' branch.branchid %}" class="button edit"></a>
-                <a href="{% url 'delete_branch' branch.branchid %}" class="button delete"></a>
+                <a href="{% url 'alter_branch' branch.branchid %}" class="table-btn edit"></a>
+                <a href="{% url 'delete_branch' branch.branchid %}" class="table-btn delete"></a>
             </td>
         </tr>
         {% endfor %}

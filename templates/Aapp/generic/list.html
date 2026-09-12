@@ -12,6 +12,18 @@
 
 {% if subtitle %}<p class="text-muted" style="margin-bottom:var(--sp-4)">{{ subtitle|safe }}</p>{% endif %}
 
+{% if filter_form %}
+<form method="get" style="display:flex;gap:10px;align-items:end;margin-bottom:var(--sp-4);flex-wrap:wrap;">
+  {% for field in filter_form %}
+  <div>
+    <label style="display:block;font-size:12px;color:var(--c-muted);">{{ field.label }}</label>
+    {{ field }}
+  </div>
+  {% endfor %}
+  <button type="submit" class="button">Filter</button>
+</form>
+{% endif %}
+
 {% if messages %}
 <div class="messages-container">
   {% for message in messages %}

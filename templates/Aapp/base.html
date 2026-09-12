@@ -22,7 +22,7 @@
   <aside class="sidebar" id="sidebar">
 
     <div class="sidebar-brand">
-      <span class="sidebar-logo noselect">Ń</span>
+      <span class="sidebar-logo noselect">г</span>
       <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar" title="Toggle sidebar">
         &#9776;
       </button>
@@ -56,9 +56,9 @@
             <span class="nav-chevron">&#9658;</span>
           </button>
           <ul class="nav-sub">
-            <li><a href="{% url 'list_employee' %}" class="nav-link">All Employees</a></li>
-            <li><a href="{% url 'create_employee' %}" class="nav-link">Add Employee</a></li>
-            <li><a href="{% url 'bulk_excel_upload_employees' %}" class="nav-link">Bulk Upload</a></li>
+            <li><a href="{% url 'list_employee' %}" class="nav-link allEmployees">All Employees</a></li>
+            <li><a href="{% url 'create_employee' %}" class="nav-link addEmployee">Add Employee</a></li>
+            <li><a href="{% url 'bulk_excel_upload_employees' %}" class="nav-link bulkEmployee">Bulk Upload</a></li>
           </ul>
         </li>
 
@@ -68,11 +68,11 @@
             <span class="nav-chevron">&#9658;</span>
           </button>
           <ul class="nav-sub">
-            <li><a href="{% url 'list_attendance' %}" class="nav-link">Attendance List</a></li>
-            <li><a href="{% url 'add_attendance' %}" class="nav-link">Add Attendance</a></li>
-            <li><a href="{% url 'bulk_attendance' %}" class="nav-link">Bulk Attendance</a></li>
-            <li><a href="{% url 'list_leave' %}" class="nav-link">Leave Records</a></li>
-            <li><a href="{% url 'list_overtime_register' %}" class="nav-link">Overtime Register</a></li>
+            <li><a href="{% url 'list_attendance' %}" class="nav-link listAttandance">Attendance List</a></li>
+            <li><a href="{% url 'add_attendance' %}" class="nav-link addAttandance">Add Attendance</a></li>
+            <li><a href="{% url 'bulk_attendance' %}" class="nav-link bulkAttandance">Bulk Attendance</a></li>
+            <li><a href="{% url 'list_leave' %}" class="nav-link listAttandance">Leave Records</a></li>
+            <li><a href="{% url 'list_overtime_register' %}" class="nav-link overtime">Overtime Register</a></li>
           </ul>
         </li>
 
@@ -99,7 +99,7 @@
             <li><a href="{% url 'salary_dashboard' %}" class="nav-link">Dashboard</a></li>
             <li><a href="{% url 'create_salary_batch' %}" class="nav-link">Process Salary</a></li>
             <li><a href="{% url 'list_salary_structures' %}" class="nav-link">Salary Structures</a></li>
-            <li><a href="{% url 'report_period_picker' %}" class="nav-link">Statutory Reports</a></li>
+            <!-- <li><a href="{--% url report_period_picker %}" class="nav-link">Statutory Reports</a></li> -->
           </ul>
         </li>
 
@@ -158,11 +158,11 @@
       <div class="topbar-right">
         <button class="company-chip" onclick="showCompanySelector()" title="Click to change company" aria-label="Select company">
           <span class="company-chip-icon">П</span>
-          <span class="company-chip-name" id="topbar-company">Select Company</span>
+          <span class="company-chip-name" title="{{ companyname }}" id="topbar-company">Select Company</span>
         </button>
         <div class="user-pill">
           <div class="user-avatar" aria-hidden="true">ţ</div>
-          <span class="user-name">{{ user.username }}</span>
+          <span class="user-name" title="{{ user.username }}">{{ user.username }}</span>
         </div>
         <a href="{% url 'logout' %}" class="btn-logout logout" aria-label="Logout">
           <span>Logout</span>

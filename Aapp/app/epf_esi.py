@@ -353,7 +353,11 @@ def list_epf_ecr(request):
     rows = [{
         'cells': [f'{r.salary_month}/{r.salary_year}', r.total_members, r.total_epf_wages,
                   r.total_contribution, r.trrn or '—', r.get_filing_status_display()],
-        'actions': [{'url': reverse('alter_epf_ecr', args=[r.ecr_id]), 'label': 'Edit', 'css': 'edit'}],
+        'actions': [
+            {'url': reverse('alter_epf_ecr', args=[r.ecr_id]), 'label': 'Edit', 'css': 'edit'},
+            {'url': reverse('download_ecr_text', args=[r.ecr_id]), 'label': 'ECR .txt', 'css': 'download'},
+            {'url': reverse('download_epf_challan', args=[r.ecr_id]), 'label': 'Challan PDF', 'css': 'download'},
+        ],
     } for r in records]
     return render(request, 'Aapp/generic/list.html', {
         'page_title': 'EPF Monthly ECR (Electronic Challan cum Return)',

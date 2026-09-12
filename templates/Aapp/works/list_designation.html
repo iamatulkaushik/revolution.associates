@@ -32,9 +32,9 @@
             </td>
             <td>{% if desig.is_active %}Active{% else %}Inactive{% endif %}</td>
             <td>
-                <a href="{% url 'alter_designation' desig.designationid %}" title="Modify Designation" class="button edit"></a>
+                <a href="{% url 'alter_designation' desig.designationid %}" title="Modify Designation" class="table-btn edit"></a>
                 {% if desig.is_active %}
-                <a href="{% url 'disable_designation' desig.designationid %}" title="Inactive Designation" class="button inactive"></a>
+                <a href="{% url 'disable_designation' desig.designationid %}" title="Inactive Designation" class="table-btn inactive"></a>
                 {% endif %}
             </td>
         </tr>

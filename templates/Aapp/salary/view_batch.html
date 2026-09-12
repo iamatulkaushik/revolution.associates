@@ -89,9 +89,9 @@
           <td>₹{{ slip.total_deductions }}</td>
           <td><strong>₹{{ slip.net_pay }}</strong></td>
           <td>
-            <a href="{% url 'view_salary_slip' slip.id %}" class="action-edit">View</a>
-            · <a href="{% url 'download_salary_slip' slip.id %}" class="action-edit">PDF</a>
-            · <a href="{% url 'email_salary_slip' slip.id %}" class="action-edit" onclick="return confirm('Email this payslip to {{ slip.employee_id.email|default:"the employee" }}?')">Email</a>
+            <a href="{% url 'view_salary_slip' slip.id %}" class="batch view action-edit" title="View Salary Slip of {{ slip.employee_id.name }}"></a>
+            · <a href="{% url 'download_salary_slip' slip.id %}" class="batch pdf action-edit"title="Download Salary Slip of {{ slip.employee_id.name }}"></a>
+            · <a href="{% url 'email_salary_slip' slip.id %}" class="batch email action-edit" onclick="return confirm('Email this payslip to {{ slip.employee_id.email|default:"the employee" }}?')" title="Email Salary Slip of {{ slip.employee_id.name }} to his email address(in profile)"></a>
           </td>
         </tr>
         {% endfor %}

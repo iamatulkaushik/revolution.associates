@@ -18,6 +18,8 @@ from django import forms
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.contrib import messages
+from datetime import date
+import calendar
 from django.contrib.auth.decorators import login_required
 from Sapp.app.company import Company
 from Sapp.app.user import associateuser
@@ -83,12 +85,22 @@ def list_leave(request):
 
     records = attendance.objects.filter(companyid=company).select_related('employee_id')
 
-    month = request.GET.get('month')
-    year = request.GET.get('year')
-    if month:
-        records = records.filter(salary_month=month)
-    if year:
-        records = records.filter(salary_year=year)
+    today = date.today()
+    month = request.GET.get('month') or str(today.month)
+    year = request.GET.get('year') or str(today.year)
+    records = records.filter(salary_month=month, salary_year=year).order_by('employee_id__name')
+
+    class LeaveFilterForm(forms.Form):
+        month = forms.ChoiceField(
+            choices=[(m, calendar.month_name[m]) for m in range(1, 13)],
+            initial=int(month),
+        )
+        year = forms.ChoiceField(
+            choices=[(y, y) for y in range(today.year - 5, today.year + 1)],
+            initial=int(year),
+        )
+
+    filter_form = LeaveFilterForm(initial={'month': month, 'year': year})
 
     rows = [{
         'cells': [
@@ -109,6 +121,7 @@ def list_leave(request):
         'rows': rows, 'company': company,
         'add_url': reverse('add_leave'), 'add_label': 'Add Leave Record',
         'empty_message': 'No leave records yet.',
+        'filter_form': filter_form,
     })
 
 

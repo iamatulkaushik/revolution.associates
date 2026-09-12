@@ -57,8 +57,8 @@ img{max-width:100%;display:block}
   border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0;
 }
 .sidebar-logo{
-  font-family:var(--font-head);font-size:28px;color:var(--c-accent);
-  line-height:1;white-space:nowrap;overflow:hidden;transition:opacity var(--ease);
+  font-family:var(--font-head);font-size:75px;color:var(--c-accent);
+  line-height:1;white-space:nowrap;overflow:visible;transition:opacity var(--ease);
 }
 .sidebar-toggle{
   background:none;border:none;color:rgba(255,255,255,.6);cursor:pointer;
@@ -86,14 +86,14 @@ img{max-width:100%;display:block}
 }
 .nav-link:hover,.nav-link.active{background:rgba(255,255,255,.1);color:#fff}
 .nav-link.active::before{
-  content:'';position:absolute;left:0;top:0;bottom:0;width:3px;
+  position:absolute;left:0;top:0;bottom:0;width:3px;
   background:var(--c-accent);border-radius:0 3px 3px 0;
 }
 /* icon via ::before already handled by icons.css — adjust spacing */
 .nav-link::before{font-size:18px;min-width:40px;text-align:center;padding:0;flex-shrink:0}
 .nav-label{overflow:hidden;transition:opacity var(--ease),width var(--ease);white-space:nowrap}
 .sidebar.collapsed .nav-label{opacity:0;width:0;pointer-events:none}
-.sidebar.collapsed .sidebar-logo{opacity:0;pointer-events:none}
+.sidebar.collapsed .sidebar-logo{opacity:0;pointer-events:none; font-size: 12px;}
 
 /* Chevron */
 .nav-chevron{margin-left:auto;font-size:11px;transition:transform var(--ease);flex-shrink:0}
@@ -103,10 +103,9 @@ img{max-width:100%;display:block}
 /* Sub-menu */
 .nav-sub{max-height:0;overflow:hidden;transition:max-height .25s ease,opacity .2s;opacity:0}
 .nav-item.open .nav-sub{max-height:500px;opacity:1}
-.nav-sub .nav-link{
-  padding:8px var(--sp-4) 8px 56px;font-size:13px;color:rgba(255,255,255,.6)
+.nav-sub .nav-link{  padding:8px var(--sp-4) 8px 56px;font-size:13px;color:rgba(255,255,255,.6)
 }
-.nav-sub .nav-link::before{display:none}
+.nav-sub .nav-link::before{font-size:16px;padding:0 8px 0 0;}
 .nav-sub .nav-link:hover{color:#fff;background:rgba(255,255,255,.07)}
 .nav-sub .nav-link.active{color:#fff;background:rgba(168,218,220,.15)}
 .sidebar.collapsed .nav-sub{display:none}
@@ -139,11 +138,11 @@ img{max-width:100%;display:block}
 
 /* Company chip */
 .company-chip{
-  display:flex;align-items:center;gap:var(--sp-2);
-  background:var(--c-accent);color:var(--c-sidebar);
+  display:flex;align-items:center;gap:var(--sp-2);font-family: 'Ubuntu', Tahoma;
+  background:var(--c-accent);color:var(--c-sidebar);word-wrap: break-word;
   border-radius:var(--r-full);padding:5px var(--sp-4);font-size:13px;
   cursor:pointer;transition:background var(--ease);font-weight:500;
-  border:none;min-height:36px;white-space:nowrap;max-width:220px;overflow:hidden;
+  border:none;min-height:36px;white-space:nowrap;max-width:220px;overflow:visible;
 }
 .company-chip:hover{background:#8ecfd2}
 .company-chip:focus{outline:2px solid var(--c-primary);outline-offset:2px}

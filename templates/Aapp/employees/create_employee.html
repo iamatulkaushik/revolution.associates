@@ -10,57 +10,191 @@
         {% csrf_token %}
         <h2 style="padding:10px;">Add Employee — {{ company.company_name }}</h2>
         <div class="container_boxed">
-            <h2>Personal Details</h2><hr>
-            <label>E Code <span style="color:var(--Color1)">*</span></label>
-            <input class="sml" type="text" name="employeecode" required><br/>
-            <label>Full Name <span style="color:var(--Color1)">*</span></label>
-            <input class="large" type="text" name="name" required><br/>
-            <label>Father's Name</label>
-            <input type="text" class="medium" name="fathername">
-            <label>Mother's Name</label>
-            <input type="text" class="medium" name="mothername"><br/>
-            <label>Gender <span style="color:var(--Color1)">*</span></label>
-            <select class="sml" name="gender" required>
-                <option value="">--</option>
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-                <option value="Other">Other</option>
-            </select>
-            <label>Date of Birth <span style="color:var(--Color1)">*</span></label>
-            <input type="date" class="sml" name="dateofbirth" required><br>
-            <label>Blood Group</label>
-            <input type="text" class="sml" name="bloodgroup" placeholder="A+">
-            <label>Religion</label>
-            <input type="text" class="sml" name="religion"><br/>
-            <label>Marital Status</label>
-            <select name="maritalstatus" class="sml">
-                <option value="">--</option>
-                <option value="Single">Single</option>
-                <option value="Married">Married</option>
-                <option value="Divorced">Divorced</option>
-                <option value="Widowed">Widowed</option>
-            </select><br>
-        </div>
-
-        <div class="container_boxed" style="margin-top:10px;">
+            <table>
+                <th><h2>Personal Details</h2><hr></th>
+                <tr>
+                    <td><label>E Code <span style="color:var(--Color1)">*</span></label></td>
+                    <td><input class="sml" type="text" name="employeecode" required></td>
+                    <td><label>Full Name <span style="color:var(--Color1)">*</span></label></td>
+                    <td><input class="large" type="text" name="name" required></td>
+                </tr>
+                <tr>
+                    <td>
+                    <label>Father's Name</label>
+                    </td>
+                    <td>
+                    <input type="text" class="medium" name="fathername">
+                    </td>
+                    <td>
+                    <label>Mother's Name</label>
+                    </td>
+                    <td>
+                    <input type="text" class="medium" name="mothername">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label>Gender <span style="color:var(--Color1)">*</span></label>
+                    </td>
+                    <td>
+                        <select class="sml" name="gender" required>
+                            <option value="">--</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </td>
+                    <td>
+                        <label>Date of Birth <span style="color:var(--Color1)">*</span></label>
+                    </td>
+                    <td>
+                        <input type="date" class="sml" name="dateofbirth" required>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label>Blood Group</label>
+                    </td>
+                    <td>
+                        <input type="text" class="sml" name="bloodgroup" placeholder="A+">
+                    </td>
+                    <td>
+                        <label>Religion</label>
+                    </td>
+                    <td>
+                        <input type="text" class="sml" name="religion">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label>Marital Status</label>
+                    </td>
+                    <td>
+                        <select name="maritalstatus" class="sml">
+                            <option value="">--</option>
+                            <option value="Single">Single</option>
+                            <option value="Married">Married</option>
+                            <option value="Divorced">Divorced</option>
+                            <option value="Widowed">Widowed</option>
+                        </select>
+                    </td>
+                </tr>
+            </table>
+            <table>
+            <th>
             <h2>Contact Details</h2><hr>
+            </th>
+            <tr>
+                <td>
             <label>Email <span style="color:var(--Color1)">*</span></label>
+                </td>
+                <td>
             <input class="large" type="email" name="email" required><br/>
+                </td>
+                <td>
             <label>Mobile <span style="color:var(--Color1)">*</span></label>
+                </td>
+                <td>
             <input type="tel" class="sml" name="mobile" maxlength="10" required>-
-            <input type="tel" class="sml" name="phone" maxlength="10"><br/>
-            <label class="large">Temporary Address <span style="color:var(--Color1)">*</span></label>
-            <textarea name="temporaryaddress" rows="2" required style="width:60%;"></textarea><br>
+            <input type="tel" class="sml" name="phone" maxlength="10">
+                </td>
+            </tr>
+            <tr>
+                <td>
+                <label class="large">Temporary Address <span style="color:var(--Color1)">*</span></label>
+                </td>
+                <td colspan="3">
+                <textarea name="temporaryaddress" rows="2" required style="width:100%;"></textarea>
+                </td>
+            </tr>
+            <tr>
+                <td></td>
+                <td>
             <select class="medium" name="temp_state" id="temp_state" required onchange="loadDistricts('temp_state','temp_district')">
                 <option value="">-- State --</option>
                 {% for s in states %}<option value="{{ s.Stateid }}">{{ s.name }}</option>{% endfor %}
-            </select>
+            </select></td><td>
             <select class="medium" name="temp_district" id="temp_district" required>
                 <option value="">-- District --</option>
-            </select><br/>
+            </select></td><td>
             <input type="text" class="sml" name="temp_pincode" maxlength="6" placeholder="Pincode" required>
-            <input type="text" class="sml" name="country" value="India"><br>
+            <input type="text" class="sml" name="country" value="India">
+                </td>
+            </tr>
+            <tr>
+                <td>
 
+                </td>
+                <td>
+
+                </td>
+                <td>
+
+                </td>
+                <td>
+
+                </td>
+            </tr>
+            <tr>
+                <td>
+
+                </td>
+                <td>
+
+                </td>
+                <td>
+
+                </td>
+                <td>
+
+                </td>
+            </tr>
+            <tr>
+                <td>
+
+                </td>
+                <td>
+
+                </td>
+                <td>
+
+                </td>
+                <td>
+
+                </td>
+            </tr>
+            <tr>
+                <td>
+
+                </td>
+                <td>
+
+                </td>
+                <td>
+
+                </td>
+                <td>
+
+                </td>
+            </tr>
+            <tr>
+                <td>
+
+                </td>
+                <td>
+
+                </td>
+                <td>
+
+                </td>
+                <td>
+
+                </td>
+            </tr>
+            </table>
+        </div>
+
+        <div class="container_boxed" style="margin-top:10px;">
             <label class="large"><input type="checkbox" name="same_as_permanent" id="same_as_permanent" onchange="togglePerm()"> Same as Permanent Address</label>
             <div id="perm_rows">
                 <label class="medium">Permanent Address</label><br/>

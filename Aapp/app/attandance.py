@@ -168,14 +168,26 @@ def list_attendance(request):
     if not company:
         messages.warning(request, 'Please select a company first.')
         return redirect('aapp_dashboard')
-    records = attendance.objects.filter(companyid=company).select_related('employee_id', 'branchid').order_by('-salary_year', '-salary_month', 'employee_id__name')
+
+    today = date.today()
+    month = int(request.GET.get('month', today.month))
+    year = int(request.GET.get('year', today.year))
+
+    records = attendance.objects.filter(
+        companyid=company, salary_month=month, salary_year=year
+    ).select_related('employee_id', 'branchid').order_by('employee_id__name')
 
     from django.core.paginator import Paginator
     paginator = Paginator(records, 10)
     page_obj = paginator.get_page(request.GET.get('page'))
 
-    return render(request, 'Aapp/attendance/list_attendance.html',
-                  {'records': page_obj, 'page_obj': page_obj, 'company': company})
+    years = [(y, y) for y in range(today.year - 5, today.year + 1)]
+
+    return render(request, 'Aapp/attendance/list_attendance.html', {
+        'records': page_obj, 'page_obj': page_obj, 'company': company,
+        'months': MONTH_CHOICES, 'years': years,
+        'selected_month': month, 'selected_year': year,
+    })
 
 
 # ── add ───────────────────────────────────────────────────────────────────────
@@ -187,7 +199,7 @@ def add_attendance(request):
         messages.warning(request, 'Please select a company first.')
         return redirect('aapp_dashboard')
 
-    employees = employee.objects.filter(CompanyID=company, is_working=True).order_by('name')
+    employees = employee.objects.filter(CompanyID=company, is_working=True).select_related("branchID", "departmentID").order_by("name")
     branches  = branch.objects.filter(companyid=company)
     current_year = date.today().year
     years = [(y, y) for y in range(current_year - 5, current_year + 1)]
@@ -208,7 +220,7 @@ def add_attendance(request):
                     emp_code      = emp.employeecode,
                     companyid     = company,
                     divisionid    = p.get('divisionid', ''),
-                    branchid_id   = p.get('branchid') or None,
+                    branchid_id   = emp.branchID_id,
                     salary_month  = month,
                     salary_year   = year,
                     working_days  = p.get('working_days', 0),

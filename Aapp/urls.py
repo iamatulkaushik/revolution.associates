@@ -122,6 +122,7 @@ from Aapp.app.shops_act import (
 from Aapp.app.labour_welfare import list_lwf, add_lwf, alter_lwf, mark_lwf_paid
 
 # Centralised statutory compliance calendar
+from Aapp.app.ecr_generator import download_ecr_text, download_epf_challan
 from Aapp.app.pdf_views import (
     download_salary_slip, download_salary_sheet,
     download_salary_abstract, download_company_profile,
@@ -404,6 +405,8 @@ urlpatterns = [
     path('epf/ecr/', list_epf_ecr, name='list_epf_ecr'),
     path('epf/ecr/add/', add_epf_ecr, name='add_epf_ecr'),
     path('epf/ecr/alter/<int:ecr_id>/', alter_epf_ecr, name='alter_epf_ecr'),
+    path('epf/ecr/<int:ecr_id>/download/', download_ecr_text, name='download_ecr_text'),
+    path('epf/ecr/<int:ecr_id>/challan/', download_epf_challan, name='download_epf_challan'),
 
     # ════════════════════════════════════════════════════════════════════════
     # ESI ACT 1948 — Form 1A (Family), Form 7 (Half-Yearly Contribution Return)

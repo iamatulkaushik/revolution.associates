@@ -5,14 +5,35 @@
     {% if messages %}{% for m in messages %}
     <div class="message-alert {% if m.tags == 'success' %}message-success{% else %}message-error{% endif %}">{{ m }}</div>
     {% endfor %}{% endif %}
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px;">
-        <h2>Attendance — {{ company.company_name }} ({{ records.count }})</h2>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px;flex-wrap:wrap;gap:10px;">
+        <h2>Attendance — {{ company.company_name }} ({{ page_obj.paginator.count }})</h2>
         <span>
             <a href="{% url 'add_attendance' %}" class="button">+ Add</a>
             <a href="{% url 'bulk_attendance' %}" class="button" style="margin-left:6px;">Bulk Entry</a>
             <a href="{% url 'bulk_excel_upload_attendance' %}" class="button" style="margin-left:6px;">⬆ Excel Upload</a>
         </span>
     </div>
+
+    <form method="get" style="display:flex;gap:10px;align-items:end;padding:0 10px 15px;flex-wrap:wrap;">
+        <div>
+            <label>Month</label>
+            <select name="month" class="medium">
+                {% for val, label in months %}
+                <option value="{{ val }}" {% if val == selected_month %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label>Year</label>
+            <select name="year" class="medium">
+                {% for val, label in years %}
+                <option value="{{ val }}" {% if val == selected_year %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="button">Filter</button>
+    </form>
+
     {% if records %}
     <table class="data-table">
         <thead>

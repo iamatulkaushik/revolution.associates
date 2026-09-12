@@ -11,137 +11,111 @@
     --font-dark: #000000;
     --font-light: #ffffff;
 }
-/***Dashboard Icons****/
-.dashboard:before{
-    content:'ŧ';
+
+/***************************************
+  SHARED ICON BASE STYLES
+  (add a new icon by ONLY adding its
+  content rule at the bottom of each group)
+****************************************/
+
+/* --- 25px icon group (dashboard / basic actions) --- */
+.dashboard:before,.masters:before,.companies:before,.departments:before,
+.edit:before,.delete:before,.inactive:before,.retire:before,.statuary:before,
+.employees:before,.attandance:before,.profile:before,.logout:before,
+.branches:before, .designations:before, .allEmployees:before, .addEmployee:before, .bulkEmployee:before,
+.listAttandance:before, .addAttandance:before, .bulkAttandance:before, .overtime:before
+{
     font-family: 'Infinitude';
     font-size: 25px;
-    padding:0 10px;
-    vertical-align: middle;
-}
-.masters:before{
-    content: 'ð';
-    font-family: 'Infinitude';
-    font-size: 25px;
-    padding:0 10px;
-    vertical-align: middle;
-}
-.companies:before, .departments:before, .branches:before, .designations:before{
-    content: 'ǉ';
-    font-family: 'Infinitude';
-    font-size: 25px;
-    padding:0 10px;
+    padding: 0 10px;
     vertical-align: middle;
 }
 
+/* -- content per icon -- */
+.dashboard:before   { content: 'Ż'; }
+.masters:before      { content: 'л'; }
+.companies:before     { content: 'Ȑ'; }
+.branches:before   { content: 'Ȕ'; }
+.departments:before{content: 'Ȕ';}
+.designations:before{content:'ȧ';}
+.allEmployees::before{content:'Ȣ';}
+.addEmployee::before{content:'ȣ';}
+.bulkEmployee::before{content:'Ȥ';}
+.listAttandance:before{content:'ȼ';} .addAttandance:before{content:'ɀ';} .bulkAttandance:before{content:'ȿ';} .overtime:before{content:'Ɂ'}
+.edit:before          { content: 'ÿ'; padding:5px 10px; }
+.edit:hover          { background-color: var(--Edit);padding:10px 5px; border-radius: 5px; }
+.delete:before         { content: 'Ă'; padding:5px 10px; }
+.delete:hover         { background-color: var(--delete); color:var(--font-light); padding:10px 5px; border-radius: 5px; }
+.inactive:before       { content: 'Ʀ'; }
+.inactive:hover     {background-color: var(--disable); color: var(--font-light); padding: 10px 5px; border-radius:5px;}
+.retire:before          { content: 'Ƕ'; }
+.statuary:before        { content: 'Ē'; }
+.employees:before       { content: 'ࠅ'; }
+.attandance:before      { content: 'Ɠ'; }
+.profile:before          { content: 'ţ'; }
+.logout:before            { content: 'Р'; }
+
+.table-btn{padding:10px 5px;}
 /***Employee Icons****/
 .employee{
     font-family: 'Infinitude';
     font-size: 2.1rem; line-height: 2.1rem;
-    padding:1px 10px;
+    padding: 1px 10px;
     vertical-align: middle;
-    
-    &.add::before{content:'ț';font-size: 2.1rem;};
-    &.edit::before{content:'Ȝ';font-size: 2.1rem;};
-    &.enable::before{content:'Ƞ';font-size: 2.1rem;padding: 2px 8px;};
-    &.disable::before{content:'ȟ';font-size: 2.1rem;padding: 2px 8px;};
-    &.delete::before{content:'Ȟ';font-size: 2.1rem;};
-    &.retire::before{content:'ȡ';font-size: 2.1rem;};
 
-    &.edit:hover{background-color: var(--Edit); border-radius: 5px;};
-    &.enable:hover{background-color: var(--enable); border-radius: 5px;};
-    &.disable:hover{background-color: var(--disable); color:var(--font-light); border-radius: 5px;};
-    &.delete:hover{background-color: var(--delete); color:var(--font-light); border-radius: 5px;};
-    &.retire:hover{background-color: var(--statuary); border-radius: 5px;};
+    /* base for all action states — shared size/padding */
+    &.add::before, &.edit::before, &.enable::before,
+    &.disable::before, &.delete::before, &.retire::before{
+        font-size: 2.1rem;
+    }
+    &.enable::before, &.disable::before{ padding: 2px 8px; }
+
+    /* -- content per icon -- */
+    &.add::before{content:'ț';}
+    &.edit::before{content:'Ȝ';}
+    &.enable::before{content:'Ƞ';}
+    &.disable::before{content:'ȟ';}
+    &.delete::before{content:'Ȟ';}
+    &.retire::before{content:'ȡ';}
+
+    /* -- hover states -- */
+    &.edit:hover{background-color: var(--Edit); border-radius: 5px;}
+    &.enable:hover{background-color: var(--enable); border-radius: 5px;}
+    &.disable:hover{background-color: var(--disable);padding:10px 5px; color:var(--font-light); border-radius: 5px;}
+    &.delete:hover{background-color: var(--delete); color:var(--font-light); border-radius: 5px;}
+    &.retire:hover{background-color: var(--statuary); border-radius: 5px;}
 }
 
 .company{
     font-family: 'Infinitude';
     font-size: 3.5rem; line-height: 3.8rem;
-    padding:2px 2px;
+    padding: 2px 2px;
     vertical-align: middle;
-    &.edit::before{content:'ȑ'; font-size: 3.5rem;};
-    &.statuary::before{content:'Ȓ';font-size: 3.5rem;};
-    &.inactive::before{content:'ȓ';font-size: 3.5rem;};
-    
-    &.edit:hover{background-color: var(--Edit); border-radius: 5px;};
-    &.statuary:hover{background-color: var(--statuary); border-radius: 5px;};
-    &.inactive:hover{background-color: var(--disable); color:var(--font-light); border-radius: 5px;};
-}
 
+    &.edit::before, &.statuary::before, &.inactive::before{
+        font-size: 3.5rem;
+    }
 
-/*****Basic Actions******/
-.edit:before{
-    content: 'ÿ';
-    font-family: 'Infinitude';
-    font-size: 25px;
-    padding:0 10px;
-    vertical-align: middle;
-}
-.delete:before{
-    content: 'Ă';
-    font-family:'Infinitude';
-    font-size: 25px;
-    padding:0 10px;
-    vertical-align: middle;
-}
-.inactive:before{
-    content: 'Ʀ';
-    font-family: 'Infinitude';
-    font-size: 25px;
-    padding:0 10px;
-    vertical-align: middle;
-}
-.retire::before{
-    content: 'Ƕ';
-    font-family: 'Infinitude';
-    font-size: 25px;
-    padding:0 10px;
-    vertical-align: middle;
-}
-.delete::before{
-    content: 'Ă';
-    font-family: 'Infinitude';
-    font-size: 25px;
-    padding:0 10px;
-    vertical-align: middle;
-}
-.statuary:before{
-    content: 'Ē';
-    font-family: 'Infinitude';
-    font-size: 25px;
-    padding:0 10px;
-    vertical-align: middle;
-}
-.employees:before{
-    content: 'ࠅ';
-    font-family: 'Infinitude';
-    font-size: 25px;
-    padding:0 10px;
-    vertical-align: middle;
-}
-.attandance:before{
-    content: 'Ɠ';
-    font-family: 'Infinitude';
-    font-size: 25px;
-    padding:0 10px;
-    vertical-align: middle;
-}
-.profile:before{
-    content: 'ţ';
-    font-family: 'Infinitude';
-    font-size: 25px;
-    padding:0 10px;
-    vertical-align: middle;
-}
-.logout:before{
-    content: 'Р';
-    font-family: 'Infinitude';
-    font-size: 25px;
-    padding:0 10px;
-    vertical-align: middle;
-}
+    /* -- content per icon -- */
+    &.edit::before{content:'ȑ';}
+    &.statuary::before{content:'Ȓ';}
+    &.inactive::before{content:'ȓ';}
 
+    /* -- hover states -- */
+    &.edit:hover{background-color: var(--Edit); border-radius: 5px;}
+    &.statuary:hover{background-color: var(--statuary); border-radius: 5px;}
+    &.inactive:hover{background-color: var(--disable); color:var(--font-light); border-radius: 5px;}
+}
+.batch{
+    font-family: 'Infinitude';
+    font-size: 25px;
+    padding: 0 10px;
+    vertical-align: middle;
+
+    &.view:before{content:'Ƶ';}
+    &.pdf:before{content:'Ǎ';}
+    &.email:before{content:'Ą';}
+}
 
 /******Profile Cards******/
 
