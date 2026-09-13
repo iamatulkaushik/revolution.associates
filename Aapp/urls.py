@@ -123,6 +123,34 @@ from Aapp.app.labour_welfare import list_lwf, add_lwf, alter_lwf, mark_lwf_paid
 
 # Centralised statutory compliance calendar
 from Aapp.app.ecr_generator import download_ecr_text, download_epf_challan
+from Aapp.app.esi_generator import (
+    select_period_for_esi_monthly, download_esi_monthly_challan, download_esi_monthly_upload,
+)
+from Aapp.app.lwf_generator import download_lwf_challan
+from Aapp.app.pow_generator import download_pow_return
+from Aapp.app.phase2_generator import (
+    download_minwages_return, download_bonus_return, download_set_on_set_off,
+    select_period_for_fines, download_fines_register,
+    select_period_for_deductions, download_deductions_register_wages,
+    select_period_for_ot_register, download_ot_register,
+    select_period_for_bonus_register, download_bonus_register,
+)
+from Aapp.app.phase3_generator import (
+    download_factory_registration_cert, download_factory_annual_return,
+    download_whitewash_register, download_vessel_examination_register,
+    download_accident_register, download_leave_wages_register,
+)
+from Aapp.app.phase4_generator import (
+    download_cl_registration_cert, download_employment_card,
+    download_service_certificate, download_cl_return,
+    download_contractor_payment_register,
+)
+from Aapp.app.phase5_generator import (
+    download_gratuity_nominee_register, download_epf_nomination_register,
+    download_esi_family_register, download_employer_notice,
+    download_payment_notice, download_establishment_cert,
+    download_investment_declaration, download_form24q_export,
+)
 from Aapp.app.pdf_views import (
     download_salary_slip, download_salary_sheet,
     download_salary_abstract, download_company_profile,
@@ -405,8 +433,6 @@ urlpatterns = [
     path('epf/ecr/', list_epf_ecr, name='list_epf_ecr'),
     path('epf/ecr/add/', add_epf_ecr, name='add_epf_ecr'),
     path('epf/ecr/alter/<int:ecr_id>/', alter_epf_ecr, name='alter_epf_ecr'),
-    path('epf/ecr/<int:ecr_id>/download/', download_ecr_text, name='download_ecr_text'),
-    path('epf/ecr/<int:ecr_id>/challan/', download_epf_challan, name='download_epf_challan'),
 
     # ════════════════════════════════════════════════════════════════════════
     # ESI ACT 1948 — Form 1A (Family), Form 7 (Half-Yearly Contribution Return)
@@ -562,4 +588,55 @@ urlpatterns = [
     path('form16/', select_employee_for_form16, name='select_employee_for_form16'),
     path('form16/<int:employee_id>/<str:financial_year>/', download_form16, name='download_form16'),
     path('form16/deductions-report/<int:month>/<int:year>/', download_deductions_report, name='download_deductions_report'),
+
+    # ══════════════════════════════════════════════════════════════════════
+    # Compliance report generators — Phases 1-5 (see pt_upgrades.md roadmap)
+    # ══════════════════════════════════════════════════════════════════════
+
+    # Phase 1 — Statutory filing risk
+    path('epf/ecr/<int:ecr_id>/download/', download_ecr_text, name='download_ecr_text'),
+    path('epf/ecr/<int:ecr_id>/challan/', download_epf_challan, name='download_epf_challan'),
+    path('esi/monthly/', select_period_for_esi_monthly, name='select_period_for_esi_monthly'),
+    path('esi/monthly/<int:month>/<int:year>/challan/', download_esi_monthly_challan, name='download_esi_monthly_challan'),
+    path('esi/monthly/<int:month>/<int:year>/upload.xlsx/', download_esi_monthly_upload, name='download_esi_monthly_upload'),
+    path('labour-welfare-fund/<int:lwf_id>/challan/', download_lwf_challan, name='download_lwf_challan'),
+    path('wages/payment-of-wages-returns/<int:return_id>/download/', download_pow_return, name='download_pow_return'),
+
+    # Phase 2 — High-frequency registers
+    path('attendance/overtime-register/report/', select_period_for_ot_register, name='select_period_for_ot_register'),
+    path('attendance/overtime-register/report/<int:month>/<int:year>/download/', download_ot_register, name='download_ot_register'),
+    path('wages/fines/report/', select_period_for_fines, name='select_period_for_fines'),
+    path('wages/fines/report/<int:month>/<int:year>/download/', download_fines_register, name='download_fines_register'),
+    path('wages/deductions/report/', select_period_for_deductions, name='select_period_for_deductions'),
+    path('wages/deductions/report/<int:month>/<int:year>/download/', download_deductions_register_wages, name='download_deductions_register_wages'),
+    path('wages/minimum-wages-returns/<int:return_id>/download/', download_minwages_return, name='download_minwages_return'),
+    path('bonus/report/', select_period_for_bonus_register, name='select_period_for_bonus_register'),
+    path('bonus/report/<int:month>/<int:year>/download/', download_bonus_register, name='download_bonus_register'),
+    path('bonus/set-on-set-off/<int:record_id>/download/', download_set_on_set_off, name='download_set_on_set_off'),
+    path('bonus/annual-returns/<int:return_id>/download/', download_bonus_return, name='download_bonus_return'),
+
+    # Phase 3 — Factory Act registers
+    path('factory/<int:factory_id>/certificate/download/', download_factory_registration_cert, name='download_factory_registration_cert'),
+    path('factory/<int:factory_id>/whitewash/download/', download_whitewash_register, name='download_whitewash_register'),
+    path('factory/<int:factory_id>/vessel/download/', download_vessel_examination_register, name='download_vessel_examination_register'),
+    path('factory/leave-wages/download/', download_leave_wages_register, name='download_leave_wages_register'),
+    path('factory/annual-return/<int:return_id>/download/', download_factory_annual_return, name='download_factory_annual_return'),
+    path('factory/<int:factory_id>/accident/download/', download_accident_register, name='download_accident_register'),
+
+    # Phase 4 — Contract Labour Act
+    path('contractors/<int:contractor_id>/payments/download/', download_contractor_payment_register, name='download_contractor_payment_register'),
+    path('contract-labour/registration/<int:reg_id>/download/', download_cl_registration_cert, name='download_cl_registration_cert'),
+    path('contract-labour/<int:contractor_id>/cards/<int:card_id>/download/', download_employment_card, name='download_employment_card'),
+    path('contract-labour/<int:contractor_id>/certificates/<int:cert_id>/download/', download_service_certificate, name='download_service_certificate'),
+    path('contract-labour/returns/<int:return_id>/download/', download_cl_return, name='download_cl_return'),
+
+    # Phase 5 — Low-frequency cert docs
+    path('epf/nominations/download/', download_epf_nomination_register, name='download_epf_nomination_register'),
+    path('esi/family/download/', download_esi_family_register, name='download_esi_family_register'),
+    path('gratuity/nominees/download/', download_gratuity_nominee_register, name='download_gratuity_nominee_register'),
+    path('gratuity/employer-notices/<int:notice_id>/download/', download_employer_notice, name='download_employer_notice'),
+    path('gratuity/payment-notices/<int:notice_id>/download/', download_payment_notice, name='download_payment_notice'),
+    path('shops-act/establishments/<int:estab_id>/download/', download_establishment_cert, name='download_establishment_cert'),
+    path('income-tax/investment-declaration/<int:profile_id>/download/', download_investment_declaration, name='download_investment_declaration'),
+    path('income-tax/form24q-export/<str:financial_year>/download/', download_form24q_export, name='download_form24q_export'),
 ]

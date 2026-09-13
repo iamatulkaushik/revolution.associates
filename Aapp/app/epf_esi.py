@@ -287,6 +287,7 @@ def list_epf_nominations(request):
         'rows': rows, 'company': company,
         'add_url': reverse('add_epf_nomination'), 'add_label': 'Add Nomination',
         'empty_message': 'No EPF nominations recorded yet.',
+        'extra_links': [{'url': reverse('download_epf_nomination_register'), 'label': 'Download Register PDF'}],
     })
 
 
@@ -440,6 +441,7 @@ def list_esi_family(request):
         'rows': rows, 'company': company,
         'add_url': reverse('add_esi_family'), 'add_label': 'Add Family Member',
         'empty_message': 'No family members declared yet.',
+        'extra_links': [{'url': reverse('download_esi_family_register'), 'label': 'Download Register PDF'}],
     })
 
 
@@ -521,6 +523,7 @@ def list_esi_returns(request):
         'rows': rows, 'company': company,
         'add_url': reverse('add_esi_return'), 'add_label': 'Add Contribution Return',
         'empty_message': 'No ESI returns filed yet.',
+        'extra_links': [{'url': reverse('select_period_for_esi_monthly'), 'label': 'Monthly Challan / Upload'}],
     })
 
 

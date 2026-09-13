@@ -186,6 +186,7 @@ def list_bonus(request):
         'rows': rows, 'company': company,
         'add_url': reverse('add_bonus'), 'add_label': 'Add Bonus Record',
         'empty_message': 'No bonus records yet.',
+        'extra_links': [{'url': reverse('select_period_for_bonus_register'), 'label': 'Download Register (Form C)'}],
     })
 
 
@@ -318,7 +319,8 @@ def list_set_on_set_off(request):
     rows = [{
         'cells': [r.year, r.allocable_surplus, r.bonus_paid, r.set_on_amount,
                   r.set_off_amount, r.cumulative_set_on],
-        'actions': [{'url': reverse('alter_set_on_set_off', args=[r.record_id]), 'label': 'Edit', 'css': 'edit'}],
+        'actions': [{'url': reverse('alter_set_on_set_off', args=[r.record_id]), 'label': 'Edit', 'css': 'edit'},
+                    {'url': reverse('download_set_on_set_off', args=[r.record_id]), 'label': 'Download PDF', 'css': 'download'}],
     } for r in records]
     return render(request, 'Aapp/generic/list.html', {
         'page_title': 'Bonus Act 1965 — Set-On / Set-Off Register (Form B)',
@@ -406,7 +408,8 @@ def list_bonus_returns(request):
     rows = [{
         'cells': [r.year, r.total_employees, r.total_wages, f'{r.bonus_percentage}%',
                   r.total_bonus_paid, r.get_filing_status_display()],
-        'actions': [{'url': reverse('alter_bonus_return', args=[r.return_id]), 'label': 'Edit', 'css': 'edit'}],
+        'actions': [{'url': reverse('alter_bonus_return', args=[r.return_id]), 'label': 'Edit', 'css': 'edit'},
+                    {'url': reverse('download_bonus_return', args=[r.return_id]), 'label': 'Download PDF', 'css': 'download'}],
     } for r in returns]
     return render(request, 'Aapp/generic/list.html', {
         'page_title': 'Bonus Act 1965 — Annual Return (Form D)',

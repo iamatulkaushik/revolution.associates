@@ -213,6 +213,7 @@ def list_nominees(request):
         'rows': rows, 'company': company,
         'add_url': reverse('add_nominee'), 'add_label': 'Add Nominee',
         'empty_message': 'No nominees registered yet.',
+        'extra_links': [{'url': reverse('download_gratuity_nominee_register'), 'label': 'Download Register PDF'}],
     })
 
 
@@ -410,7 +411,7 @@ def list_employer_notices(request):
     rows = [{
         'cells': [n.get_notice_type_display(), n.notice_date, n.submitted_to or '—',
                   n.acknowledgement_no or '—'],
-        'actions': [],
+        'actions': [{'url': reverse('download_employer_notice', args=[n.notice_id]), 'label': 'Download PDF', 'css': 'download'}],
     } for n in notices]
     return render(request, 'Aapp/generic/list.html', {
         'page_title': 'Gratuity Act — Employer Notices (Form A/B/C/D)',
@@ -470,7 +471,7 @@ def list_payment_notices(request):
     rows = [{
         'cells': [n.employee.name, n.get_notice_type_display(), n.notice_date,
                   n.gratuity_amount, n.payment_due_date or '—'],
-        'actions': [],
+        'actions': [{'url': reverse('download_payment_notice', args=[n.notice_id]), 'label': 'Download PDF', 'css': 'download'}],
     } for n in notices]
     return render(request, 'Aapp/generic/list.html', {
         'page_title': 'Gratuity Act — Payment / Rejection Notices (Form I / J)',

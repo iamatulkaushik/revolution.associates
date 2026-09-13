@@ -147,7 +147,8 @@ def list_minwages_returns(request):
     rows = [{
         'cells': [r.year, r.category_of_work, r.total_employees_male, r.total_employees_female,
                   r.total_wages_paid, r.get_filing_status_display()],
-        'actions': [{'url': reverse('alter_minwages_return', args=[r.return_id]), 'label': 'Edit', 'css': 'edit'}],
+        'actions': [{'url': reverse('alter_minwages_return', args=[r.return_id]), 'label': 'Edit', 'css': 'edit'},
+                    {'url': reverse('download_minwages_return', args=[r.return_id]), 'label': 'Download PDF', 'css': 'download'}],
     } for r in returns]
     return render(request, 'Aapp/generic/list.html', {
         'page_title': 'Minimum Wages Act — Annual Return (Form V)',
@@ -221,7 +222,8 @@ def list_pow_returns(request):
     rows = [{
         'cells': [r.year, r.total_employed, r.total_wages_paid, r.get_wage_period_display(),
                   r.get_payment_mode_display(), r.get_filing_status_display()],
-        'actions': [{'url': reverse('alter_pow_return', args=[r.return_id]), 'label': 'Edit', 'css': 'edit'}],
+        'actions': [{'url': reverse('alter_pow_return', args=[r.return_id]), 'label': 'Edit', 'css': 'edit'},
+                    {'url': reverse('download_pow_return', args=[r.return_id]), 'label': 'Download PDF', 'css': 'download'}],
     } for r in returns]
     return render(request, 'Aapp/generic/list.html', {
         'page_title': 'Payment of Wages Act — Annual Return (Form IV)',

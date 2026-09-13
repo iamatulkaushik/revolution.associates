@@ -129,6 +129,7 @@ def list_establishments(request):
                   e.registration_date, e.renewal_date or '—'],
         'actions': [
             {'url': reverse('update_establishment', args=[e.estab_id]), 'label': 'Edit', 'css': 'edit'},
+            {'url': reverse('download_establishment_cert', args=[e.estab_id]), 'label': 'Certificate PDF', 'css': 'download'},
             {'url': reverse('delete_establishment', args=[e.estab_id]), 'label': 'Delete', 'css': 'delete'},
         ],
     } for e in estabs]

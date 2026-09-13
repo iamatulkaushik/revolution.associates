@@ -179,6 +179,7 @@ def list_fines(request):
         'rows': rows, 'company': company,
         'add_url': reverse('add_fine'), 'add_label': 'Add Fine',
         'empty_message': 'No fines recorded.',
+        'extra_links': [{'url': reverse('select_period_for_fines'), 'label': 'Download Register PDF'}],
     })
 
 
@@ -260,6 +261,7 @@ def list_deductions(request):
         'rows': rows, 'company': company,
         'add_url': reverse('add_deduction'), 'add_label': 'Add Deduction',
         'empty_message': 'No deductions recorded.',
+        'extra_links': [{'url': reverse('select_period_for_deductions'), 'label': 'Download Register PDF'}],
     })
 
 

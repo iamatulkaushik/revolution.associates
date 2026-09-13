@@ -112,7 +112,8 @@ def list_lwf(request):
     rows = [{
         'cells': [r.year, r.get_contribution_period_display(), r.total_employees,
                   r.total_contribution, r.due_date or '—', r.get_filing_status_display()],
-        'actions': [{'url': reverse('alter_lwf', args=[r.lwf_id]), 'label': 'Edit', 'css': 'edit'}] +
+        'actions': [{'url': reverse('alter_lwf', args=[r.lwf_id]), 'label': 'Edit', 'css': 'edit'},
+                    {'url': reverse('download_lwf_challan', args=[r.lwf_id]), 'label': 'Challan PDF', 'css': 'download'}] +
                    ([{'url': reverse('mark_lwf_paid', args=[r.lwf_id]), 'label': 'Mark Paid'}]
                     if r.filing_status != 'filed' else []),
     } for r in records]

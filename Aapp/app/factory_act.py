@@ -221,6 +221,7 @@ def list_factory_registration(request):
                   f.max_workers_night, f.license_expiry_date],
         'actions': [
             {'url': reverse('alter_factory_registration', args=[f.factory_id]), 'label': 'Edit', 'css': 'edit'},
+            {'url': reverse('download_factory_registration_cert', args=[f.factory_id]), 'label': 'Certificate PDF', 'css': 'download'},
             {'url': reverse('list_whitewash_register', args=[f.factory_id]), 'label': 'Whitewash'},
             {'url': reverse('list_vessel_examination', args=[f.factory_id]), 'label': 'Vessels'},
             {'url': reverse('list_accident_records', args=[f.factory_id]), 'label': 'Accidents'},
@@ -307,6 +308,7 @@ def list_whitewash_register(request, factory_id):
         'rows': rows, 'company': company,
         'add_url': reverse('create_whitewash_register', args=[factory_id]), 'add_label': 'Add Whitewash Record',
         'empty_message': 'No whitewash records yet.',
+        'extra_links': [{'url': reverse('download_whitewash_register', args=[factory_id]), 'label': 'Download Register PDF'}],
     })
 
 
@@ -359,6 +361,7 @@ def list_vessel_examination(request, factory_id):
         'rows': rows, 'company': company,
         'add_url': reverse('create_vessel_examination', args=[factory_id]), 'add_label': 'Add Examination Record',
         'empty_message': 'No vessel examination records yet.',
+        'extra_links': [{'url': reverse('download_vessel_examination_register', args=[factory_id]), 'label': 'Download Register PDF'}],
     })
 
 
@@ -410,6 +413,7 @@ def list_leave_wages_register(request):
         'rows': rows, 'company': company,
         'add_url': reverse('create_leave_with_wages_register'), 'add_label': 'Add Leave Record',
         'empty_message': 'No leave-with-wages records yet.',
+        'extra_links': [{'url': reverse('download_leave_wages_register'), 'label': 'Download Register PDF'}],
     })
 
 
@@ -460,6 +464,7 @@ def list_accident_register(request, factory_id):
         'rows': rows, 'company': company,
         'add_url': reverse('create_accident_record', args=[factory_id]), 'add_label': 'Record Accident',
         'empty_message': 'No accidents recorded.',
+        'extra_links': [{'url': reverse('download_accident_register', args=[factory_id]), 'label': 'Download Register PDF'}],
     })
 
 
@@ -507,6 +512,7 @@ def list_annual_return(request, factory_id):
                   r.total_accidents, r.total_wages_paid, r.get_filing_status_display()],
         'actions': [
             {'url': reverse('alter_annual_return', args=[r.return_id]), 'label': 'Edit', 'css': 'edit'},
+            {'url': reverse('download_factory_annual_return', args=[r.return_id]), 'label': 'Download PDF', 'css': 'download'},
         ],
     } for r in records]
     return render(request, 'Aapp/generic/list.html', {

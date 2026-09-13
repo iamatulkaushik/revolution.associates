@@ -168,6 +168,7 @@ def list_contractors(request):
             {'url': reverse('update_contractor', args=[c.contractor_id]), 'label': 'Edit', 'css': 'edit'},
             {'url': reverse('list_contractor_workers', args=[c.contractor_id]), 'label': 'Workers'},
             {'url': reverse('add_contractor_payment', args=[c.contractor_id]), 'label': 'Payment'},
+            {'url': reverse('download_contractor_payment_register', args=[c.contractor_id]), 'label': 'Payment Register PDF', 'css': 'download'},
             {'url': reverse('list_cl_returns', args=[c.contractor_id]), 'label': 'CL Returns'},
             {'url': reverse('delete_contractor', args=[c.contractor_id]), 'label': 'Delete', 'css': 'delete'},
         ],

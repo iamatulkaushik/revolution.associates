@@ -220,7 +220,8 @@ def list_cl_registration(request):
     rows = [{
         'cells': [r.registration_cert_no or '—', r.establishment_name, r.registration_date,
                   r.max_contract_workers, 'Active' if r.is_active else 'Inactive'],
-        'actions': [{'url': reverse('alter_cl_registration', args=[r.reg_id]), 'label': 'Edit', 'css': 'edit'}],
+        'actions': [{'url': reverse('alter_cl_registration', args=[r.reg_id]), 'label': 'Edit', 'css': 'edit'},
+                    {'url': reverse('download_cl_registration_cert', args=[r.reg_id]), 'label': 'Certificate PDF', 'css': 'download'}],
     } for r in registrations]
     return render(request, 'Aapp/generic/list.html', {
         'page_title': 'Contract Labour Act 1970 — Registration (Form I & II)',
@@ -295,7 +296,7 @@ def list_employment_cards(request, contractor_id):
     cards = ContractEmploymentCard.objects.filter(contractor=con).select_related('employee')
     rows = [{
         'cells': [c.card_number or '—', c.employee.name, c.work_site, c.wage_rate, c.issue_date],
-        'actions': [],
+        'actions': [{'url': reverse('download_employment_card', args=[contractor_id, c.card_id]), 'label': 'Download PDF', 'css': 'download'}],
     } for c in cards]
     return render(request, 'Aapp/generic/list.html', {
         'page_title': f'Employment Cards (Form XIII) — {con.contractor_name}',
@@ -350,7 +351,7 @@ def list_service_certificates(request, contractor_id):
     rows = [{
         'cells': [c.employee.name, c.date_of_employment, c.date_of_termination,
                   c.reason_for_termination or '—', c.last_wage_paid],
-        'actions': [],
+        'actions': [{'url': reverse('download_service_certificate', args=[contractor_id, c.cert_id]), 'label': 'Download PDF', 'css': 'download'}],
     } for c in certs]
     return render(request, 'Aapp/generic/list.html', {
         'page_title': f'Service Certificates (Form XIV) — {con.contractor_name}',
@@ -405,7 +406,8 @@ def list_cl_returns(request, contractor_id):
     rows = [{
         'cells': [r.year, r.get_half_year_display(), r.total_workers_employed, r.total_man_days,
                   r.total_wages_paid, r.get_filing_status_display()],
-        'actions': [{'url': reverse('alter_cl_return', args=[r.return_id]), 'label': 'Edit', 'css': 'edit'}],
+        'actions': [{'url': reverse('alter_cl_return', args=[r.return_id]), 'label': 'Edit', 'css': 'edit'},
+                    {'url': reverse('download_cl_return', args=[r.return_id]), 'label': 'Download PDF', 'css': 'download'}],
     } for r in returns]
     return render(request, 'Aapp/generic/list.html', {
         'page_title': f'Half-Yearly Return (Form 20(CL)) — {con.contractor_name}',
