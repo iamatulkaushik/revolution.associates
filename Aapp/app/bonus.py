@@ -145,6 +145,18 @@ class BonusSetOnSetOffForm(_forms.ModelForm):
                   'max_bonus_amount', 'bonus_paid', 'set_on_amount', 'set_off_amount',
                   'cumulative_set_on']
 
+class BonusReturnEditForm(_forms.ModelForm):
+    """Allocable surplus (a P&L figure) and filing status are set by hand;
+    employee count, wages, and bonus paid are computed from records."""
+    class Meta:
+        model = bonus_annual_return
+        fields = ['allocable_surplus', 'payment_date', 'filing_status', 'filed_date', 'acknowledgement_no']
+        widgets = {
+            'payment_date': _forms.DateInput(attrs={'type': 'date'}),
+            'filed_date': _forms.DateInput(attrs={'type': 'date'}),
+        }
+
+
 class BonusAnnualReturnForm(_forms.ModelForm):
     class Meta:
         model = bonus_annual_return
@@ -421,6 +433,26 @@ def list_bonus_returns(request):
 
 
 @login_required
+def _compute_bonus_return_totals(company, year):
+    from decimal import Decimal
+    from Aapp.app.salary_processing import salary_slip
+
+    slips = salary_slip.objects.filter(company_id=company, processing_id__year=year)
+    total_employees = slips.values('employee_id').distinct().count()
+    total_wages = slips.aggregate(t=models.Sum('gross_earnings'))['t'] or Decimal('0')
+
+    bonus_records = bonus_record.objects.filter(company=company, salary_year=year)
+    total_bonus_paid = bonus_records.aggregate(t=models.Sum('total_bonus'))['t'] or Decimal('0')
+
+    bonus_percentage = (total_bonus_paid / total_wages * 100).quantize(Decimal('0.01')) if total_wages else Decimal('0')
+    # Clamp to the statutory 8.33%–20% band; flag out-of-band instead of silently capping.
+    return {
+        'total_employees': total_employees, 'total_wages': total_wages,
+        'total_bonus_paid': total_bonus_paid, 'bonus_percentage': bonus_percentage,
+    }
+
+
+@login_required
 def add_bonus_return(request):
     company = _company(request)
     if not company:
@@ -428,31 +460,26 @@ def add_bonus_return(request):
         return redirect('aapp_dashboard')
 
     if request.method == 'POST':
-        p = request.POST
-        try:
-            bonus_annual_return.objects.create(
-                company=company,
-                year=int(p.get('year')),
-                total_employees=p.get('total_employees', 0) or 0,
-                total_wages=p.get('total_wages', 0) or 0,
-                allocable_surplus=p.get('allocable_surplus', 0) or 0,
-                bonus_percentage=p.get('bonus_percentage', 0) or 0,
-                total_bonus_paid=p.get('total_bonus_paid', 0) or 0,
-                payment_date=p.get('payment_date') or None,
-                filing_status=p.get('filing_status', 'pending'),
-                filed_date=p.get('filed_date') or None,
-                acknowledgement_no=p.get('acknowledgement_no', ''),
-                created_by=request.user,
-            )
-            messages.success(request, 'Bonus annual return recorded.')
+        year = int(request.POST.get('year'))
+        if bonus_annual_return.objects.filter(company=company, year=year).exists():
+            messages.error(request, f'A Bonus annual return for {year} already exists. Edit it instead.')
             return redirect('list_bonus_returns')
-        except Exception as e:
-            messages.error(request, f'Error: {e}')
 
-    return render(request, 'Aapp/generic/form.html', {
-        'form': BonusAnnualReturnForm(), 'company': company,
-        'page_title': 'Add Bonus Annual Return (Form D)',
-        'cancel_url': reverse('list_bonus_returns'),
+        totals = _compute_bonus_return_totals(company, year)
+        if totals['total_wages'] == 0:
+            messages.error(request, f'No salary sheet data found for {year}.')
+            return redirect('list_bonus_returns')
+
+        ret = bonus_annual_return(company=company, year=year, created_by=request.user, **totals)
+        ret.save()
+        messages.success(request, f'Bonus annual return for {year} generated. '
+                                    'Set the allocable surplus and file it.')
+        return redirect('alter_bonus_return', return_id=ret.return_id)
+
+    year_choices = [(y, y) for y in range(2023, 2031)]
+    return render(request, 'Aapp/generic/year_category_picker.html', {
+        'company': company, 'page_title': 'Generate Bonus Annual Return — Select Year',
+        'year_choices': year_choices, 'hide_category': True,
     })
 
 
@@ -466,22 +493,22 @@ def alter_bonus_return(request, return_id):
     ret = get_object_or_404(bonus_annual_return, return_id=return_id, company=company)
 
     if request.method == 'POST':
-        p = request.POST
-        ret.total_employees = p.get('total_employees', ret.total_employees)
-        ret.total_wages = p.get('total_wages', ret.total_wages)
-        ret.allocable_surplus = p.get('allocable_surplus', ret.allocable_surplus)
-        ret.bonus_percentage = p.get('bonus_percentage', ret.bonus_percentage)
-        ret.total_bonus_paid = p.get('total_bonus_paid', ret.total_bonus_paid)
-        ret.payment_date = p.get('payment_date') or ret.payment_date
-        ret.filing_status = p.get('filing_status', ret.filing_status)
-        ret.filed_date = p.get('filed_date') or ret.filed_date
-        ret.acknowledgement_no = p.get('acknowledgement_no', ret.acknowledgement_no)
-        ret.save()
-        messages.success(request, 'Return updated.')
-        return redirect('list_bonus_returns')
+        form = BonusReturnEditForm(request.POST, instance=ret)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Return updated.')
+            return redirect('list_bonus_returns')
+    else:
+        form = BonusReturnEditForm(instance=ret)
 
     return render(request, 'Aapp/generic/form.html', {
-        'form': BonusAnnualReturnForm(instance=ret), 'company': company,
+        'form': form, 'company': company,
         'page_title': f'Edit Bonus Annual Return — {ret.year}',
         'cancel_url': reverse('list_bonus_returns'),
+        'readonly_summary': [
+            ('Total Employees', ret.total_employees),
+            ('Total Wages', ret.total_wages),
+            ('Total Bonus Paid', ret.total_bonus_paid),
+            ('Bonus Percentage', f'{ret.bonus_percentage}%'),
+        ],
     })

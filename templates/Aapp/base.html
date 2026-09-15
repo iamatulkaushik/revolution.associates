@@ -103,35 +103,6 @@
           </ul>
         </li>
 
-        <li class="nav-item" id="nav-reports">
-          <button class="nav-link statuary" onclick="toggleNav('nav-reports')" aria-expanded="false">
-            <span class="nav-label">Statutory Reports</span>
-            <span class="nav-chevron">&#9658;</span>
-          </button>
-          <ul class="nav-sub">
-            <li><a href="{% url 'list_epf_ecr' %}" class="nav-link">EPF ECR / Challan</a></li>
-            <li><a href="{% url 'select_period_for_esi_monthly' %}" class="nav-link">ESI Monthly Challan / Upload</a></li>
-            <li><a href="{% url 'list_lwf' %}" class="nav-link">LWF Challan</a></li>
-            <li><a href="{% url 'list_pow_returns' %}" class="nav-link">Payment of Wages Return</a></li>
-            <li><a href="{% url 'list_minwages_returns' %}" class="nav-link">Min Wages Return</a></li>
-            <li><a href="{% url 'select_period_for_fines' %}" class="nav-link">Fines Register (Form I)</a></li>
-            <li><a href="{% url 'select_period_for_deductions' %}" class="nav-link">Deductions Register (Form II)</a></li>
-            <li><a href="{% url 'select_period_for_ot_register' %}" class="nav-link">Overtime Register (Form IV)</a></li>
-            <li><a href="{% url 'select_period_for_bonus_register' %}" class="nav-link">Bonus Register (Form C)</a></li>
-            <li><a href="{% url 'list_bonus_returns' %}" class="nav-link">Bonus Annual Return (Form D)</a></li>
-            <li><a href="{% url 'list_set_on_set_off' %}" class="nav-link">Bonus Set-On/Set-Off (Form B)</a></li>
-            <li><a href="{% url 'list_factory_registration' %}" class="nav-link">Factory Act Registers</a></li>
-            <li><a href="{% url 'list_cl_registration' %}" class="nav-link">Contract Labour Registers</a></li>
-            <li><a href="{% url 'list_contractors' %}" class="nav-link">Contractor Payment Register</a></li>
-            <li><a href="{% url 'list_nominees' %}" class="nav-link">Gratuity Nominee Register (Form F)</a></li>
-            <li><a href="{% url 'list_employer_notices' %}" class="nav-link">Gratuity Employer Notices</a></li>
-            <li><a href="{% url 'list_payment_notices' %}" class="nav-link">Gratuity Payment Notices</a></li>
-            <li><a href="{% url 'list_establishments' %}" class="nav-link">Establishment Certificate</a></li>
-            <li><a href="{% url 'list_epf_nominations' %}" class="nav-link">EPF Nomination Register</a></li>
-            <li><a href="{% url 'list_esi_family' %}" class="nav-link">ESI Family Register</a></li>
-          </ul>
-        </li>
-
         <li class="nav-item" id="nav-statutory">
           <button class="nav-link statuary" onclick="toggleNav('nav-statutory')" aria-expanded="false">
             <span class="nav-label">Statutory</span>
@@ -139,18 +110,28 @@
           </button>
           <ul class="nav-sub">
             <li><a href="{% url 'compliance_dashboard' %}" class="nav-link">Compliance Calendar</a></li>
-            <li><a href="{% url 'list_factory_registration' %}" class="nav-link">Factory Act</a></li>
-            <li><a href="{% url 'list_contractors' %}" class="nav-link">Contractors</a></li>
-            <li><a href="{% url 'list_cl_registration' %}" class="nav-link">Contract Labour Reg.</a></li>
-            <li><a href="{% url 'list_epf_nominations' %}" class="nav-link">EPF Nominations</a></li>
-            <li><a href="{% url 'list_epf_ecr' %}" class="nav-link">EPF ECR</a></li>
-            <li><a href="{% url 'list_esi_family' %}" class="nav-link">ESI Family (1A)</a></li>
+            <li><a href="{% url 'list_epf_ecr' %}" class="nav-link">EPF ECR / Challan</a></li>
+            <li><a href="{% url 'select_period_for_esi_monthly' %}" class="nav-link">ESI Monthly Challan / Upload</a></li>
             <li><a href="{% url 'list_esi_returns' %}" class="nav-link">ESI Returns</a></li>
+            <li><a href="{% url 'list_esi_family' %}" class="nav-link">ESI Family (1A)</a></li>
+            <li><a href="{% url 'list_epf_nominations' %}" class="nav-link">EPF Nominations</a></li>
+            <li><a href="{% url 'list_lwf' %}" class="nav-link">Labour Welfare Fund</a></li>
+            <li><a href="{% url 'select_period_for_fines' %}" class="nav-link">Fines Register (Form I)</a></li>
+            <li><a href="{% url 'select_period_for_deductions' %}" class="nav-link">Deductions Register (Form II)</a></li>
+            <li><a href="{% url 'select_period_for_ot_register' %}" class="nav-link">Overtime Register (Form IV)</a></li>
+            <li><a href="{% url 'list_bonus' %}" class="nav-link">Bonus</a></li>
+            <li><a href="{% url 'select_period_for_bonus_register' %}" class="nav-link">Bonus Register (Form C)</a></li>
+            <li><a href="{% url 'list_bonus_returns' %}" class="nav-link">Bonus Annual Return (Form D)</a></li>
+            <li><a href="{% url 'list_set_on_set_off' %}" class="nav-link">Bonus Set-On/Set-Off (Form B)</a></li>
+            <li><a href="{% url 'list_factory_registration' %}" class="nav-link">Factory Act</a></li>
+            <li><a href="{% url 'list_cl_registration' %}" class="nav-link">Contract Labour Reg.</a></li>
+            <li><a href="{% url 'list_contractors' %}" class="nav-link">Contractors</a></li>
             <li><a href="{% url 'list_maternity' %}" class="nav-link">Maternity</a></li>
             <li><a href="{% url 'list_gratuity' %}" class="nav-link">Gratuity</a></li>
-            <li><a href="{% url 'list_bonus' %}" class="nav-link">Bonus</a></li>
+            <li><a href="{% url 'list_nominees' %}" class="nav-link">Gratuity Nominee Register (Form F)</a></li>
+            <li><a href="{% url 'list_employer_notices' %}" class="nav-link">Gratuity Employer Notices</a></li>
+            <li><a href="{% url 'list_payment_notices' %}" class="nav-link">Gratuity Payment Notices</a></li>
             <li><a href="{% url 'list_establishments' %}" class="nav-link">Shops Act</a></li>
-            <li><a href="{% url 'list_lwf' %}" class="nav-link">Labour Welfare Fund</a></li>
           </ul>
         </li>
 

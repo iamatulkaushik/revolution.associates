@@ -109,6 +109,16 @@ class PaymentOfWagesAnnualReturn(models.Model):
 
 # ── Forms ────────────────────────────────────────────────────────────────────
 
+class MinimumWagesEditForm(forms.ModelForm):
+    """Rate fields + filing status are set by hand; everything else is
+    auto-computed from the salary sheet, overtime register, and fines table."""
+    class Meta:
+        model = MinimumWagesAnnualReturn
+        fields = ['category_of_work', 'min_wage_rate_unskilled', 'min_wage_rate_semiskilled',
+                  'min_wage_rate_skilled', 'filing_status', 'filed_date', 'acknowledgement_no']
+        widgets = {'filed_date': forms.DateInput(attrs={'type': 'date'})}
+
+
 class MinimumWagesAnnualReturnForm(forms.ModelForm):
     class Meta:
         model = MinimumWagesAnnualReturn
@@ -116,6 +126,15 @@ class MinimumWagesAnnualReturnForm(forms.ModelForm):
                   'min_wage_rate_unskilled', 'min_wage_rate_semiskilled', 'min_wage_rate_skilled',
                   'total_wages_paid', 'total_ot_hours', 'total_ot_wages', 'total_fines_imposed',
                   'total_deductions', 'filing_status', 'filed_date', 'acknowledgement_no']
+        widgets = {'filed_date': forms.DateInput(attrs={'type': 'date'})}
+
+
+class PaymentOfWagesEditForm(forms.ModelForm):
+    """Only the filing-status fields an admin sets by hand; totals are
+    auto-computed from the salary sheet, fines, and deductions tables."""
+    class Meta:
+        model = PaymentOfWagesAnnualReturn
+        fields = ['wage_period', 'payment_mode', 'filing_status', 'filed_date', 'acknowledgement_no']
         widgets = {'filed_date': forms.DateInput(attrs={'type': 'date'})}
 
 
@@ -160,6 +179,44 @@ def list_minwages_returns(request):
 
 
 @login_required
+def _compute_minwages_totals(company, year):
+    from decimal import Decimal
+    from Aapp.app.salary_processing import salary_slip
+    from Aapp.app.attandance import MinimumWagesOvertimeRegister
+    from Aapp.app.wages import wages_fine, wages_deduction
+
+    slips = salary_slip.objects.filter(company_id=company, processing_id__year=year).select_related('employee_id')
+    male = female = 0
+    total_wages = Decimal('0')
+    seen_employees = set()
+    for s in slips:
+        total_wages += Decimal(s.gross_earnings or 0)
+        if s.employee_id_id not in seen_employees:
+            seen_employees.add(s.employee_id_id)
+            if s.employee_id.gender == 'Male':
+                male += 1
+            elif s.employee_id.gender == 'Female':
+                female += 1
+
+    ot_records = MinimumWagesOvertimeRegister.objects.filter(
+        attendance__companyid=company, attendance__salary_year=year)
+    total_ot_hours = sum((r.overtime_hours for r in ot_records), Decimal('0'))
+    total_ot_wages = sum((r.ot_wages_paid for r in ot_records), Decimal('0'))
+
+    total_fines = wages_fine.objects.filter(company=company, salary_year=year).aggregate(
+        t=models.Sum('fine_amount'))['t'] or Decimal('0')
+    total_deductions = wages_deduction.objects.filter(company=company, salary_year=year).aggregate(
+        t=models.Sum('deduction_amount'))['t'] or Decimal('0')
+
+    return {
+        'total_employees_male': male, 'total_employees_female': female,
+        'total_wages_paid': total_wages, 'total_ot_hours': int(total_ot_hours),
+        'total_ot_wages': total_ot_wages, 'total_fines_imposed': total_fines,
+        'total_deductions': total_deductions,
+    }
+
+
+@login_required
 def add_minwages_return(request):
     company = _company(request)
     if not company:
@@ -167,21 +224,28 @@ def add_minwages_return(request):
         return redirect('aapp_dashboard')
 
     if request.method == 'POST':
-        form = MinimumWagesAnnualReturnForm(request.POST)
-        if form.is_valid():
-            ret = form.save(commit=False)
-            ret.company = company
-            ret.created_by = request.user
-            ret.save()
-            messages.success(request, 'Minimum Wages annual return recorded.')
+        year = int(request.POST.get('year'))
+        category = request.POST.get('category_of_work', '').strip()
+        if MinimumWagesAnnualReturn.objects.filter(company=company, year=year).exists():
+            messages.error(request, f'A Minimum Wages return for {year} already exists. Edit it instead.')
             return redirect('list_minwages_returns')
-    else:
-        form = MinimumWagesAnnualReturnForm()
 
-    return render(request, 'Aapp/generic/form.html', {
-        'form': form, 'company': company,
-        'page_title': 'Add Minimum Wages Annual Return (Form V)',
-        'cancel_url': reverse('list_minwages_returns'),
+        totals = _compute_minwages_totals(company, year)
+        if totals['total_wages_paid'] == 0:
+            messages.error(request, f'No salary sheet data found for {year}.')
+            return redirect('list_minwages_returns')
+
+        ret = MinimumWagesAnnualReturn(company=company, year=year, category_of_work=category,
+                                        created_by=request.user, **totals)
+        ret.save()
+        messages.success(request, f'Minimum Wages return for {year} generated from salary sheet. '
+                                    'Set the wage rates and file it.')
+        return redirect('alter_minwages_return', return_id=ret.return_id)
+
+    year_choices = [(y, y) for y in range(2023, 2031)]
+    return render(request, 'Aapp/generic/year_category_picker.html', {
+        'company': company, 'page_title': 'Generate Minimum Wages Return — Select Year',
+        'year_choices': year_choices,
     })
 
 
@@ -195,18 +259,27 @@ def alter_minwages_return(request, return_id):
     ret = get_object_or_404(MinimumWagesAnnualReturn, return_id=return_id, company=company)
 
     if request.method == 'POST':
-        form = MinimumWagesAnnualReturnForm(request.POST, instance=ret)
+        form = MinimumWagesEditForm(request.POST, instance=ret)
         if form.is_valid():
             form.save()
             messages.success(request, 'Return updated.')
             return redirect('list_minwages_returns')
     else:
-        form = MinimumWagesAnnualReturnForm(instance=ret)
+        form = MinimumWagesEditForm(instance=ret)
 
     return render(request, 'Aapp/generic/form.html', {
         'form': form, 'company': company,
         'page_title': f'Edit Minimum Wages Return — {ret.year}',
         'cancel_url': reverse('list_minwages_returns'),
+        'readonly_summary': [
+            ('Male Employees', ret.total_employees_male),
+            ('Female Employees', ret.total_employees_female),
+            ('Total Wages Paid', ret.total_wages_paid),
+            ('Total OT Hours', ret.total_ot_hours),
+            ('Total OT Wages', ret.total_ot_wages),
+            ('Total Fines Imposed', ret.total_fines_imposed),
+            ('Total Deductions', ret.total_deductions),
+        ],
     })
 
 
@@ -235,6 +308,28 @@ def list_pow_returns(request):
 
 
 @login_required
+def _compute_pow_totals(company, year):
+    from decimal import Decimal
+    from Aapp.app.salary_processing import salary_slip
+    from Aapp.app.wages import wages_fine, wages_deduction
+
+    slips = salary_slip.objects.filter(company_id=company, processing_id__year=year).select_related('employee_id')
+    total_wages = sum((Decimal(s.gross_earnings or 0) for s in slips), Decimal('0'))
+    total_employed = slips.values('employee_id').distinct().count()
+
+    total_fines_imposed = wages_fine.objects.filter(company=company, salary_year=year).aggregate(
+        t=models.Sum('fine_amount'))['t'] or Decimal('0')
+    total_deductions = wages_deduction.objects.filter(company=company, salary_year=year).aggregate(
+        t=models.Sum('deduction_amount'))['t'] or Decimal('0')
+
+    return {
+        'total_employed': total_employed, 'total_wages_paid': total_wages,
+        'total_fines_imposed': total_fines_imposed, 'total_fines_realised': total_fines_imposed,
+        'total_deductions': total_deductions,
+    }
+
+
+@login_required
 def add_pow_return(request):
     company = _company(request)
     if not company:
@@ -242,21 +337,25 @@ def add_pow_return(request):
         return redirect('aapp_dashboard')
 
     if request.method == 'POST':
-        form = PaymentOfWagesAnnualReturnForm(request.POST)
-        if form.is_valid():
-            ret = form.save(commit=False)
-            ret.company = company
-            ret.created_by = request.user
-            ret.save()
-            messages.success(request, 'Payment of Wages annual return recorded.')
+        year = int(request.POST.get('year'))
+        if PaymentOfWagesAnnualReturn.objects.filter(company=company, year=year).exists():
+            messages.error(request, f'A Payment of Wages return for {year} already exists. Edit it instead.')
             return redirect('list_pow_returns')
-    else:
-        form = PaymentOfWagesAnnualReturnForm()
 
-    return render(request, 'Aapp/generic/form.html', {
-        'form': form, 'company': company,
-        'page_title': 'Add Payment of Wages Annual Return (Form IV)',
-        'cancel_url': reverse('list_pow_returns'),
+        totals = _compute_pow_totals(company, year)
+        if totals['total_wages_paid'] == 0:
+            messages.error(request, f'No salary sheet data found for {year}.')
+            return redirect('list_pow_returns')
+
+        ret = PaymentOfWagesAnnualReturn(company=company, year=year, created_by=request.user, **totals)
+        ret.save()
+        messages.success(request, f'Payment of Wages return for {year} generated from salary sheet.')
+        return redirect('alter_pow_return', return_id=ret.return_id)
+
+    year_choices = [(y, y) for y in range(2023, 2031)]
+    return render(request, 'Aapp/generic/year_category_picker.html', {
+        'company': company, 'page_title': 'Generate Payment of Wages Return — Select Year',
+        'year_choices': year_choices, 'hide_category': True,
     })
 
 
@@ -270,16 +369,23 @@ def alter_pow_return(request, return_id):
     ret = get_object_or_404(PaymentOfWagesAnnualReturn, return_id=return_id, company=company)
 
     if request.method == 'POST':
-        form = PaymentOfWagesAnnualReturnForm(request.POST, instance=ret)
+        form = PaymentOfWagesEditForm(request.POST, instance=ret)
         if form.is_valid():
             form.save()
             messages.success(request, 'Return updated.')
             return redirect('list_pow_returns')
     else:
-        form = PaymentOfWagesAnnualReturnForm(instance=ret)
+        form = PaymentOfWagesEditForm(instance=ret)
 
     return render(request, 'Aapp/generic/form.html', {
         'form': form, 'company': company,
         'page_title': f'Edit Payment of Wages Return — {ret.year}',
         'cancel_url': reverse('list_pow_returns'),
+        'readonly_summary': [
+            ('Total Employed', ret.total_employed),
+            ('Total Wages Paid', ret.total_wages_paid),
+            ('Total Fines Imposed', ret.total_fines_imposed),
+            ('Total Fines Realised', ret.total_fines_realised),
+            ('Total Deductions', ret.total_deductions),
+        ],
     })

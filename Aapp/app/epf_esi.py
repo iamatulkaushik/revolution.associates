@@ -13,6 +13,7 @@ This file adds:
     ESI Form 7           -> EsiContributionReturn  (half-yearly Apr-Sep / Oct-Mar)
 """
 
+import calendar
 from django import forms
 from django.db import models
 from django.contrib.auth.models import User
@@ -231,6 +232,15 @@ class EpfNominationForm(forms.ModelForm):
         }
 
 
+class EpfMonthlyEcrEditForm(forms.ModelForm):
+    """Only the fields an admin actually files/updates by hand. Everything
+    else (members, wages, contributions) is computed from salary_slip."""
+    class Meta:
+        model = EpfMonthlyEcr
+        fields = ['challan_no', 'challan_date', 'trrn', 'filing_status']
+        widgets = {'challan_date': forms.DateInput(attrs={'type': 'date'})}
+
+
 class EpfMonthlyEcrForm(forms.ModelForm):
     class Meta:
         model = EpfMonthlyEcr
@@ -370,6 +380,71 @@ def list_epf_ecr(request):
 
 
 @login_required
+def _compute_epf_ecr_totals(company, month, year):
+    """
+    Auto-computes every EPF ECR figure from salary_slip for the given
+    period, so the admin never types wages/contributions by hand.
+    Mirrors the per-employee logic in ecr_generator.py so the challan
+    header always matches the downloadable ECR .txt line-for-line.
+    """
+    from decimal import Decimal, ROUND_HALF_UP
+    from Aapp.app.salary_processing import salary_slip
+    from Aapp.app.fnf_settlement import FnfSettlement
+
+    EPS_CEILING = Decimal('15000')
+
+    slips = (salary_slip.objects
+             .filter(company_id=company, processing_id__month=month, processing_id__year=year)
+             .select_related('employee_id'))
+
+    total_members = 0
+    total_epf_wages = Decimal('0')
+    employee_epf = Decimal('0')
+    employer_epf = Decimal('0')
+    employer_eps = Decimal('0')
+    edli_contribution = Decimal('0')
+
+    for s in slips:
+        emp = s.employee_id
+        uan = (getattr(emp, 'uan_number', '') or '').strip()
+        if not uan:
+            continue
+        total_members += 1
+        basic = Decimal(s.basic_earned or 0)
+        eps_wage = min(basic, EPS_CEILING)
+        total_epf_wages += basic
+        employee_epf += Decimal(s.pf_deduction or 0)
+        eps_amt = (eps_wage * Decimal('0.0833')).quantize(Decimal('1'), rounding=ROUND_HALF_UP)
+        employer_eps += eps_amt
+        employer_epf += Decimal(s.pf_employer_contribution or 0) - eps_amt
+        edli_contribution += (eps_wage * Decimal('0.005')).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+
+    admin_charges = max((total_epf_wages * Decimal('0.005')).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP), Decimal('500'))
+
+    # New joiners: employees whose date of joining falls within this month/year.
+    total_new_joiners = employee.objects.filter(
+        CompanyID=company, dateofjoining__month=month, dateofjoining__year=year
+    ).count()
+
+    # Leavers: FnF-settled employees whose last working day falls within this month/year.
+    total_leavers = FnfSettlement.objects.filter(
+        employee__CompanyID=company, last_working_day__month=month, last_working_day__year=year
+    ).count()
+
+    return {
+        'total_members': total_members,
+        'total_new_joiners': total_new_joiners,
+        'total_leavers': total_leavers,
+        'total_epf_wages': total_epf_wages,
+        'employee_epf': employee_epf,
+        'employer_epf': max(employer_epf, Decimal('0')),
+        'employer_eps': employer_eps,
+        'edli_contribution': edli_contribution,
+        'admin_charges': admin_charges,
+    }
+
+
+@login_required
 def add_epf_ecr(request):
     company = _company(request)
     if not company:
@@ -377,21 +452,31 @@ def add_epf_ecr(request):
         return redirect('aapp_dashboard')
 
     if request.method == 'POST':
-        form = EpfMonthlyEcrForm(request.POST)
-        if form.is_valid():
-            ecr = form.save(commit=False)
-            ecr.company = company
-            ecr.created_by = request.user
-            ecr.save()
-            messages.success(request, 'EPF ECR recorded.')
+        month = int(request.POST.get('salary_month'))
+        year = int(request.POST.get('salary_year'))
+        if EpfMonthlyEcr.objects.filter(company=company, salary_month=month, salary_year=year).exists():
+            messages.error(request, f'An ECR for {month}/{year} already exists. Edit it instead.')
             return redirect('list_epf_ecr')
-    else:
-        form = EpfMonthlyEcrForm()
 
-    return render(request, 'Aapp/generic/form.html', {
-        'form': form, 'company': company,
-        'page_title': 'Add Monthly ECR',
-        'cancel_url': reverse('list_epf_ecr'),
+        totals = _compute_epf_ecr_totals(company, month, year)
+        if totals['total_members'] == 0:
+            messages.error(request, f'No EPF-enrolled employees with salary processed for {month}/{year}.')
+            return redirect('list_epf_ecr')
+
+        ecr = EpfMonthlyEcr(company=company, salary_month=month, salary_year=year,
+                             created_by=request.user, **totals)
+        ecr.save()
+        messages.success(request, f'EPF ECR for {month}/{year} generated from salary sheet.')
+        return redirect('list_epf_ecr')
+
+    month_choices = [(i, calendar.month_name[i]) for i in range(1, 13)]
+    year_choices = [(y, y) for y in range(2023, 2031)]
+    return render(request, 'Aapp/generic/period_picker.html', {
+        'company': company,
+        'page_title': 'Generate EPF Monthly ECR — Select Period',
+        'month_choices': month_choices, 'year_choices': year_choices,
+        'submit_label': 'Generate from Salary Sheet',
+        'post_url': reverse('add_epf_ecr'),
     })
 
 
@@ -405,18 +490,30 @@ def alter_epf_ecr(request, ecr_id):
     ecr = get_object_or_404(EpfMonthlyEcr, ecr_id=ecr_id, company=company)
 
     if request.method == 'POST':
-        form = EpfMonthlyEcrForm(request.POST, instance=ecr)
+        form = EpfMonthlyEcrEditForm(request.POST, instance=ecr)
         if form.is_valid():
             form.save()
-            messages.success(request, 'EPF ECR updated.')
+            messages.success(request, 'EPF ECR filing details updated.')
             return redirect('list_epf_ecr')
     else:
-        form = EpfMonthlyEcrForm(instance=ecr)
+        form = EpfMonthlyEcrEditForm(instance=ecr)
 
     return render(request, 'Aapp/generic/form.html', {
         'form': form, 'company': company,
-        'page_title': f'Edit ECR — {ecr.salary_month}/{ecr.salary_year}',
+        'page_title': f'Edit ECR Filing — {ecr.salary_month}/{ecr.salary_year}',
         'cancel_url': reverse('list_epf_ecr'),
+        'readonly_summary': [
+            ('Total Members', ecr.total_members),
+            ('New Joiners', ecr.total_new_joiners),
+            ('Leavers', ecr.total_leavers),
+            ('Total EPF Wages', ecr.total_epf_wages),
+            ('Employee EPF', ecr.employee_epf),
+            ('Employer EPF', ecr.employer_epf),
+            ('Employer EPS', ecr.employer_eps),
+            ('EDLI Contribution', ecr.edli_contribution),
+            ('Admin Charges', ecr.admin_charges),
+            ('Total Contribution', ecr.total_contribution),
+        ],
     })
 
 

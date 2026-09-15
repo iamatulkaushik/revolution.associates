@@ -82,6 +82,8 @@ class LabourWelfareFundContribution(models.Model):
 # ── Form ─────────────────────────────────────────────────────────────────────
 
 class LabourWelfareFundContributionForm(forms.ModelForm):
+    year = forms.ChoiceField(choices=[(y, y) for y in range(2023, 2031)])
+
     class Meta:
         model = LabourWelfareFundContribution
         fields = ['year', 'contribution_period', 'total_employees', 'employee_contribution',

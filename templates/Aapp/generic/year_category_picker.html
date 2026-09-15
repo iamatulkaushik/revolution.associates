@@ -1,0 +1,48 @@
+{% extends 'Aapp/base.html' %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block content %}
+
+<div class="section-header">
+  <h2>{{ page_title }}</h2>
+</div>
+
+{% if messages %}
+<div class="messages-container">
+  {% for message in messages %}
+  <div class="message-alert {% if message.tags == 'error' %}message-error{% else %}message-success{% endif %}" role="alert">{{ message }}</div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<div class="card">
+  <div class="card-header">
+    <h3>Select Year</h3>
+    {% if company %}<span style="color:rgba(255,255,255,.7);font-size:13px">{{ company.company_name }}</span>{% endif %}
+  </div>
+  <div class="card-body">
+    <form method="post">
+      {% csrf_token %}
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="id_year">Year <span class="required">*</span></label>
+          <select name="year" id="id_year" class="form-control" required>
+            {% for val, label in year_choices %}
+            <option value="{{ val }}">{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        {% if not hide_category %}
+        <div class="form-group">
+          <label for="id_category">Category of Work</label>
+          <input type="text" name="category_of_work" id="id_category" class="form-control"
+                 placeholder="e.g. Unskilled — Manufacturing">
+        </div>
+        {% endif %}
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="button primary">Generate from Salary Sheet</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

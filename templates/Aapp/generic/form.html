@@ -22,6 +22,20 @@
   </div>
   <div class="card-body">
 
+    {% if readonly_summary %}
+    <div class="card" style="margin-bottom:var(--sp-5);background:rgba(255,255,255,.03)">
+      <div class="card-header"><h4 style="margin:0;font-size:14px">Computed from Salary Sheet (read-only)</h4></div>
+      <div class="card-body">
+        <table style="width:100%;font-size:14px">
+          {% for label, value in readonly_summary %}
+          <tr><td style="padding:4px 8px;color:rgba(255,255,255,.6)">{{ label }}</td>
+              <td style="padding:4px 8px;text-align:right;font-weight:600">{{ value }}</td></tr>
+          {% endfor %}
+        </table>
+      </div>
+    </div>
+    {% endif %}
+
     {# Standard Django ModelForm #}
     {% if form %}
     <form method="post" novalidate>

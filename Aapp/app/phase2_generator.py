@@ -50,6 +50,7 @@ list_set_on_set_off, list_fines, list_deductions, list_overtime_register, list_b
 """
 
 import logging
+import calendar
 from django import forms
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, Http404
@@ -78,8 +79,20 @@ def _company(request):
     return Company.objects.filter(company_id=cid).first() if cid else None
 
 
+def _no_data_response(request, picker_view_name, page_title, month, year, message):
+    """Renders the period picker page again with an inline error banner,
+    instead of a bare 404, when a period has no records to report."""
+    from django import forms as _forms
+    company = _company(request)
+    form = PeriodForm(initial={'month': month, 'year': year})
+    return render(request, 'Aapp/generic/period_picker.html', {
+        'company': company, 'form': form, 'page_title': page_title,
+        'month': month, 'year': year, 'period_error': message,
+    })
+
+
 class PeriodForm(forms.Form):
-    month = forms.ChoiceField(choices=[(i, i) for i in range(1, 13)])
+    month = forms.ChoiceField(choices=[(i, calendar.month_name[i]) for i in range(1, 13)])
     year = forms.ChoiceField(choices=[(y, y) for y in range(2023, 2031)])
 
 
@@ -252,7 +265,8 @@ def download_fines_register(request, month, year):
                .filter(company=company, salary_month=month, salary_year=year)
                .select_related('employee').order_by('employee__name', 'fine_date'))
     if not records.exists():
-        raise Http404(f'No fines recorded for {month}/{year}.')
+        return _no_data_response(request, 'select_period_for_fines', 'Fines Register (Form I) — Select Period',
+                                  month, year, f'No fines recorded for {calendar.month_name[month]} {year}.')
 
     story = [kv_table([('Establishment Name', company.company_name), ('Period', f'{month}/{year}')])]
     story.append(Spacer(1, 6 * mm))
@@ -301,7 +315,8 @@ def download_deductions_register_wages(request, month, year):
                .filter(company=company, salary_month=month, salary_year=year)
                .select_related('employee').order_by('employee__name'))
     if not records.exists():
-        raise Http404(f'No deductions recorded for {month}/{year}.')
+        return _no_data_response(request, 'select_period_for_deductions', 'Deductions Register (Form II) — Select Period',
+                                  month, year, f'No deductions recorded for {calendar.month_name[month]} {year}.')
 
     story = [kv_table([('Establishment Name', company.company_name), ('Period', f'{month}/{year}')])]
     story.append(Spacer(1, 6 * mm))
@@ -351,7 +366,8 @@ def download_ot_register(request, month, year):
                        attendance__salary_month=month, attendance__salary_year=year)
                .select_related('attendance').order_by('attendance__emp_code', 'ot_date'))
     if not records.exists():
-        raise Http404(f'No overtime records found for {month}/{year}.')
+        return _no_data_response(request, 'select_period_for_ot_register', 'Overtime Register (Form IV) — Select Period',
+                                  month, year, f'No overtime records found for {calendar.month_name[month]} {year}.')
 
     story = [kv_table([('Establishment Name', company.company_name), ('Period', f'{month}/{year}')])]
     story.append(Spacer(1, 6 * mm))
@@ -401,7 +417,8 @@ def download_bonus_register(request, month, year):
                .filter(company=company, salary_month=month, salary_year=year)
                .select_related('employee').order_by('employee__name'))
     if not records.exists():
-        raise Http404(f'No bonus records found for {month}/{year}.')
+        return _no_data_response(request, 'select_period_for_bonus_register', 'Bonus Register (Form C) — Select Period',
+                                  month, year, f'No bonus records found for {calendar.month_name[month]} {year}.')
 
     story = [kv_table([('Establishment Name', company.company_name), ('Period', f'{month}/{year}')])]
     story.append(Spacer(1, 6 * mm))

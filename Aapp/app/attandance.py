@@ -175,7 +175,7 @@ def list_attendance(request):
     page_obj = paginator.get_page(request.GET.get('page'))
 
     return render(request, 'Aapp/attendance/list_attendance.html',
-                  {'records': page_obj, 'page_obj': page_obj, 'company': company})
+                  {'records': page_obj, 'page_obj': page_obj, 'company': company, 'months':MONTH_CHOICES, 'years': YEAR_CHOICES})
 
 
 # ── add ───────────────────────────────────────────────────────────────────────
@@ -231,7 +231,7 @@ def add_attendance(request):
 
     return render(request, 'Aapp/attendance/add_attendance.html', {
         'employees': employees, 'branches': branches,
-        'months': MONTH_CHOICES, 'years': years, 'company': company,
+        'months': MONTH_CHOICES, 'years': YEAR_CHOICES, 'company': company,
     })
 
 

@@ -104,7 +104,7 @@
                 <label class="large">Temporary Address <span style="color:var(--Color1)">*</span></label>
                 </td>
                 <td colspan="3">
-                <textarea name="temporaryaddress" rows="2" required style="width:100%;"></textarea>
+                <textarea name="temporaryaddress" rows="1" required style="width:100%;"></textarea>
                 </td>
             </tr>
             <tr>
@@ -117,179 +117,166 @@
             <select class="medium" name="temp_district" id="temp_district" required>
                 <option value="">-- District --</option>
             </select></td><td>
-            <input type="text" class="sml" name="temp_pincode" maxlength="6" placeholder="Pincode" required>
-            <input type="text" class="sml" name="country" value="India">
+            <input type="text" style="width:80px;" name="temp_pincode" maxlength="6" placeholder="Pincode" required>
+            <input type="text" style="width:80px;"class="sml" name="country" value="India">
+                </td>
+            </tr>
+            <tr>
+                <td colspan="4">
+                    <label class="large"><input type="checkbox" name="same_as_permanent" id="same_as_permanent" onchange="togglePerm()"> Same as Permanent Address</label>
                 </td>
             </tr>
             <tr>
                 <td>
-
+                    <label class="medium">Permanent Address</label>
                 </td>
-                <td>
-
-                </td>
-                <td>
-
-                </td>
-                <td>
-
+                <td colspan="3">
+                    <textarea name="permanentaddress" rows="1" style="width: 100%;"></textarea>
                 </td>
             </tr>
             <tr>
+                <td></td>
                 <td>
-
-                </td>
-                <td>
-
-                </td>
-                <td>
-
-                </td>
-                <td>
-
-                </td>
-            </tr>
-            <tr>
-                <td>
-
-                </td>
-                <td>
-
-                </td>
-                <td>
-
-                </td>
-                <td>
-
-                </td>
-            </tr>
-            <tr>
-                <td>
-
-                </td>
-                <td>
-
-                </td>
-                <td>
-
-                </td>
-                <td>
-
-                </td>
-            </tr>
-            <tr>
-                <td>
-
-                </td>
-                <td>
-
-                </td>
-                <td>
-
-                </td>
-                <td>
-
+                    <select class="sml" name="perm_state" id="perm_state" onchange="loadDistricts('perm_state','perm_district')">
+                        <option value="">-- State --</option>
+                        {% for s in states %}<option value="{{ s.Stateid }}">{{ s.name }}</option>{% endfor %}
+                    </select></td><td>
+                    <select class="sml" name="perm_district" id="perm_district">
+                        <option value="">-- District --</option>
+                    </select></td><td>
+                    <input type="text" style="width:80px;" name="perm_pincode" maxlength="6" placeholder="Pincode">               
                 </td>
             </tr>
             </table>
-        </div>
-
-        <div class="container_boxed" style="margin-top:10px;">
-            <label class="large"><input type="checkbox" name="same_as_permanent" id="same_as_permanent" onchange="togglePerm()"> Same as Permanent Address</label>
-            <div id="perm_rows">
-                <label class="medium">Permanent Address</label><br/>
-                <textarea name="permanentaddress" rows="2" style="width:60%;"></textarea><br>
-                <select class="sml" name="perm_state" id="perm_state" onchange="loadDistricts('perm_state','perm_district')">
-                    <option value="">-- State --</option>
-                    {% for s in states %}<option value="{{ s.Stateid }}">{{ s.name }}</option>{% endfor %}
-                </select>
-                <select class="sml" name="perm_district" id="perm_district">
-                    <option value="">-- District --</option>
-                </select>
-                <input type="text" style="width:80px;" name="perm_pincode" maxlength="6" placeholder="Pincode">
-            </div>
-        </div>
-<br/>
-        <div class="container_boxed" style="margin-top:10px;">
-            <h2>KYC Details</h2><hr>
-            <label>Aadhaar No <span style="color:var(--Color1)">*</span></label>
-            <input class="sml" type="text" name="aadhar_number" maxlength="12" required>
-            <label>Name<span style="color:var(--Color1)">*</span></label>
-            <input type="text" class="sml" name="aadhar_name" required><br>
-            <label>PAN Number</label>
-            <input type="text" class="sml" name="pan_number" maxlength="10">
-            <label>PAN Name</label>
-            <input type="text" class="sml" name="pan_name"><br>
-            <label>Bank Name <span style="color:var(--Color1)">*</span></label>
-            <select class="sml" name="bank_name" required>
+            <table>
+            <th>
+                <h2>KYC Details</h2><hr>
+            </th>
+            <tr>
+                <td>
+                    <label>Aadhaar No <span style="color:var(--Color1)">*</span></label>
+                </td>
+                <td>
+                    <input class="sml" type="text" name="aadhar_number" maxlength="12" required>
+                </td>
+                <td>
+                    <label>Name<span style="color:var(--Color1)">*</span></label>
+                </td>
+                <td>
+                    <input type="text" class="sml" name="aadhar_name" required>
+                </td>
+                <td>
+                </td>
+            </tr></br>
+            <tr>
+                <td>
+                    <label>PAN Number</label>
+                </td>
+                <td>
+                    <input type="text" class="sml" name="pan_number" maxlength="10">
+                </td>
+                <td>
+                    <label>PAN Name</label>
+                </td>
+                <td>
+                    <input type="text" class="sml" name="pan_name">
+                </td>
+                <td>
+                </td>
+            </tr></br>
+            <tr>
+                <td><label>Bank Name <span style="color:var(--Color1)">*</span></label></td>
+                <td>            <select class="sml" name="bank_name" required>
                 <option value="">-- Select Bank --</option>
-                {% for b in banks %}<option value="{{ b.name }}">{{ b.name }}</option>{% endfor %}
-            </select>
-            <label>Account <span style="color:var(--Color1)">*</span></label>
-            <input type="text" class="sml" name="bank_account" required>-
-            <input type="text" placeholder="SBIN0000721" class="sml" name="bank_ifsc" maxlength="11" required><br>
-            <label>DL Name</label>
-            <input type="text" class="medium" name="driving_license_name">
-            <input type="text" class="sml" name="driving_license_number" placeholder="DL Number" maxlength="20">
-            <input type="date" class="sml" name="driving_license_expiry" title="DL Expiry"><br>
-            <label>Passport Name</label>
-            <input type="text" class="medium" name="passport_name">
-            <input type="text" class="sml" name="passport_number" placeholder="Passport No" maxlength="20">
-            <input type="date" class="sml" name="passport_expiry" title="Passport Expiry"><br>
-            <label for="voter_id_name">Voter ID Name</label>
-            <input type="text" class="medium" name="voter_id_name">
-            <input type="text" class="sml" name="voter_id_number" placeholder="Voter ID Number" maxlength="20"><br>
-        </div>
-
-        <div class="container_boxed" style="margin-top:10px;">
-            <h2>Employment Details</h2><hr>
-            <label>Joining Date <span style="color:var(--Color1)">*</span></label>
-            <input type="date" class="sml" name="dateofjoining" required>
-            <label>Employment Type</label>
-            <select class="medium" name="employmenttype" id="employmenttype" onchange="toggleEmploymentFields()">
+                    {% for b in banks %}<option value="{{ b.name }}">{{ b.name }}</option>{% endfor %}
+                    </select>
+                </td>
+                <td>
+                    <label>Account <span style="color:var(--Color1)">*</span></label>
+                </td>
+                <td>            <input type="text" class="sml" name="bank_account" required>-
+                </td>
+                <td>            <input type="text" placeholder="SBIN0000721" class="sml" name="bank_ifsc" maxlength="11" required><br>
+                </td>
+            </tr>
+            <tr>
+                <td><label>DL Name</label></td>
+                <td><input type="text" class="medium" name="driving_license_name"></td>
+                <td>DL Number</td>
+                <td><input type="text" class="sml" name="driving_license_number" placeholder="DL Number" maxlength="20"></td>
+                <td><input type="date" class="sml" name="driving_license_expiry" title="DL Expiry"></td>
+            </tr>
+            <tr>
+                <td><label>Passport Name</label></td>
+                <td><input type="text" class="medium" name="passport_name"></td>
+                <td>Passport Number</td>
+                <td><input type="text" class="sml" name="passport_number" placeholder="Passport No" maxlength="20"></td>
+                <td><input type="date" class="sml" name="passport_expiry" title="Passport Expiry"></td>
+            </tr>
+            <tr>
+                <td><label for="voter_id_name">Voter ID Name</label></td>
+                <td><input type="text" class="medium" name="voter_id_name"></td>
+                <td><input type="text" class="sml" name="voter_id_number" placeholder="Voter ID Number" maxlength="20"></td>
+                <td></td>
+                <td></td>
+            </tr>
+            </table>
+            <table>
+                <th><h2>Employment Details</h2><hr></th>
+                <tr>
+                    <td><label>Joining Date <span style="color:var(--Color1)">*</span></label></td>
+                    <td><input type="date" class="sml" name="dateofjoining" required></td>
+                    <td><label>Employment Type</label></td>
+                    <td><select class="medium" name="employmenttype" id="employmenttype" onchange="toggleEmploymentFields()">
                 <option value="">-- Select --</option>
                 <option value="Permanent">Permanent</option>
                 <option value="Contract">Contract</option>
                 <option value="Intern">Intern</option>
-            </select><br>
-            <div id="contract_employment">
-                <label class="sml">Contract from</label>
-                <input type="date" name="contract_start_date" class="sml"> to <input type="date" class="sml" name="contract_end_date">
-            </div>
-            <div id="intern_employment">
-                <label class="sml" for="internship">Internship from</label>
-                <input type="date" name="internship_start_date" class="sml"> to <input type="date" name="internship_end_date" class="sml">
-            </div>
-            <label>Designation <span style="color:var(--Color1)">*</span></label>
-            <select class="medium" name="designationID" required>
+            </select></td>
+                </tr>
+                <tr>
+                    <td><label class="sml">Contract from</label></td>
+                    <td><input type="date" name="contract_start_date" class="sml"></td><td> Contract to </td><td><input type="date" class="sml" name="contract_end_date"></td>
+                </tr><tr>
+                    <td><label class="sml" for="internship">Internship from</label></td>
+                    <td><input type="date" name="internship_start_date" class="sml"></td><td>Interneship to</td><td><input type="date" name="internship_end_date" class="sml"></td>
+                </tr>
+            <tr>
+                <td><label>Designation <span style="color:var(--Color1)">*</span></label></td>
+                <td><select class="medium" name="designationID" required>
                 <option value="">-- Select --</option>
                 {% for d in designations %}<option value="{{ d.designationid }}">{{ d.designationname }}</option>{% endfor %}
-            </select><br>
-            <label>Branch <span style="color:var(--Color1)">*</span></label>
-            <select class="medium" name="branchID" required>
+                </select></td>
+                <td><label>Branch <span style="color:var(--Color1)">*</span></label></td>
+                <td><select class="medium" name="branchID" required>
                 <option value="">-- Select --</option>
                 {% for b in branches %}<option value="{{ b.branchid }}">{{ b.branch_name }}</option>{% endfor %}
-            </select>
-            <label>Department <span style="color:var(--Color1)">*</span></label>
-            <select class="medium" name="departmentID" required>
+                </select></td>
+                <td><label>Department <span style="color:var(--Color1)">*</span></label></td>
+                <td><select class="medium" name="departmentID" required>
                 <option value="">-- Select --</option>
                 {% for d in departments %}<option value="{{ d.departmentid }}">{{ d.department_name }}</option>{% endfor %}
-            </select><br>
-            <label>UAN Number</label>
-            <input type="text" class="medium" name="uan_number">
-            <label>UAN DOJ</label>
-            <input type="date" class="sml" name="uan_doj"><br>
-            <label>EPF Member ID</label>
-            <input type="text" class="sml" name="epf_memberID">
-            <label><input type="checkbox" name="epf_higher"> Higher EPF</label><br>
-            <label>ESIC Number</label>
-            <input type="text" class="medium" name="esic_number" maxlength="10">
-            <label>ESIC DOJ</label>
-            <input type="date" class="sml" name="esic_doj"><br>
-            <label>Labour ID</label>
-            <input type="text" class="sml" name="labour_id"><br>
+                </select></td>
+            </tr>
+            <tr>
+                <td><label>UAN Number</label></td>
+                <td><input type="text" class="medium" name="uan_number"></td>
+                <td><label>UAN Joining</label></td>
+                <td><input type="date" class="sml" name="uan_doj"></td>
+                <td><label>EPF Member ID</label></td>
+                <td><input type="text" class="sml" name="epf_memberID"></td>
+                <td><label><input type="checkbox" name="epf_higher"> Higher EPF</label></td>
+            </tr>
+            <tr>
+                <td><label>ESIC Number</label></td>
+                <td><input type="text" class="medium" name="esic_number" maxlength="10"></td>
+                <td><label>ESIC Joining</label></td>
+                <td><input type="date" class="sml" name="esic_doj"></td>
+                <td><label>Labour ID</label></td>
+                <td><input type="text" class="sml" name="labour_id"></td>
+            </tr>
+            </table>
         </div>
-
         <div style="margin:15px 10px;">
             <button type="submit" class="button">Create Employee</button>
             <a href="{% url 'list_employee' %}" class="button" style="margin-left:10px;">Cancel</a>

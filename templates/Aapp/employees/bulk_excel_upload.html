@@ -7,61 +7,69 @@
     {% endfor %}{% endif %}
 
     <h2 style="padding:10px;">Bulk Excel Upload — {{ company.company_name }}</h2>
-
-    <div class="container_boxed">
-        <h2>Step 1 — Download Template</h2><hr>
-        <p style="font-size:13px;margin-bottom:10px;">
-            Download the template with column headers and reference data sheets for designations, departments, branches, states, and banks.
-        </p>
-        <a href="{% url 'download_employee_template' %}" class="button">⬇ Download Template</a>
-    </div>
-<br/>
-    <div class="container_boxed" style="margin-top:10px;">
-        <h2>Step 2 — Upload Filled Excel</h2><hr>
-        <p style="font-size:12px;color:#666;margin-bottom:10px;">
+    <table>
+        <th>
+            <h2>Step 1 — Download Template</h2><hr>
+        </th>
+        <tr>
+            <td style="width:520px;">
+                Download the template with column headers and reference data sheets for designations, departments, branches, states, and banks.
+            </td>
+            <td>
+                <a href="{% url 'download_employee_template' %}" class="button">⬇ Download Template</a>
+            </td>
+        </tr>
+        <th>
+            <h2>Step 2 — Upload Filled Excel</h2><hr>
+        </th>
+        <tr>
+            <td>        <p style="font-size:12px;color:#666;margin-bottom:10px;">
             <strong>Required columns:</strong> employeecode, name, gender, dateofbirth, mobile, email, aadhar_number, aadhar_name, bank_name, bank_account, bank_ifsc, dateofjoining, designation_name, department_name, branch_name, temporaryaddress, temp_state_name, temp_district_name, temp_pincode<br>
             <strong>Optional columns:</strong> fathername, mothername, bloodgroup, religion, maritalstatus, phone, pan_name, pan_number, employment_type<br>
             Duplicate employee codes, mobile numbers, Aadhaar numbers, and bank accounts will be rejected.
-        </p>
-        <form method="post" enctype="multipart/form-data">
+        </p></td>
+            <td>        <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
             <label>Excel File <span style="color:var(--Color1)">*</span></label>
             <input type="file" name="excel_file" accept=".xlsx,.xls" required style="margin-left:8px;"><br><br>
             <button type="submit" class="button">Upload &amp; Import</button>
             <a href="{% url 'list_employee' %}" class="button" style="margin-left:10px;">Cancel</a>
-        </form>
-    </div>
-<br/>
+        </form></td>
+            <td></td>
+            <td></td>
+        </tr>
+    </table>
     <div class="container_boxed" style="margin-top:10px;">
         <h2>Column Reference</h2><hr>
         <table class="data-table" style="min-width:unset;width:auto;">
             <thead>
-                <tr><th>Column</th><th>Required</th><th>Description</th></tr>
+                <tr><th>Column</th><th>Required</th><th>Description</th>
+                <th>Column</th><th>Required</th><th>Description</th></tr>
             </thead>
             <tbody>
-                <tr><td>employeecode</td><td style="text-align:center;">✔</td><td>Unique employee code</td></tr>
-                <tr><td>name</td><td style="text-align:center;">✔</td><td>Full name of employee</td></tr>
-                <tr><td>gender</td><td style="text-align:center;">✔</td><td>Male/Female/Other</td></tr>
-                <tr><td>dateofbirth</td><td style="text-align:center;">✔</td><td>Format: YYYY-MM-DD</td></tr>
-                <tr><td>mobile</td><td style="text-align:center;">✔</td><td>10-digit mobile number</td></tr>
-                <tr><td>email</td><td style="text-align:center;">✔</td><td>Valid email address</td></tr>
-                <tr><td>aadhar_number</td><td style="text-align:center;">✔</td><td>12-digit Aadhaar number</td></tr>
-                <tr><td>aadhar_name</td><td style="text-align:center;">✔</td><td>Name as per Aadhaar</td></tr>
-                <tr><td>bank_name</td><td style="text-align:center;">✔</td><td>Bank name</td></tr>
-                <tr><td>bank_account</td><td style="text-align:center;">✔</td><td>Bank account number</td></tr>
-                <tr><td>bank_ifsc</td><td style="text-align:center;">✔</td><td>Bank IFSC code</td></tr>
-                <tr><td>dateofjoining</td><td style="text-align:center;">✔</td><td>Format: YYYY-MM-DD</td></tr>
-                <tr><td>designation_name</td><td style="text-align:center;">✔</td><td>Must exist in system</td></tr>
-                <tr><td>department_name</td><td style="text-align:center;">✔</td><td>Must exist in system</td></tr>
-                <tr><td>branch_name</td><td style="text-align:center;">✔</td><td>Must exist in system</td></tr>
-                <tr><td>temporaryaddress</td><td style="text-align:center;">✔</td><td>Current address</td></tr>
-                <tr><td>temp_state_name</td><td style="text-align:center;">✔</td><td>State name</td></tr>
-                <tr><td>temp_district_name</td><td style="text-align:center;">✔</td><td>District name</td></tr>
-                <tr><td>temp_pincode</td><td style="text-align:center;">✔</td><td>6-digit pincode</td></tr>
-                <tr><td>employment_type</td><td style="text-align:center;">—</td><td>Permanent/Contract/Intern (default: Permanent)</td></tr>
-                <tr><td>fathername</td><td style="text-align:center;">—</td><td>Father's name</td></tr>
-                <tr><td>mothername</td><td style="text-align:center;">—</td><td>Mother's name</td></tr>
-                <tr><td>pan_number</td><td style="text-align:center;">—</td><td>PAN number (if provided, must be unique)</td></tr>
+                <tr><td>employeecode</td><td style="text-align:center;">✔</td><td>Unique employee code</td>
+                <td>name</td><td style="text-align:center;">✔</td><td>Full name of employee</td></tr>
+                <tr><td>gender</td><td style="text-align:center;">✔</td><td>Male/Female/Other</td>
+                <td>dateofbirth</td><td style="text-align:center;">✔</td><td>Format: YYYY-MM-DD</td></tr>
+                <tr><td>mobile</td><td style="text-align:center;">✔</td><td>10-digit mobile number</td>
+                <td>email</td><td style="text-align:center;">✔</td><td>Valid email address</td></tr>
+                <tr><td>aadhar_number</td><td style="text-align:center;">✔</td><td>12-digit Aadhaar number</td>
+                <td>aadhar_name</td><td style="text-align:center;">✔</td><td>Name as per Aadhaar</td></tr>
+                <tr><td>bank_name</td><td style="text-align:center;">✔</td><td>Bank name</td>
+                <td>bank_account</td><td style="text-align:center;">✔</td><td>Bank account number</td></tr>
+                <tr><td>bank_ifsc</td><td style="text-align:center;">✔</td><td>Bank IFSC code</td>
+                <td>dateofjoining</td><td style="text-align:center;">✔</td><td>Format: YYYY-MM-DD</td></tr>
+                <tr><td>designation_name</td><td style="text-align:center;">✔</td><td>Must exist in system</td>
+                <td>department_name</td><td style="text-align:center;">✔</td><td>Must exist in system</td></tr>
+                <tr><td>branch_name</td><td style="text-align:center;">✔</td><td>Must exist in system</td>
+                <td>temporaryaddress</td><td style="text-align:center;">✔</td><td>Current address</td></tr>
+                <tr><td>temp_state_name</td><td style="text-align:center;">✔</td><td>State name</td>
+                <td>temp_district_name</td><td style="text-align:center;">✔</td><td>District name</td></tr>
+                <tr><td>temp_pincode</td><td style="text-align:center;">✔</td><td>6-digit pincode</td>
+                <td>employment_type</td><td style="text-align:center;">—</td><td>Permanent/Contract/Intern (default: Permanent)</td></tr>
+                <tr><td>fathername</td><td style="text-align:center;">—</td><td>Father's name</td>
+                <td>mothername</td><td style="text-align:center;">—</td><td>Mother's name</td></tr>
+                <tr><td>pan_number</td><td style="text-align:center;">—</td><td>PAN number (if provided, must be unique)</td>
             </tbody>
         </table>
     </div>

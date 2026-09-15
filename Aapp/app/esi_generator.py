@@ -26,6 +26,7 @@ Add a nav link to select_period_for_esi_monthly next to list_esi_returns.
 
 import io
 import logging
+import calendar
 from decimal import Decimal, ROUND_HALF_UP
 
 from django import forms
@@ -50,7 +51,7 @@ def _q(v):
 
 
 class EsiPeriodForm(forms.Form):
-    month = forms.ChoiceField(choices=[(i, i) for i in range(1, 13)])
+    month = forms.ChoiceField(choices=[(i, calendar.month_name[i]) for i in range(1, 13)])
     year = forms.ChoiceField(choices=[(y, y) for y in range(2023, 2031)])
 
 
@@ -97,6 +98,18 @@ def select_period_for_esi_monthly(request):
     })
 
 
+def _no_esi_data_response(request, month, year, message):
+    """Renders the ESI period picker again with an inline error banner
+    instead of a bare 404, when a period has no ESI-eligible employees."""
+    company = _company(request)
+    form = EsiPeriodForm(initial={'month': month, 'year': year})
+    return render(request, 'Aapp/generic/period_picker.html', {
+        'company': company, 'form': form,
+        'page_title': 'ESI Monthly Contribution — Select Period',
+        'month': month, 'year': year, 'period_error': message,
+    })
+
+
 @login_required
 def download_esi_monthly_challan(request, month, year):
     """GET /esi/monthly/<month>/<year>/challan/ — printable ESIC challan PDF."""
@@ -112,8 +125,9 @@ def download_esi_monthly_challan(request, month, year):
     slips = _esi_slips(company, month, year)
     eligible = [s for s in slips if (getattr(s.employee_id, 'esic_number', '') or '').strip()]
     if not eligible:
-        raise Http404(
-            f'No ESI-eligible employees with ESIC number found for {month}/{year}. '
+        return _no_esi_data_response(
+            request, month, year,
+            f'No ESI-eligible employees with ESIC number found for {calendar.month_name[month]} {year}. '
             'Ensure ESIC number is set on employee records and salary has been processed.'
         )
 
@@ -124,7 +138,7 @@ def download_esi_monthly_challan(request, month, year):
 
     story = [kv_table([
         ('Establishment Name', company.company_name),
-        ('Contribution Month', f'{month}/{year}'),
+        ('Contribution Month', f'{calendar.month_name[month]} {year}'),
         ('No. of Insured Persons', str(len(eligible))),
     ])]
     story.append(Spacer(1, 8 * mm))
@@ -185,8 +199,9 @@ def download_esi_monthly_upload(request, month, year):
     slips = _esi_slips(company, month, year)
     eligible = [s for s in slips if (getattr(s.employee_id, 'esic_number', '') or '').strip()]
     if not eligible:
-        raise Http404(
-            f'No ESI-eligible employees with ESIC number found for {month}/{year}.'
+        return _no_esi_data_response(
+            request, month, year,
+            f'No ESI-eligible employees with ESIC number found for {calendar.month_name[month]} {year}.'
         )
 
     wb = openpyxl.Workbook()
