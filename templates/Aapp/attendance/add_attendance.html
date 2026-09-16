@@ -9,9 +9,13 @@
         {% csrf_token %}
         <h2 style="padding:10px;">Add Attendance — {{ company.company_name }}</h2>
         <div class="container_boxed">
-            <h2>Attendance Details</h2><hr>
-            <label>Employee <span style="color:var(--Color1)">*</span></label>
-            <select class="large" name="employee_id" id="emp_select" required onchange="fillEmployeeInfo(this)">
+            <table>
+                <th>
+                    <h2>Attendance Details</h2><hr>
+                </th>
+                <tr><td><label>Employee <span style="color:var(--Color1)">*</span></label>
+                </td><td>
+                                <select class="large" name="employee_id" id="emp_select" required onchange="fillEmployeeInfo(this)">
                 <option value="">-- Select Employee --</option>
                 {% for emp in employees %}
                 <option value="{{ emp.employeeid }}"
@@ -21,15 +25,23 @@
                     {{ emp.name }} ({{ emp.employeecode }})
                 </option>
                 {% endfor %}
-            </select>
-            <label>Emp Code</label>
-            <input type="text" class="sml" name="emp_code" id="emp_code" readonly><br>
-            <label>Branch</label>
-            <input type="text" class="medium" id="branch_display" readonly>
-            <label>Department</label>
-            <input type="text" class="medium" id="department_display" readonly>
-            <label>Division</label>
-            <input type="text" class="medium" name="divisionid" placeholder="Division (optional)"><br>
+                    </select>
+                </td></tr>
+                <tr>
+                    <td>
+                        <input type="text" style="width: 100px;" title="Employee ID" name="emp_code" id="emp_code" readonly>
+                    </td>
+                    <td>
+                        <input type="text" style="width: 200px;" title="Branch Name" id="branch_display" readonly>
+                    </td>
+                    <td>
+                        <input type="text" style="width: 150px;" id="department_display" title="Department Name" readonly>
+                    </td>
+                    <td>
+                        <input type="text" style="width: 100px;" title="Division Name" id="division_display" name="divisionid" placeholder="Division (optional)">
+                    </td>
+                </tr>
+            </table>
             <label>Month <span style="color:var(--Color1)">*</span></label>
             <select class="sml" name="salary_month" required>
                 <option value="">--</option>

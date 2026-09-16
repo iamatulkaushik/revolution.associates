@@ -25,6 +25,12 @@ from django.contrib.auth.decorators import login_required
 from Sapp.app.company import Company
 from Aapp.app.employee import employee
 
+MONTH_CHOICES = [
+    (1,'January'),(2,'February'),(3,'March'),(4,'April'),
+    (5,'May'),(6,'June'),(7,'July'),(8,'August'),
+    (9,'September'),(10,'October'),(11,'November'),(12,'December'),
+]
+YEAR_CHOICES = [(y, y) for y in range(2026, 2032)]
 
 RELATIONSHIP_CHOICES = [
     ('spouse',    'Spouse'),
@@ -265,6 +271,7 @@ class EsiContributionReturnForm(forms.ModelForm):
                   'employer_contribution', 'employee_contribution', 'challan_no', 'challan_date',
                   'filing_status', 'filed_date', 'acknowledgement_no']
         widgets = {
+            'year': forms.Select(choices=YEAR_CHOICES),
             'challan_date': forms.DateInput(attrs={'type': 'date'}),
             'filed_date': forms.DateInput(attrs={'type': 'date'}),
         }

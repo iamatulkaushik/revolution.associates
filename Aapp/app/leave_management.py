@@ -91,14 +91,8 @@ def list_leave(request):
     records = records.filter(salary_month=month, salary_year=year).order_by('employee_id__name')
 
     class LeaveFilterForm(forms.Form):
-        month = forms.ChoiceField(
-            choices=[(m, calendar.month_name[m]) for m in range(1, 13)],
-            initial=int(month),
-        )
-        year = forms.ChoiceField(
-            choices=[(y, y) for y in range(today.year - 5, today.year + 1)],
-            initial=int(year),
-        )
+        month = forms.ChoiceField(choices=MONTH_CHOICES)
+        year = forms.ChoiceField(choices=YEAR_CHOICES)
 
     filter_form = LeaveFilterForm(initial={'month': month, 'year': year})
 

@@ -239,6 +239,12 @@ img{max-width:100%;display:block}
 
 /* ═══ FORMS ══════════════════════════════════════════════════════════════── */
 .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(80px,1fr));gap:var(--sp-5) var(--sp-6)}
+.form-grid-4{grid-template-columns:repeat(4,1fr)}
+.form-grid-4 .form-group{flex-direction:column;align-items:stretch}
+.form-grid-4 .form-group label{min-width:0}
+.form-group.full-width{grid-column:1/-1}
+@media(max-width:900px){.form-grid-4{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:560px){.form-grid-4{grid-template-columns:1fr}}
 .form-group{display:flex;flex-direction:row;gap:var(--sp-1);padding:2px;}
 .form-group label{font-size:12px;font-weight:600;color:var(--c-muted);text-transform:uppercase;letter-spacing:.05em;min-width:20%;}
 .form-group label .required{color:var(--c-danger);margin-left:2px}

@@ -93,7 +93,7 @@ def _no_data_response(request, picker_view_name, page_title, month, year, messag
 
 class PeriodForm(forms.Form):
     month = forms.ChoiceField(choices=[(i, calendar.month_name[i]) for i in range(1, 13)])
-    year = forms.ChoiceField(choices=[(y, y) for y in range(2023, 2031)])
+    year = forms.ChoiceField(choices=[(y, y) for y in range(2026, 2032)])
 
 
 def _period_picker(request, page_title, download_url_name):

@@ -6,7 +6,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from Sapp.app.company import Company
 from Aapp.app.employee import employee
-from Aapp.app.attandance import MONTH_CHOICES
+from Aapp.app.attandance import MONTH_CHOICES, YEAR_CHOICES
 
 
 # ── Model ─────────────────────────────────────────────────────────────────────
@@ -144,6 +144,9 @@ class BonusSetOnSetOffForm(_forms.ModelForm):
         fields = ['year', 'allocable_surplus', 'total_wages_for_bonus', 'min_bonus_amount',
                   'max_bonus_amount', 'bonus_paid', 'set_on_amount', 'set_off_amount',
                   'cumulative_set_on']
+        widgets = {
+            'year': _forms.Select(choices=YEAR_CHOICES),
+        }
 
 class BonusReturnEditForm(_forms.ModelForm):
     """Allocable surplus (a P&L figure) and filing status are set by hand;
