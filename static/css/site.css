@@ -1,4 +1,4 @@
-  @font-face{font-family:'Ubuntu';src:url('../fonts/Ubuntu-R.ttf') format('truetype');font-display:swap}
+@font-face{font-family:'Ubuntu';src:url('../fonts/Ubuntu-R.ttf') format('truetype');font-display:swap}
   @font-face {
     font-family: 'Infinitude';
     src: url('../fonts/Infinitude.ttf') format('truetype');
@@ -274,13 +274,15 @@
   .breadcrumbs a:hover{ color:var(--ink-0); }
 
   /* ── Pricing ──────────────────────────────────────────── */
-  .pricing-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:22px; align-items:stretch; }
-  @media (max-width:900px){ .pricing-grid{ grid-template-columns:1fr; } }
+  .pricing-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:22px; align-items:stretch; }
+  @media (max-width:1100px){ .pricing-grid{ grid-template-columns:repeat(2,1fr); } }
+  @media (max-width:600px){ .pricing-grid{ grid-template-columns:1fr; } }
   .price-card{ border-radius:var(--radius-lg); padding:30px; display:flex; flex-direction:column; }
   .price-card.featured{ border-color:var(--teal); box-shadow:0 0 0 1px var(--teal) inset, 0 20px 60px -25px rgba(45,217,196,.4); }
   .price-card h3{ font-size:19px; font-weight:700; }
   .price-card .price{ font-size:38px; font-weight:800; margin:14px 0 4px; font-family:'Ubuntu'; }
   .price-card .price small{ font-size:14px; color:var(--ink-2); font-weight:500; }
+  .price-card .plan-limit{ font-size:13px; color:var(--ink-2); margin:0 0 4px; }
   .price-card ul{ margin:22px 0; display:flex; flex-direction:column; gap:10px; flex:1; }
   .price-card li{ list-style:none; display:flex; gap:8px; font-size:14px; color:var(--ink-1); align-items:flex-start; }
   .price-card li svg{ width:16px; height:16px; flex:none; margin-top:3px; stroke:var(--teal); }
