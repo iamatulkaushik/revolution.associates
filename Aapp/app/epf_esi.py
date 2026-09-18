@@ -386,7 +386,6 @@ def list_epf_ecr(request):
     })
 
 
-@login_required
 def _compute_epf_ecr_totals(company, month, year):
     """
     Auto-computes every EPF ECR figure from salary_slip for the given
@@ -396,7 +395,7 @@ def _compute_epf_ecr_totals(company, month, year):
     """
     from decimal import Decimal, ROUND_HALF_UP
     from Aapp.app.salary_processing import salary_slip
-    from Aapp.app.fnf_settlement import FnfSettlement
+    from Aapp.app.fnf_settlement import FnFSettlement
 
     EPS_CEILING = Decimal('15000')
 
@@ -434,7 +433,7 @@ def _compute_epf_ecr_totals(company, month, year):
     ).count()
 
     # Leavers: FnF-settled employees whose last working day falls within this month/year.
-    total_leavers = FnfSettlement.objects.filter(
+    total_leavers = FnFSettlement.objects.filter(
         employee__CompanyID=company, last_working_day__month=month, last_working_day__year=year
     ).count()
 
@@ -477,7 +476,7 @@ def add_epf_ecr(request):
         return redirect('list_epf_ecr')
 
     month_choices = [(i, calendar.month_name[i]) for i in range(1, 13)]
-    year_choices = [(y, y) for y in range(2023, 2031)]
+    year_choices = [(y, y) for y in range(2026, 2032)]
     return render(request, 'Aapp/generic/period_picker.html', {
         'company': company,
         'page_title': 'Generate EPF Monthly ECR — Select Period',

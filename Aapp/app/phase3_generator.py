@@ -43,14 +43,15 @@ from reportlab.platypus import Table, TableStyle, Spacer
 from reportlab.lib import colors
 from reportlab.lib.units import mm
 
-from Aapp.app.pdf_engine import build_pdf, kv_table, INR, section_divider
+from Aapp.app.pdf_engine import build_pdf, kv_table, INR, section_divider, _basefont, _basefont_bold
 
 logger = logging.getLogger(__name__)
 
 HEADER_STYLE = [
     ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#0B2545')),
     ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
-    ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+    ('FONTNAME', (0, 0), (-1, -1), _basefont),
+    ('FONTNAME', (0, 0), (-1, 0), _basefont_bold),
     ('GRID', (0, 0), (-1, -1), 0.4, colors.HexColor('#CBD5E1')),
     ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
     ('TOPPADDING', (0, 0), (-1, -1), 5),

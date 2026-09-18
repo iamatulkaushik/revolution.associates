@@ -8,7 +8,13 @@
 
 /* ── Font Faces ─────────────────────────────────────────────────────────── */
 @font-face{font-family:'Infinitude';src:url('../fonts/Infinitude.ttf') format('truetype');font-display:swap}
-@font-face{font-family:'Ubuntu';src:url('../fonts/Ubuntu-R.ttf') format('truetype');font-display:swap}
+@font-face{font-family:'Ubuntu';
+  src:url('../fonts/Ubuntu-R.ttf') format('truetype'),
+  url('../fonts/Ubuntu-B.ttf') format('truetype'),
+  url('../fonts/Ubuntu-L.ttf') format('truetype'),
+  url('../fonts/Ubuntu-M.ttf') format('truetype'),
+  url('../fonts/Ubuntu-RI.ttf') format('truetype'),
+  font-display:swap}
 @font-face{font-family:'Saber';src:url('../fonts/Saber.ttf') format('truetype');font-display:swap}
 @font-face{font-family:'Allerta';src:url('../fonts/allerta.medium.ttf') format('truetype'), url('../fonts/allerta.medium.otf') format('otf');font-display:swap}
 
@@ -177,8 +183,9 @@ img{max-width:100%;display:block}
   padding:var(--sp-5) var(--sp-6);display:grid;
   grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:var(--sp-6);
 }
-.footer-col span{display:block;color:rgba(255,255,255,.85);font-weight:500;margin-bottom:var(--sp-2)}
-.footer-col .tagline,.footer-col a{color:rgba(255,255,255,.5);font-size:12px}
+.footer-col > .company-name{font-family:Ubuntu;font-size:1.5rem; font-weight: 900; color:#fff;margin-bottom:var(--sp-2)}
+.footer-col span{display:block;color:rgba(255,255,255,.85);font-weight:500;margin-bottom:var(--sp-2);border-bottom:1px solid rgba(255,255,255,.1);}
+.footer-col .tagline,.footer-col a{color:rgba(255,255,255,.5);font-size:12px;border-bottom:none;}
 .footer-col a:hover{color:var(--c-accent)}
 
 /* ═══ CARDS ══════════════════════════════════════════════════════════════── */

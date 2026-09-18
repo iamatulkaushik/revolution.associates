@@ -105,8 +105,8 @@ def list_leave(request):
             r.leave_wages_paid,
         ],
         'actions': [
-            {'url': reverse('update_leave', args=[r.attendanceid]), 'label': 'Edit', 'css': 'edit'},
-            {'url': reverse('delete_leave', args=[r.attendanceid]), 'label': 'Delete', 'css': 'delete'},
+            {'url': reverse('update_leave', args=[r.attendanceid]), 'label': '', 'css': 'edit'},
+            {'url': reverse('delete_leave', args=[r.attendanceid]), 'label': '', 'css': 'delete'},
         ],
     } for r in records]
     return render(request, 'Aapp/generic/list.html', {

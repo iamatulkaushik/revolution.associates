@@ -47,12 +47,18 @@ class establishment_details(models.Model):
     """
     estab_id            = models.AutoField(primary_key=True)
     company             = models.ForeignKey(Company, on_delete=models.CASCADE, db_column='CompanyID')
+    is_primary          = models.BooleanField(default=False,
+                            help_text='Auto-created from the company Shop Act registration. '
+                                       'Address mirrors the company address. One per company.')
     establishment_name  = models.CharField(max_length=255,
                             help_text='Name as registered under Shops & Establishments Act')
     registration_number = models.CharField(max_length=50, blank=True,
                             help_text='Shop Act registration number')
     registration_date   = models.DateField(null=True, blank=True)
     renewal_date        = models.DateField(null=True, blank=True)
+    renewal_exempt      = models.BooleanField(default=False,
+                            help_text='Renewal exempted (Haryana Shops & Establishments Act renewal '
+                                       'requirement was withdrawn from 2025 onward).')
 
     # Working hours
     opening_time        = models.TimeField(help_text='Daily opening time')
@@ -92,12 +98,32 @@ class establishment_details(models.Model):
     def __str__(self):
         return f"{self.establishment_name} — {self.company.company_name}"
 
+    def save(self, *args, **kwargs):
+        # Haryana Shops & Establishments Act: renewal requirement was
+        # withdrawn for registrations from 2025 onward. Existing
+        # pre-2025 registrations still need periodic renewal.
+        if self.registration_date and self.registration_date.year >= 2025:
+            self.renewal_exempt = True
+            self.renewal_date = None
+        super().save(*args, **kwargs)
+
 
 # ── Form ─────────────────────────────────────────────────────────────────────
 
 from django import forms as _saforms
 
 class EstablishmentForm(_saforms.ModelForm):
+    """
+    For an ADDITIONAL (non-primary) establishment/branch only. The
+    primary establishment is auto-created from company.shop_act when
+    the company's statutory record is saved (see the post_save signal
+    below) and is never edited through this form — its registration
+    number/date/address always mirror the company record.
+
+    A second storefront/office is the rare case where a company holds
+    a separate Shop Act certificate for that location: its own
+    registration number, date, and address are entered here.
+    """
     class Meta:
         model = establishment_details
         fields = ['establishment_name', 'registration_number', 'registration_date',
@@ -117,54 +143,84 @@ def _company(request):
 
 # ── Establishment Views (Punjab Shops Act — Form F / G) ──────────────────────
 
+def _ensure_primary_establishment(company):
+    """
+    Self-heals the primary establishment for a company that already has
+    a Shop Act number on file but predates the auto-sync signal (or
+    whose statutory record hasn't been re-saved since). Safe to call on
+    every page load — get_or_create is a no-op if it already exists.
+    """
+    from Sapp.app.company import company_statury
+    statutory = company_statury.objects.filter(company=company).first()
+    if statutory and statutory.shop_act:
+        _sync_primary_establishment(sender=None, instance=statutory)
+
+
 @login_required
 def list_establishments(request):
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
         return redirect('aapp_dashboard')
-    estabs = establishment_details.objects.filter(company=company)
+    _ensure_primary_establishment(company)
+    estabs = establishment_details.objects.filter(company=company).order_by('-is_primary', 'establishment_name')
     rows = [{
-        'cells': [e.registration_number or '—', e.establishment_name, e.manager_name or '—',
-                  e.registration_date, e.renewal_date or '—'],
+        'cells': [e.registration_number or '—',
+                  f'{e.establishment_name} (Primary)' if e.is_primary else e.establishment_name,
+                  e.manager_name or '—', e.registration_date,
+                  'Exempt (2025+)' if e.renewal_exempt else (e.renewal_date or '—')],
         'actions': [
             {'url': reverse('update_establishment', args=[e.estab_id]), 'label': 'Edit', 'css': 'edit'},
             {'url': reverse('download_establishment_cert', args=[e.estab_id]), 'label': 'Certificate PDF', 'css': 'download'},
-            {'url': reverse('delete_establishment', args=[e.estab_id]), 'label': 'Delete', 'css': 'delete'},
-        ],
+        ] + ([] if e.is_primary else
+             [{'url': reverse('delete_establishment', args=[e.estab_id]), 'label': 'Delete', 'css': 'delete'}]),
     } for e in estabs]
     return render(request, 'Aapp/generic/list.html', {
         'page_title': 'Punjab Shops & Establishments Act 1958 (Haryana) — Establishments (Form F)',
-        'columns': ['Reg. No.', 'Establishment', 'Manager', 'Reg. Date', 'Renewal Due'],
+        'columns': ['Reg. No.', 'Establishment', 'Manager', 'Reg. Date', 'Renewal'],
         'rows': rows, 'company': company,
-        'add_url': reverse('add_establishment'), 'add_label': 'Register Establishment',
+        'add_url': reverse('add_establishment'), 'add_label': 'Register Additional Establishment',
         'extra_links': [{'url': reverse('list_overtime_register'), 'label': 'Overtime Register (Form IV)'}],
-        'empty_message': 'No establishments registered.',
+        'empty_message': 'No Shop Act registration on file yet — add one under Company Settings.',
     })
 
 
 @login_required
 def add_establishment(request):
+    """
+    Registers an ADDITIONAL establishment/branch — the rare case where
+    a company holds a second storefront or office with its own Shop
+    Act certificate. The primary establishment (mirroring the company's
+    Shop Act registration and address) already exists automatically;
+    this is never used to create it.
+    """
     company = _company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
         return redirect('aapp_dashboard')
+
+    _ensure_primary_establishment(company)
+    if not establishment_details.objects.filter(company=company, is_primary=True).exists():
+        messages.error(request, 'No primary Shop Act registration on file for this company. '
+                                  'Add the Shop Act number under Company Settings first.')
+        return redirect('list_establishments')
 
     if request.method == 'POST':
         form = EstablishmentForm(request.POST)
         if form.is_valid():
             est = form.save(commit=False)
             est.company = company
+            est.is_primary = False
             est.created_by = request.user
             est.save()
-            messages.success(request, 'Establishment registered.')
+            messages.success(request, 'Additional establishment registered.')
             return redirect('list_establishments')
     else:
         form = EstablishmentForm()
 
     return render(request, 'Aapp/generic/form.html', {
         'form': form, 'company': company,
-        'page_title': 'Register Establishment (Shops Act — Form F)',
+        'page_title': 'Register Additional Establishment (separate Shop Act certificate)',
         'cancel_url': reverse('list_establishments'),
     })
 
@@ -178,19 +234,40 @@ def update_establishment(request, estab_id):
 
     est = get_object_or_404(establishment_details, estab_id=estab_id, company=company)
 
+    if est.is_primary:
+        # Primary establishment's registration/address always mirror the
+        # company statutory record — only operational fields (hours,
+        # manager, off-days) are editable here.
+        class PrimaryEstablishmentForm(_saforms.ModelForm):
+            class Meta:
+                model = establishment_details
+                fields = ['manager_name', 'manager_mobile', 'daily_work_hours',
+                          'weekly_work_hours', 'weekly_off_day', 'opening_time', 'closing_time']
+        form_class = PrimaryEstablishmentForm
+    else:
+        form_class = EstablishmentForm
+
     if request.method == 'POST':
-        form = EstablishmentForm(request.POST, instance=est)
+        form = form_class(request.POST, instance=est)
         if form.is_valid():
             form.save()
             messages.success(request, 'Establishment updated.')
             return redirect('list_establishments')
     else:
-        form = EstablishmentForm(instance=est)
+        form = form_class(instance=est)
 
     return render(request, 'Aapp/generic/form.html', {
         'form': form, 'company': company,
         'page_title': f'Edit Establishment — {est.establishment_name}',
         'cancel_url': reverse('list_establishments'),
+        'readonly_summary': [
+            ('Shop Act Registration No.', est.registration_number or '—'),
+            ('Shop Act Registration Date', est.registration_date or '—'),
+            ('Address', est.address or '—'),
+            ('Renewal', 'Exempt (2025+ registration)' if est.renewal_exempt else (est.renewal_date or 'Not set')),
+        ] if est.is_primary else [
+            ('Renewal', 'Exempt (2025+ registration)' if est.renewal_exempt else None),
+        ],
     })
 
 
@@ -202,6 +279,12 @@ def delete_establishment(request, estab_id):
         return redirect('aapp_dashboard')
 
     est = get_object_or_404(establishment_details, estab_id=estab_id, company=company)
+    if est.is_primary:
+        messages.error(request, 'The primary establishment cannot be deleted — it is tied to the '
+                                  'company Shop Act registration. Update the registration under '
+                                  'Company Settings instead.')
+        return redirect('list_establishments')
+
     if request.method == 'POST':
         est.delete()
         messages.success(request, 'Establishment deleted.')
@@ -212,3 +295,50 @@ def delete_establishment(request, estab_id):
         'confirm_message': f'Delete establishment <strong>{est.establishment_name} ({est.registration_number})</strong>?',
         'cancel_url': reverse('list_establishments'),
     })
+
+
+# ── Auto-sync primary establishment from company Shop Act registration ──────
+
+from django.db.models.signals import post_save
+
+
+def _sync_primary_establishment(sender, instance, **kwargs):
+    """
+    Module-level signal receiver (never nested — see engineering
+    principles). Connected explicitly below to company_statury's
+    post_save rather than via the sender= kwarg here, since
+    company_statury lives in Sapp and importing it at module load
+    time risks a circular import with Aapp.
+
+    Whenever a company's Shop Act number/date changes, the primary
+    establishment (address = company address) is created or updated
+    to match — so Form F never drifts from the statutory record.
+    """
+    if not instance.shop_act:
+        return
+    company = instance.company
+    est, created = establishment_details.objects.get_or_create(
+        company=company, is_primary=True,
+        defaults={
+            'establishment_name': company.company_name,
+            'registration_number': instance.shop_act,
+            'registration_date': instance.shop_act_date,
+            'address': company.full_address,
+            'opening_time': '09:00',
+            'closing_time': '18:00',
+        }
+    )
+    if not created:
+        est.registration_number = instance.shop_act
+        est.registration_date = instance.shop_act_date
+        est.address = company.full_address
+        est.establishment_name = company.company_name
+        est.save()
+
+
+def connect_primary_establishment_signal():
+    """Call once from Aapp's AppConfig.ready() to wire the receiver
+    without importing company_statury at module load time."""
+    from Sapp.app.company import company_statury
+    post_save.connect(_sync_primary_establishment, sender=company_statury,
+                       dispatch_uid='sync_primary_establishment')

@@ -52,7 +52,7 @@ def _q(v):
 
 class EsiPeriodForm(forms.Form):
     month = forms.ChoiceField(choices=[(i, calendar.month_name[i]) for i in range(1, 13)])
-    year = forms.ChoiceField(choices=[(y, y) for y in range(2023, 2031)])
+    year = forms.ChoiceField(choices=[(y, y) for y in range(2026, 2032)])
 
 
 def _esi_slips(company, month, year):

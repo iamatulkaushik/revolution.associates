@@ -89,8 +89,17 @@ def _inr_group(n):
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 FONT_PATH = 'static/fonts/Ubuntu-R.ttf'
+FONT_PATH_BOLD = 'static/fonts/Ubuntu-B.ttf'
 pdfmetrics.registerFont(TTFont('Ubuntu', FONT_PATH))
+try:
+    pdfmetrics.registerFont(TTFont('Ubuntu-Bold', FONT_PATH_BOLD))
+except Exception:
+    # No bold TTF on disk yet — alias to regular so tables asking for
+    # 'Ubuntu-Bold' still render in the Ubuntu family instead of falling
+    # back to reportlab's default Helvetica.
+    pdfmetrics.registerFont(TTFont('Ubuntu-Bold', FONT_PATH))
 _basefont = 'Ubuntu'
+_basefont_bold = 'Ubuntu-Bold'
 
 _BASE = getSampleStyleSheet()
 

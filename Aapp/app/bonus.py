@@ -479,7 +479,7 @@ def add_bonus_return(request):
                                     'Set the allocable surplus and file it.')
         return redirect('alter_bonus_return', return_id=ret.return_id)
 
-    year_choices = [(y, y) for y in range(2023, 2031)]
+    year_choices = [(y, y) for y in range(2026, 2032)]
     return render(request, 'Aapp/generic/year_category_picker.html', {
         'company': company, 'page_title': 'Generate Bonus Annual Return — Select Year',
         'year_choices': year_choices, 'hide_category': True,

@@ -59,14 +59,15 @@ from reportlab.platypus import Table, TableStyle, Spacer
 from reportlab.lib import colors
 from reportlab.lib.units import mm
 
-from Aapp.app.pdf_engine import build_pdf, kv_table, INR, section_divider
+from Aapp.app.pdf_engine import build_pdf, kv_table, INR, section_divider, _basefont, _basefont_bold
 
 logger = logging.getLogger(__name__)
 
 HEADER_STYLE = [
     ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#0B2545')),
     ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
-    ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+    ('FONTNAME', (0, 0), (-1, -1), _basefont),
+    ('FONTNAME', (0, 0), (-1, 0), _basefont_bold),
     ('GRID', (0, 0), (-1, -1), 0.4, colors.HexColor('#CBD5E1')),
     ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
     ('TOPPADDING', (0, 0), (-1, -1), 5),
@@ -281,7 +282,7 @@ def download_fines_register(request, month, year):
     t = Table(rows, colWidths=[140, 80, 200, 90])
     t.setStyle(TableStyle(HEADER_STYLE + [
         ('ALIGN', (3, 0), (3, -1), 'RIGHT'),
-        ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
+        ('FONTNAME', (0, -1), (-1, -1), _basefont_bold),
     ]))
     story.append(t)
 
@@ -331,7 +332,7 @@ def download_deductions_register_wages(request, month, year):
     t = Table(rows, colWidths=[140, 100, 180, 90])
     t.setStyle(TableStyle(HEADER_STYLE + [
         ('ALIGN', (3, 0), (3, -1), 'RIGHT'),
-        ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
+        ('FONTNAME', (0, -1), (-1, -1), _basefont_bold),
     ]))
     story.append(t)
 
@@ -383,7 +384,7 @@ def download_ot_register(request, month, year):
     t = Table(rows, colWidths=[80, 80, 60, 90, 90, 100])
     t.setStyle(TableStyle(HEADER_STYLE + [
         ('ALIGN', (2, 0), (5, -1), 'RIGHT'),
-        ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
+        ('FONTNAME', (0, -1), (-1, -1), _basefont_bold),
     ]))
     story.append(t)
 
@@ -435,7 +436,7 @@ def download_bonus_register(request, month, year):
     t = Table(rows, colWidths=[110, 75, 75, 80, 65, 80, 45])
     t.setStyle(TableStyle(HEADER_STYLE + [
         ('ALIGN', (1, 0), (5, -1), 'RIGHT'),
-        ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
+        ('FONTNAME', (0, -1), (-1, -1), _basefont_bold),
     ]))
     story.append(t)
 
