@@ -23,7 +23,7 @@
   <aside class="sidebar" id="sidebar">
 
     <div class="sidebar-brand">
-      <span class="sidebar-logo noselect">Ń</span>
+      <span class="sidebar-logo noselect">Ň</span>
       <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar" title="Toggle sidebar">
         &#9776;
       </button>
@@ -57,9 +57,9 @@
             <span class="nav-chevron">&#9658;</span>
           </button>
           <ul class="nav-sub">
-            <li><a href="{% url 'list_employee' %}" class="nav-link">All Employees</a></li>
-            <li><a href="{% url 'create_employee' %}" class="nav-link">Add Employee</a></li>
-            <li><a href="{% url 'bulk_excel_upload_employees' %}" class="nav-link">Bulk Upload</a></li>
+            <li><a href="{% url 'list_employee' %}" class="nav-link allEmployees">All Employees</a></li>
+            <li><a href="{% url 'create_employee' %}" class="nav-link addEmployee">Add Employee</a></li>
+            <li><a href="{% url 'bulk_excel_upload_employees' %}" class="nav-link bulkEmployee">Bulk Upload</a></li>
           </ul>
         </li>
 
@@ -80,34 +80,34 @@
         </li>
 
         <li class="nav-item" id="nav-wages">
-          <button class="nav-link statuary" onclick="toggleNav('nav-wages')" aria-expanded="false">
+          <button class="nav-link wages" onclick="toggleNav('nav-wages')" aria-expanded="false">
             <span class="nav-label">Wages</span>
             <span class="nav-chevron">&#9658;</span>
           </button>
           <ul class="nav-sub">
-            <li><a href="{% url 'list_wages' %}" class="nav-link">Wage Register</a></li>
+            <li><a href="{% url 'list_wages' %}" class="nav-link wages">Wage Register</a></li>
             {% can_use "payment_of_wages" as can_pow %}{% if can_pow %}
-            <li><a href="{% url 'list_fines' %}" class="nav-link">Fines (Form I)</a></li>
-            <li><a href="{% url 'list_deductions' %}" class="nav-link">Deductions (Form II)</a></li>
-            <li><a href="{% url 'list_pow_returns' %}" class="nav-link">POW Annual Returns</a></li>
+            <li><a href="{% url 'list_fines' %}" class="nav-link wages">Fines (Form I)</a></li>
+            <li><a href="{% url 'list_deductions' %}" class="nav-link wages">Deductions (Form II)</a></li>
+            <li><a href="{% url 'list_pow_returns' %}" class="nav-link wages">POW Annual Returns</a></li>
             {% endif %}
             {% can_use "min_wages" as can_minwages %}{% if can_minwages %}
-            <li><a href="{% url 'list_minwages_returns' %}" class="nav-link">Min Wages Returns</a></li>
+            <li><a href="{% url 'list_minwages_returns' %}" class="nav-link wages">Min Wages Returns</a></li>
             {% endif %}
           </ul>
         </li>
 
         <li class="nav-item" id="nav-salary">
-          <button class="nav-link statuary" onclick="toggleNav('nav-salary')" aria-expanded="false">
+          <button class="nav-link salaryprocess" onclick="toggleNav('nav-salary')" aria-expanded="false">
             <span class="nav-label">Salary Processing</span>
             <span class="nav-chevron">&#9658;</span>
           </button>
           <ul class="nav-sub">
-            <li><a href="{% url 'salary_dashboard' %}" class="nav-link">Dashboard</a></li>
-            <li><a href="{% url 'create_salary_batch' %}" class="nav-link">Process Salary</a></li>
-            <li><a href="{% url 'list_salary_structures' %}" class="nav-link">Salary Structures</a></li>
+            <li><a href="{% url 'salary_dashboard' %}" class="nav-link dashboard">Dashboard</a></li>
+            <li><a href="{% url 'create_salary_batch' %}" class="nav-link salaryprocess">Process Salary</a></li>
+            <li><a href="{% url 'list_salary_structures' %}" class="nav-link salaryprocess">Salary Structures</a></li>
             {% can_use "tds" as can_tds %}{% if can_tds %}
-            <li><a href="{% url 'select_employee_for_form16' %}" class="nav-link">Form 16 / Deductions Report</a></li>
+            <li><a href="{% url 'select_employee_for_form16' %}" class="nav-link report">Form 16 / Deductions Report</a></li>
             {% endif %}
           </ul>
         </li>
@@ -144,16 +144,16 @@
           </ul>
         </li>
         <li class="nav-item" id="nav-nominations">
-          <button class="nav-link forms" onclick="toggleNav('nav-nominations')" aria-expanded="false">
+          <button class="nav-link nomination" onclick="toggleNav('nav-nominations')" aria-expanded="false">
             <span class="nav-label">Nomination Forms</span>
             <span class="nav-chevron">&#9658;</span>
           </button>
           <ul class="nav-sub">
-            <li><a href="{% url 'list_epf_nominations' %}" class="nav-link">EPF Nominations</a></li>
-            <li><a href="{% url 'list_esi_family' %}" class="nav-link">ESI Family (1A)</a></li>
-            <li><a href="{% url 'list_maternity' %}" class="nav-link">Maternity</a></li>
+            <li><a href="{% url 'list_epf_nominations' %}" class="nav-link nomination">EPF Nominations</a></li>
+            <li><a href="{% url 'list_esi_family' %}" class="nav-link nominationfamily">ESI Family (1A)</a></li>
+            <li><a href="{% url 'list_maternity' %}" class="nav-link nominationfamily">Maternity</a></li>
             {% can_use "gratuity" as nom_gratuity %}{% if nom_gratuity %}
-            <li><a href="{% url 'list_nominees' %}" class="nav-link">Gratuity Nominee Register (Form F)</a></li>
+            <li><a href="{% url 'list_nominees' %}" class="nav-link nominationfamily">Gratuity Nominee Register (Form F)</a></li>
             {% endif %}
           </ul>
         </li>
@@ -163,19 +163,19 @@
             <span class="nav-chevron">&#9658;</span>
           </button>
           <ul class="nav-sub">
-            <li><a href="{% url 'list_epf_ecr' %}" class="nav-link">EPF ECR / Challan</a></li>
-            <li><a href="{% url 'list_esi_returns' %}" class="nav-link">ESI Returns</a></li>
-            <li><a href="{% url 'select_period_for_esi_monthly' %}" class="nav-link">ESI Monthly Challan / Upload</a></li>
+            <li><a href="{% url 'list_epf_ecr' %}" class="nav-link reports">EPF ECR / Challan</a></li>
+            <li><a href="{% url 'list_esi_returns' %}" class="nav-link reports">ESI Returns</a></li>
+            <li><a href="{% url 'select_period_for_esi_monthly' %}" class="nav-link reports">ESI Monthly Challan / Upload</a></li>
             {% can_use "payment_of_wages" as rep_pow %}{% if rep_pow %}
-            <li><a href="{% url 'select_period_for_fines' %}" class="nav-link">Fines Register (Form I)</a></li>
-            <li><a href="{% url 'select_period_for_deductions' %}" class="nav-link">Deductions Register (Form II)</a></li>
+            <li><a href="{% url 'select_period_for_fines' %}" class="nav-link reports">Fines Register (Form I)</a></li>
+            <li><a href="{% url 'select_period_for_deductions' %}" class="nav-link reports">Deductions Register (Form II)</a></li>
             {% endif %}
             {% can_use "overtime" as rep_ot %}{% if rep_ot %}
-            <li><a href="{% url 'select_period_for_ot_register' %}" class="nav-link">Overtime Register (Form IV)</a></li>
+            <li><a href="{% url 'select_period_for_ot_register' %}" class="nav-link reports">Overtime Register (Form IV)</a></li>
             {% endif %}
             {% can_use "bonus_act" as rep_bonus %}{% if rep_bonus %}
-            <li><a href="{% url 'select_period_for_bonus_register' %}" class="nav-link">Bonus Register (Form C)</a></li>
-            <li><a href="{% url 'list_bonus_returns' %}" class="nav-link">Bonus Annual Return (Form D)</a></li>
+            <li><a href="{% url 'select_period_for_bonus_register' %}" class="nav-link reports">Bonus Register (Form C)</a></li>
+            <li><a href="{% url 'list_bonus_returns' %}" class="nav-link reports">Bonus Annual Return (Form D)</a></li>
             {% endif %}
           </ul>
 

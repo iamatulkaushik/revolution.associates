@@ -24,7 +24,8 @@
 .employees:before,.attandance:before,.profile:before,.logout:before,
 .branches:before, .designations:before, .allEmployees:before, .addEmployee:before, .bulkEmployee:before,
 .listAttandance:before, .addAttandance:before, .bulkAttandance:before, .overtime:before,
-.action-edit, .action-delete
+.action-edit, .action-delete,
+.wages:before, .salaryprocess:before, .nomination:before, .nominationfamily:before, .reports:before, .settings:before, .help:before, .about:before
 {
     font-family: 'Infinitude';
     font-size: 25px;
@@ -55,6 +56,12 @@
 .attandance:before      { content: 'Ɠ'; }
 .profile:before          { content: 'ţ'; }
 .logout:before            { content: 'Р'; }
+
+.nomination:before{content:'ȥ';}
+.nominationfamily:before{content:'ȥ';}
+.wages:before{content:'ɒ';}
+.salaryprocess:before{content:'ɝ';}
+.reports:before{content:'К';}
 
 .table-btn{padding:10px 5px;}
 /***Employee Icons****/

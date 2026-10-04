@@ -39,6 +39,19 @@ OT_RATE_CHOICES = [
 ]
 
 
+def _parse_date(value):
+    """str/date/datetime/None -> date or None."""
+    import datetime
+    from django.utils.dateparse import parse_date
+    if not value:
+        return None
+    if isinstance(value, datetime.datetime):
+        return value.date()
+    if isinstance(value, datetime.date):
+        return value
+    return parse_date(str(value).strip())
+
+
 # ── Model ────────────────────────────────────────────────────────────────────
 
 class establishment_details(models.Model):
@@ -103,6 +116,11 @@ class establishment_details(models.Model):
         # Haryana Shops & Establishments Act: renewal requirement was
         # withdrawn for registrations from 2025 onward. Existing
         # pre-2025 registrations still need periodic renewal.
+        # Coerce str -> date (statutory record may hand over raw strings).
+        for _f in ('registration_date', 'renewal_date'):
+            _v = getattr(self, _f)
+            if isinstance(_v, str):
+                setattr(self, _f, _parse_date(_v))
         if self.registration_date and self.registration_date.year >= 2025:
             self.renewal_exempt = True
             self.renewal_date = None
@@ -324,7 +342,7 @@ def _sync_primary_establishment(sender, instance, **kwargs):
         defaults={
             'establishment_name': company.company_name,
             'registration_number': instance.shop_act,
-            'registration_date': instance.shop_act_date,
+            'registration_date': _parse_date(instance.shop_act_date),
             'address': company.full_address,
             'opening_time': '09:00',
             'closing_time': '18:00',
@@ -332,7 +350,7 @@ def _sync_primary_establishment(sender, instance, **kwargs):
     )
     if not created:
         est.registration_number = instance.shop_act
-        est.registration_date = instance.shop_act_date
+        est.registration_date = _parse_date(instance.shop_act_date)
         est.address = company.full_address
         est.establishment_name = company.company_name
         est.save()

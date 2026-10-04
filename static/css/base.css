@@ -13,7 +13,7 @@
   url('../fonts/Ubuntu-B.ttf') format('truetype'),
   url('../fonts/Ubuntu-L.ttf') format('truetype'),
   url('../fonts/Ubuntu-M.ttf') format('truetype'),
-  url('../fonts/Ubuntu-RI.ttf') format('truetype'),
+  url('../fonts/Ubuntu-RI.ttf') format('truetype');
   font-display:swap}
 @font-face{font-family:'Saber';src:url('../fonts/Saber.ttf') format('truetype');font-display:swap}
 @font-face{font-family:'Allerta';src:url('../fonts/allerta.medium.ttf') format('truetype'), url('../fonts/allerta.medium.otf') format('otf');font-display:swap}
@@ -63,7 +63,7 @@ img{max-width:100%;display:block}
   border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0;
 }
 .sidebar-logo{
-  font-family:var(--font-head);font-size:75px;color:var(--c-accent);
+  font-family:var(--font-head);font-size:1.5rem;color:var(--c-accent);
   line-height:1;white-space:nowrap;overflow:visible;transition:opacity var(--ease);
 }
 .sidebar-toggle{
