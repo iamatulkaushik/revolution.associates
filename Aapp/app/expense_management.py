@@ -120,6 +120,7 @@ def get_approved_reimbursement_for_month(employee_obj, month, year):
 # =====================================================================
 
 from django.contrib.auth.decorators import login_required
+from revolution.app.plan_gate import require_feature
 from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
@@ -131,6 +132,7 @@ def _company(request):
 
 
 @login_required
+@require_feature("asset_expense")
 def list_expense_claims(request):
     company = _company(request)
     if not company:
@@ -164,6 +166,7 @@ def list_expense_claims(request):
 
 
 @login_required
+@require_feature("asset_expense")
 def create_expense_claim(request):
     company = _company(request)
     if not company:
@@ -198,6 +201,7 @@ def create_expense_claim(request):
 
 
 @login_required
+@require_feature("asset_expense")
 def approve_expense_claim(request, expense_id):
     company = _company(request)
     claim = get_object_or_404(ExpenseClaim, expense_id=expense_id, company=company)
@@ -209,6 +213,7 @@ def approve_expense_claim(request, expense_id):
 
 
 @login_required
+@require_feature("asset_expense")
 def reject_expense_claim(request, expense_id):
     company = _company(request)
     claim = get_object_or_404(ExpenseClaim, expense_id=expense_id, company=company)

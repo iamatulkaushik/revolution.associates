@@ -22,6 +22,7 @@ Wire into Aapp/urls.py:
 
 import logging
 from django.contrib.auth.decorators import login_required
+from revolution.app.plan_gate import require_feature
 from django.http import HttpResponse, Http404
 from django.shortcuts import get_object_or_404, redirect
 from django.contrib import messages
@@ -404,6 +405,7 @@ def email_salary_slip(request, wages_id):
 
 
 @login_required
+@require_feature("bulk_email")
 def email_all_slips(request, month, year):
     """
     POST /wages/email-all-slips/<month>/<year>/

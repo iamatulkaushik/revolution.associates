@@ -45,6 +45,7 @@ PARENT_HOST = os.environ.get('DJANGO_PARENT_HOST','localhost')
 INSTALLED_APPS = [
     'django_hosts',
     'django_q',
+    'revolution.app',
     'Sapp',
     'Aapp',
     'Capp',

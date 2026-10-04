@@ -3,6 +3,7 @@ from django.db import models
 from django.shortcuts import redirect, render, get_object_or_404
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
+from revolution.app.plan_gate import require_feature
 from django.contrib import messages
 from Sapp.app.company import Company
 from Aapp.app.employee import employee
@@ -210,6 +211,7 @@ def _company_ctx(request):
 # ── Factory Registration Views ───────────────────────────────────────────────
 
 @login_required
+@require_feature("factory_act")
 def list_factory_registration(request):
     company = _company_ctx(request)
     if not company:
@@ -238,6 +240,7 @@ def list_factory_registration(request):
 
 
 @login_required
+@require_feature("factory_act")
 def create_factory_registration(request):
     company = _company_ctx(request)
     if not company:
@@ -263,6 +266,7 @@ def create_factory_registration(request):
 
 
 @login_required
+@require_feature("factory_act")
 def alter_factory_registration(request, factory_id):
     company = _company_ctx(request)
     if not company:
@@ -290,6 +294,7 @@ def alter_factory_registration(request, factory_id):
 # ── Whitewash Register Views ─────────────────────────────────────────────────
 
 @login_required
+@require_feature("factory_act")
 def list_whitewash_register(request, factory_id):
     company = _company_ctx(request)
     if not company:
@@ -313,6 +318,7 @@ def list_whitewash_register(request, factory_id):
 
 
 @login_required
+@require_feature("factory_act")
 def create_whitewash_register(request, factory_id):
     company = _company_ctx(request)
     if not company:
@@ -342,6 +348,7 @@ def create_whitewash_register(request, factory_id):
 # ── Vessel Examination Views ─────────────────────────────────────────────────
 
 @login_required
+@require_feature("factory_act")
 def list_vessel_examination(request, factory_id):
     company = _company_ctx(request)
     if not company:
@@ -366,6 +373,7 @@ def list_vessel_examination(request, factory_id):
 
 
 @login_required
+@require_feature("factory_act")
 def create_vessel_examination(request, factory_id):
     company = _company_ctx(request)
     if not company:
@@ -395,6 +403,7 @@ def create_vessel_examination(request, factory_id):
 # ── Leave With Wages Register Views ──────────────────────────────────────────
 
 @login_required
+@require_feature("factory_act")
 def list_leave_wages_register(request):
     company = _company_ctx(request)
     if not company:
@@ -418,6 +427,7 @@ def list_leave_wages_register(request):
 
 
 @login_required
+@require_feature("factory_act")
 def create_leave_wages_register(request):
     company = _company_ctx(request)
     if not company:

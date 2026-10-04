@@ -252,6 +252,7 @@ def sync_month_to_attendance(employee_obj, month, year):
 # =====================================================================
 
 from django.contrib.auth.decorators import login_required
+from revolution.app.plan_gate import require_feature
 from django.contrib import messages
 from django.shortcuts import render, redirect
 from django.urls import reverse
@@ -263,6 +264,7 @@ def _company(request):
 
 
 @login_required
+@require_feature("biometric")
 def download_punch_sheet(request, month, year):
     from django.http import HttpResponse
     from Aapp.app.punch_report_pdf import punch_sheet_pdf
@@ -279,6 +281,7 @@ def download_punch_sheet(request, month, year):
 
 
 @login_required
+@require_feature("biometric")
 def view_daily_attendance(request, month, year):
     company = _company(request)
     if not company:

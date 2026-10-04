@@ -20,6 +20,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from revolution.app.plan_gate import require_feature
 
 from Sapp.app.company import Company
 from Aapp.app.employee import employee
@@ -211,6 +212,7 @@ def _company(request):
 # ── Registration Views ──────────────────────────────────────────────────────
 
 @login_required
+@require_feature("contract_labour")
 def list_cl_registration(request):
     company = _company(request)
     if not company:
@@ -233,6 +235,7 @@ def list_cl_registration(request):
 
 
 @login_required
+@require_feature("contract_labour")
 def create_cl_registration(request):
     company = _company(request)
     if not company:
@@ -259,6 +262,7 @@ def create_cl_registration(request):
 
 
 @login_required
+@require_feature("contract_labour")
 def alter_cl_registration(request, reg_id):
     company = _company(request)
     if not company:
@@ -286,6 +290,7 @@ def alter_cl_registration(request, reg_id):
 # ── Employment Card Views (Form XIII) ────────────────────────────────────────
 
 @login_required
+@require_feature("contract_labour")
 def list_employment_cards(request, contractor_id):
     company = _company(request)
     if not company:
@@ -308,6 +313,7 @@ def list_employment_cards(request, contractor_id):
 
 
 @login_required
+@require_feature("contract_labour")
 def create_employment_card(request, contractor_id):
     company = _company(request)
     if not company:
@@ -340,6 +346,7 @@ def create_employment_card(request, contractor_id):
 # ── Service Certificate Views (Form XIV) ─────────────────────────────────────
 
 @login_required
+@require_feature("contract_labour")
 def list_service_certificates(request, contractor_id):
     company = _company(request)
     if not company:
@@ -363,6 +370,7 @@ def list_service_certificates(request, contractor_id):
 
 
 @login_required
+@require_feature("contract_labour")
 def create_service_certificate(request, contractor_id):
     company = _company(request)
     if not company:
@@ -395,6 +403,7 @@ def create_service_certificate(request, contractor_id):
 # ── Half-Yearly Return Views (Form 20(CL)) ──────────────────────────────────
 
 @login_required
+@require_feature("contract_labour")
 def list_cl_returns(request, contractor_id):
     company = _company(request)
     if not company:
@@ -419,6 +428,7 @@ def list_cl_returns(request, contractor_id):
 
 
 @login_required
+@require_feature("contract_labour")
 def create_cl_return(request, contractor_id):
     company = _company(request)
     if not company:
@@ -448,6 +458,7 @@ def create_cl_return(request, contractor_id):
 
 
 @login_required
+@require_feature("contract_labour")
 def alter_cl_return(request, return_id):
     company = _company(request)
     if not company:

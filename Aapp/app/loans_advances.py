@@ -276,6 +276,7 @@ def mark_completed_if_schedule_ended(month, year):
 # =====================================================================
 
 from django.contrib.auth.decorators import login_required
+from revolution.app.plan_gate import require_feature
 from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
@@ -289,6 +290,7 @@ def _company(request):
 # ── Loans ────────────────────────────────────────────────────────────
 
 @login_required
+@require_feature("loans")
 def list_loans(request):
     company = _company(request)
     if not company:
@@ -318,6 +320,7 @@ def list_loans(request):
 
 
 @login_required
+@require_feature("loans")
 def create_loan(request):
     company = _company(request)
     if not company:
@@ -341,6 +344,7 @@ def create_loan(request):
 
 
 @login_required
+@require_feature("loans")
 def alter_loan(request, loan_id):
     company = _company(request)
     loan = get_object_or_404(Loan, loan_id=loan_id, company=company)
@@ -359,6 +363,7 @@ def alter_loan(request, loan_id):
 
 
 @login_required
+@require_feature("loans")
 def view_loan_schedule(request, loan_id):
     """Renders the amortization schedule on-screen; PDF via separate download view."""
     company = _company(request)
@@ -371,6 +376,7 @@ def view_loan_schedule(request, loan_id):
 
 
 @login_required
+@require_feature("loans")
 def download_loan_schedule(request, loan_id):
     from django.http import HttpResponse
     from Aapp.app.loan_schedule_pdf import loan_advance_schedule_pdf
@@ -386,6 +392,7 @@ def download_loan_schedule(request, loan_id):
 # ── Advances ─────────────────────────────────────────────────────────
 
 @login_required
+@require_feature("loans")
 def list_advances(request):
     company = _company(request)
     if not company:
@@ -415,6 +422,7 @@ def list_advances(request):
 
 
 @login_required
+@require_feature("loans")
 def create_advance(request):
     company = _company(request)
     if not company:
@@ -438,6 +446,7 @@ def create_advance(request):
 
 
 @login_required
+@require_feature("loans")
 def alter_advance(request, advance_id):
     company = _company(request)
     advance = get_object_or_404(Advance, advance_id=advance_id, company=company)
@@ -456,6 +465,7 @@ def alter_advance(request, advance_id):
 
 
 @login_required
+@require_feature("loans")
 def view_advance_schedule(request, advance_id):
     company = _company(request)
     advance = get_object_or_404(Advance, advance_id=advance_id, company=company)
@@ -467,6 +477,7 @@ def view_advance_schedule(request, advance_id):
 
 
 @login_required
+@require_feature("loans")
 def download_advance_schedule(request, advance_id):
     from django.http import HttpResponse
     from Aapp.app.loan_schedule_pdf import loan_advance_schedule_pdf

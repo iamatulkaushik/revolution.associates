@@ -167,6 +167,7 @@ def get_effective_pay(employee_obj, desig, month, year):
 # =====================================================================
 
 from django.contrib.auth.decorators import login_required
+from revolution.app.plan_gate import require_feature
 from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
@@ -178,6 +179,7 @@ def _company(request):
 
 
 @login_required
+@require_feature("promotion")
 def list_increments(request):
     company = _company(request)
     if not company:
@@ -230,6 +232,7 @@ def get_employee_pay_scale(request, employee_id):
     return JsonResponse({'old_basicpay': str(basic), 'old_hra': str(hra)})
 
 
+@require_feature("promotion")
 def create_increment(request):
     company = _company(request)
     if not company:
@@ -270,6 +273,7 @@ def create_increment(request):
 
 
 @login_required
+@require_feature("promotion")
 def view_increment_schedule(request, increment_id):
     """Print/record view — per pt_upgrades.md 'saprate schedule for print and record'."""
     company = _company(request)
@@ -281,6 +285,7 @@ def view_increment_schedule(request, increment_id):
 
 
 @login_required
+@require_feature("promotion")
 def download_increment_schedule(request, increment_id):
     from django.http import HttpResponse
     from Aapp.app.increment_pdf import increment_schedule_pdf

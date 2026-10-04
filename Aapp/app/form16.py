@@ -237,6 +237,7 @@ def deductions_report_pdf(company, month, year):
 # =====================================================================
 
 from django.contrib.auth.decorators import login_required
+from revolution.app.plan_gate import require_feature
 from django.contrib import messages
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
@@ -252,6 +253,7 @@ def _company(request):
 
 
 @login_required
+@require_feature("tds")
 def select_employee_for_form16(request):
     company = _company(request)
     if not company:

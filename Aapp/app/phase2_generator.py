@@ -53,6 +53,7 @@ import logging
 import calendar
 from django import forms
 from django.contrib.auth.decorators import login_required
+from revolution.app.plan_gate import require_feature
 from django.http import HttpResponse, Http404
 from django.shortcuts import get_object_or_404, render
 from reportlab.platypus import Table, TableStyle, Spacer
@@ -116,6 +117,7 @@ def _period_picker(request, page_title, download_url_name):
 # ── A) Minimum Wages Annual Return (Form V) ──────────────────────────────────
 
 @login_required
+@require_feature("min_wages")
 def download_minwages_return(request, return_id):
     from Aapp.app.wage_compliance import MinimumWagesAnnualReturn
     company = _company(request)
@@ -163,6 +165,7 @@ def download_minwages_return(request, return_id):
 # ── A) Bonus Annual Return (Form D) ──────────────────────────────────────────
 
 @login_required
+@require_feature("bonus_act")
 def download_bonus_return(request, return_id):
     from Aapp.app.bonus import bonus_annual_return
     company = _company(request)
@@ -206,6 +209,7 @@ def download_bonus_return(request, return_id):
 # ── A) Bonus Set-On/Set-Off Register (Form B) ────────────────────────────────
 
 @login_required
+@require_feature("bonus_act")
 def download_set_on_set_off(request, record_id):
     from Aapp.app.bonus import bonus_set_on_set_off
     company = _company(request)
@@ -251,11 +255,13 @@ def download_set_on_set_off(request, record_id):
 # ── B) Fines Register (Form I) ───────────────────────────────────────────────
 
 @login_required
+@require_feature("payment_of_wages")
 def select_period_for_fines(request):
     return _period_picker(request, 'Fines Register (Form I) — Select Period', 'download_fines_register')
 
 
 @login_required
+@require_feature("payment_of_wages")
 def download_fines_register(request, month, year):
     from Aapp.app.wages import wages_fine
     company = _company(request)
@@ -301,11 +307,13 @@ def download_fines_register(request, month, year):
 # ── B) Deductions Register (Form II) ─────────────────────────────────────────
 
 @login_required
+@require_feature("payment_of_wages")
 def select_period_for_deductions(request):
     return _period_picker(request, 'Deductions Register (Form II) — Select Period', 'download_deductions_register_wages')
 
 
 @login_required
+@require_feature("payment_of_wages")
 def download_deductions_register_wages(request, month, year):
     from Aapp.app.wages import wages_deduction
     company = _company(request)
@@ -351,11 +359,13 @@ def download_deductions_register_wages(request, month, year):
 # ── B) Overtime Register (Form IV, Shops Act) ────────────────────────────────
 
 @login_required
+@require_feature("overtime")
 def select_period_for_ot_register(request):
     return _period_picker(request, 'Overtime Register (Form IV) — Select Period', 'download_ot_register')
 
 
 @login_required
+@require_feature("overtime")
 def download_ot_register(request, month, year):
     from Aapp.app.attandance import MinimumWagesOvertimeRegister, attendance
     company = _company(request)
@@ -403,11 +413,13 @@ def download_ot_register(request, month, year):
 # ── B) Bonus Register (Form C) ───────────────────────────────────────────────
 
 @login_required
+@require_feature("bonus_act")
 def select_period_for_bonus_register(request):
     return _period_picker(request, 'Bonus Register (Form C) — Select Period', 'download_bonus_register')
 
 
 @login_required
+@require_feature("bonus_act")
 def download_bonus_register(request, month, year):
     from Aapp.app.bonus import bonus_record
     company = _company(request)

@@ -18,6 +18,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from revolution.app.plan_gate import require_feature
 from Sapp.app.company import Company
 from Aapp.app.employee import employee
 from Aapp.app.designation import designation
@@ -162,6 +163,7 @@ def list_wages(request):
 # Fines require Shop Act registration — same as overtime and leave.
 
 @login_required
+@require_feature("payment_of_wages")
 def list_fines(request):
     company = _company(request)
     if not company:
@@ -244,6 +246,7 @@ def delete_fine(request, fine_id):
 # ── Deductions Register Views (Form II) ──────────────────────────────────────
 
 @login_required
+@require_feature("payment_of_wages")
 def list_deductions(request):
     company = _company(request)
     if not company:

@@ -106,6 +106,7 @@ def get_shift_for_date(employee_obj, on_date):
 # =====================================================================
 
 from django.contrib.auth.decorators import login_required
+from revolution.app.plan_gate import require_feature
 from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
@@ -117,6 +118,7 @@ def _company(request):
 
 
 @login_required
+@require_feature("shift_mgmt")
 def list_shifts(request):
     company = _company(request)
     if not company:
@@ -140,6 +142,7 @@ def list_shifts(request):
 
 
 @login_required
+@require_feature("shift_mgmt")
 def create_shift(request):
     company = _company(request)
     if not company:
@@ -161,6 +164,7 @@ def create_shift(request):
 
 
 @login_required
+@require_feature("shift_mgmt")
 def alter_shift(request, shift_id):
     company = _company(request)
     shift = get_object_or_404(Shift, shift_id=shift_id, company=company)
@@ -178,6 +182,7 @@ def alter_shift(request, shift_id):
 
 
 @login_required
+@require_feature("shift_mgmt")
 def assign_shift(request):
     company = _company(request)
     if not company:

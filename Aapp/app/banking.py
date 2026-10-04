@@ -225,6 +225,7 @@ def _format_row_for_bank(bank_format, seq_no, row, payment_mode, company):
 # =====================================================================
 
 from django.contrib.auth.decorators import login_required
+from revolution.app.plan_gate import require_feature
 from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
@@ -237,6 +238,7 @@ def _company(request):
 
 
 @login_required
+@require_feature("bank_file")
 def list_bank_batches(request):
     company = _company(request)
     if not company:
@@ -265,6 +267,7 @@ def list_bank_batches(request):
 
 
 @login_required
+@require_feature("bank_file")
 def select_processing_for_bank_file(request):
     """Step 1: pick which processed salary batch to generate the bank file from."""
     from Aapp.app.salary_processing import salary_processing
@@ -279,6 +282,7 @@ def select_processing_for_bank_file(request):
 
 
 @login_required
+@require_feature("bank_file")
 def create_bank_batch(request, processing_id):
     """Step 2: pick bank format + mode, generate the file record."""
     from Aapp.app.salary_processing import salary_processing
@@ -320,6 +324,7 @@ def create_bank_batch(request, processing_id):
 
 
 @login_required
+@require_feature("bank_file")
 def download_bank_csv(request, batch_id):
     company = _company(request)
     batch = get_object_or_404(BankPaymentBatch, batch_id=batch_id, company=company)
@@ -330,6 +335,7 @@ def download_bank_csv(request, batch_id):
 
 
 @login_required
+@require_feature("bank_file")
 def download_bank_xlsx(request, batch_id):
     company = _company(request)
     batch = get_object_or_404(BankPaymentBatch, batch_id=batch_id, company=company)

@@ -4,6 +4,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from revolution.app.plan_gate import require_feature
 from Sapp.app.company import Company
 from Aapp.app.employee import employee
 from Aapp.app.attandance import MONTH_CHOICES, YEAR_CHOICES
@@ -180,6 +181,7 @@ def _company(request):
 # ── Bonus Record Views ───────────────────────────────────────────────────────
 
 @login_required
+@require_feature("bonus_act")
 def list_bonus(request):
     company = _company(request)
     if not company:
@@ -206,6 +208,7 @@ def list_bonus(request):
 
 
 @login_required
+@require_feature("bonus_act")
 def add_bonus(request):
     company = _company(request)
     if not company:
@@ -246,6 +249,7 @@ def add_bonus(request):
 
 
 @login_required
+@require_feature("bonus_act")
 def update_bonus(request, bonus_id):
     company = _company(request)
     if not company:
@@ -278,6 +282,7 @@ def update_bonus(request, bonus_id):
 
 
 @login_required
+@require_feature("bonus_act")
 def mark_bonus_paid(request, bonus_id):
     company = _company(request)
     if not company:
@@ -303,6 +308,7 @@ def mark_bonus_paid(request, bonus_id):
 
 
 @login_required
+@require_feature("bonus_act")
 def delete_bonus(request, bonus_id):
     company = _company(request)
     if not company:
@@ -325,6 +331,7 @@ def delete_bonus(request, bonus_id):
 # ── Set-On / Set-Off Views (Form B) ──────────────────────────────────────────
 
 @login_required
+@require_feature("bonus_act")
 def list_set_on_set_off(request):
     company = _company(request)
     if not company:
@@ -347,6 +354,7 @@ def list_set_on_set_off(request):
 
 
 @login_required
+@require_feature("bonus_act")
 def add_set_on_set_off(request):
     company = _company(request)
     if not company:
@@ -382,6 +390,7 @@ def add_set_on_set_off(request):
 
 
 @login_required
+@require_feature("bonus_act")
 def alter_set_on_set_off(request, record_id):
     company = _company(request)
     if not company:
@@ -414,6 +423,7 @@ def alter_set_on_set_off(request, record_id):
 # ── Annual Return Views (Form D) ─────────────────────────────────────────────
 
 @login_required
+@require_feature("bonus_act")
 def list_bonus_returns(request):
     company = _company(request)
     if not company:
@@ -436,6 +446,7 @@ def list_bonus_returns(request):
 
 
 @login_required
+@require_feature("bonus_act")
 def _compute_bonus_return_totals(company, year):
     from decimal import Decimal
     from Aapp.app.salary_processing import salary_slip
@@ -456,6 +467,7 @@ def _compute_bonus_return_totals(company, year):
 
 
 @login_required
+@require_feature("bonus_act")
 def add_bonus_return(request):
     company = _company(request)
     if not company:
@@ -487,6 +499,7 @@ def add_bonus_return(request):
 
 
 @login_required
+@require_feature("bonus_act")
 def alter_bonus_return(request, return_id):
     company = _company(request)
     if not company:

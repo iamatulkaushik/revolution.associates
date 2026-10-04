@@ -13,6 +13,7 @@ from django.contrib.auth.models import User
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from revolution.app.plan_gate import require_feature
 
 from Sapp.app.company import Company
 
@@ -105,6 +106,7 @@ def _company(request):
 # ── Views ────────────────────────────────────────────────────────────────────
 
 @login_required
+@require_feature("lwf")
 def list_lwf(request):
     company = _company(request)
     if not company:

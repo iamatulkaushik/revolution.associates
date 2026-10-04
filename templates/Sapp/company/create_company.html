@@ -151,6 +151,14 @@ document.addEventListener('DOMContentLoaded', loadDistricts);
                 </div>
             </div>
         </div>
+        <div class="form-section">
+            <h3>Subscription</h3>
+            <div class="form-group">
+                <label for="id_plan">Plan *</label>
+                {{form.plan}}
+                {{form.plan.errors}}
+            </div>
+        </div>
         <div class="form-group">
             <button type="submit" class="button btn-primary">Register Company</button>
         </div>

@@ -66,6 +66,19 @@ class Company(models.Model):
         upload_to='letterheads/', null=True, blank=True,
         help_text='PDF of the letterhead artwork — required when letterhead_mode is overlay.',
     )
+    
+    # ── Subscription plan ────────────────────────────────────────────────
+    # Gates feature access across Aapp/Capp/Cxapp — see revolution/plan_gate.py
+    PLAN_CHOICES = [
+        ('copper',   'Copper'),
+        ('silver',   'Silver'),
+        ('gold',     'Gold'),
+        ('platinum', 'Platinum'),
+    ]
+    plan = models.CharField(
+        max_length=10, choices=PLAN_CHOICES, default='copper',
+        help_text='Subscription plan — controls which modules this company can access.',
+    )
 
     def __str__(self):
         return self.company_name
@@ -169,8 +182,9 @@ class create_company_form_superadmin(forms.ModelForm):
         model = Company
         fields = ['company_name', 'start_date', 'shut_date', 'tagline1', 'address1', 'address2', 'address3',
                   'state_id', 'district_id', 'pin', 'phone', 'phone2', 'mobile', 'mobile2', 'email1', 'email2',
-                  'website', 'pan', 'tan', 'cin', 'bank_id', 'account', 'ifsc', 'branch_address']
+                  'website', 'pan', 'tan', 'cin', 'bank_id', 'account', 'ifsc', 'branch_address', 'plan']
         widgets = {
+            'plan': forms.Select(attrs={'class': 'form-control'}),
             'company_name': forms.TextInput(attrs={'placeholder': 'Company Name'}),
             'start_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'shut_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),

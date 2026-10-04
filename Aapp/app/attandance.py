@@ -3,6 +3,7 @@ from django.db import models
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from revolution.app.plan_gate import require_feature
 from django.contrib.auth.models import User
 from django.http import HttpResponse
 from django.urls import reverse
@@ -547,6 +548,7 @@ def bulk_excel_upload_Attandance(request):
 # ── Overtime Register Views ──────────────────────────────────────────────────
 
 @login_required
+@require_feature("overtime")
 def list_overtime_register(request):
     company = _company(request)
     if not company:
@@ -573,6 +575,7 @@ def list_overtime_register(request):
 
 
 @login_required
+@require_feature("overtime")
 def create_overtime_register(request):
     company = _company(request)
     if not company:
@@ -597,6 +600,7 @@ def create_overtime_register(request):
 
 
 @login_required
+@require_feature("overtime")
 def alter_overtime_register(request, ot_register_id):
     company = _company(request)
     if not company:
@@ -624,6 +628,7 @@ def alter_overtime_register(request, ot_register_id):
 
 
 @login_required
+@require_feature("overtime")
 def delete_overtime_register(request, ot_register_id):
     company = _company(request)
     if not company:

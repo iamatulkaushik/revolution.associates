@@ -113,6 +113,7 @@ def generate_api_key():
 # =====================================================================
 
 from django.contrib.auth.decorators import login_required
+from revolution.app.plan_gate import require_feature
 from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
@@ -124,6 +125,7 @@ def _company(request):
 
 
 @login_required
+@require_feature("biometric")
 def list_biometric_devices(request):
     company = _company(request)
     if not company:
@@ -148,6 +150,7 @@ def list_biometric_devices(request):
 
 
 @login_required
+@require_feature("biometric")
 def create_biometric_device(request):
     company = _company(request)
     if not company:
@@ -173,6 +176,7 @@ def create_biometric_device(request):
 
 
 @login_required
+@require_feature("biometric")
 def list_device_mappings(request, device_id):
     company = _company(request)
     device = get_object_or_404(BiometricDevice, device_id=device_id, company=company)
@@ -194,6 +198,7 @@ def list_device_mappings(request, device_id):
 
 
 @login_required
+@require_feature("biometric")
 def create_device_mapping(request, device_id):
     company = _company(request)
     device = get_object_or_404(BiometricDevice, device_id=device_id, company=company)

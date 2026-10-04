@@ -187,6 +187,7 @@ def get_pending_asset_recovery(employee_obj):
 # =====================================================================
 
 from django.contrib.auth.decorators import login_required
+from revolution.app.plan_gate import require_feature
 from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
@@ -198,6 +199,7 @@ def _company(request):
 
 
 @login_required
+@require_feature("asset_expense")
 def list_assets(request):
     company = _company(request)
     if not company:
@@ -224,6 +226,7 @@ def list_assets(request):
 
 
 @login_required
+@require_feature("asset_expense")
 def create_asset(request):
     company = _company(request)
     if not company:
@@ -245,6 +248,7 @@ def create_asset(request):
 
 
 @login_required
+@require_feature("asset_expense")
 def alter_asset(request, asset_id):
     company = _company(request)
     asset = get_object_or_404(Asset, asset_id=asset_id, company=company)
@@ -262,6 +266,7 @@ def alter_asset(request, asset_id):
 
 
 @login_required
+@require_feature("asset_expense")
 def assign_asset(request, asset_id):
     company = _company(request)
     asset = get_object_or_404(Asset, asset_id=asset_id, company=company)
@@ -284,6 +289,7 @@ def assign_asset(request, asset_id):
 
 
 @login_required
+@require_feature("asset_expense")
 def list_asset_recoveries(request):
     company = _company(request)
     if not company:
@@ -307,6 +313,7 @@ def list_asset_recoveries(request):
 
 
 @login_required
+@require_feature("asset_expense")
 def create_asset_recovery(request):
     company = _company(request)
     if not company:

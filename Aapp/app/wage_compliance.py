@@ -18,6 +18,7 @@ from django.urls import reverse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from revolution.app.plan_gate import require_feature
 
 from Sapp.app.company import Company
 
@@ -157,6 +158,7 @@ def _company(request):
 # ── Minimum Wages Return Views (Form V) ──────────────────────────────────────
 
 @login_required
+@require_feature("min_wages")
 def list_minwages_returns(request):
     company = _company(request)
     if not company:
@@ -286,6 +288,7 @@ def alter_minwages_return(request, return_id):
 # ── Payment of Wages Return Views (Form IV) ─────────────────────────────────
 
 @login_required
+@require_feature("payment_of_wages")
 def list_pow_returns(request):
     company = _company(request)
     if not company:

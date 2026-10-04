@@ -4,6 +4,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from revolution.app.plan_gate import require_feature
 from Sapp.app.company import Company
 from Aapp.app.employee import employee
 
@@ -193,6 +194,7 @@ def _company(request):
 # ── Nominee Views (Form E) ────────────────────────────────────────────────────
 
 @login_required
+@require_feature("gratuity")
 def list_nominees(request):
     company = _company(request)
     if not company:
@@ -218,6 +220,7 @@ def list_nominees(request):
 
 
 @login_required
+@require_feature("gratuity")
 def add_nominee(request):
     company = _company(request)
     if not company:
@@ -248,6 +251,7 @@ def add_nominee(request):
 
 
 @login_required
+@require_feature("gratuity")
 def update_nominee(request, nominee_id):
     company = _company(request)
     if not company:
@@ -273,6 +277,7 @@ def update_nominee(request, nominee_id):
 
 
 @login_required
+@require_feature("gratuity")
 def delete_nominee(request, nominee_id):
     company = _company(request)
     if not company:
@@ -295,6 +300,7 @@ def delete_nominee(request, nominee_id):
 # ── Gratuity Record Views (Form F-H) ─────────────────────────────────────────
 
 @login_required
+@require_feature("gratuity")
 def list_gratuity(request):
     company = _company(request)
     if not company:
@@ -322,6 +328,7 @@ def list_gratuity(request):
 
 
 @login_required
+@require_feature("gratuity")
 def add_gratuity(request):
     company = _company(request)
     if not company:
@@ -355,6 +362,7 @@ def add_gratuity(request):
 
 
 @login_required
+@require_feature("gratuity")
 def mark_gratuity_paid(request, gratuity_id):
     company = _company(request)
     if not company:
@@ -380,6 +388,7 @@ def mark_gratuity_paid(request, gratuity_id):
 
 
 @login_required
+@require_feature("gratuity")
 def delete_gratuity(request, gratuity_id):
     company = _company(request)
     if not company:
@@ -402,6 +411,7 @@ def delete_gratuity(request, gratuity_id):
 # ── Employer Notice Views (Form A-D) ─────────────────────────────────────────
 
 @login_required
+@require_feature("gratuity")
 def list_employer_notices(request):
     company = _company(request)
     if not company:
@@ -423,6 +433,7 @@ def list_employer_notices(request):
 
 
 @login_required
+@require_feature("gratuity")
 def add_employer_notice(request):
     company = _company(request)
     if not company:
@@ -462,6 +473,7 @@ def add_employer_notice(request):
 # ── Payment Notice Views (Form I / J) ────────────────────────────────────────
 
 @login_required
+@require_feature("gratuity")
 def list_payment_notices(request):
     company = _company(request)
     if not company:
@@ -482,6 +494,7 @@ def list_payment_notices(request):
 
 
 @login_required
+@require_feature("gratuity")
 def add_payment_notice(request, gratuity_id):
     company = _company(request)
     if not company:

@@ -205,6 +205,7 @@ def generate_arrears_for_increment(increment_obj, from_month, from_year, to_mont
 # =====================================================================
 
 from django.contrib.auth.decorators import login_required
+from revolution.app.plan_gate import require_feature
 from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
@@ -216,6 +217,7 @@ def _company(request):
 
 
 @login_required
+@require_feature("arrear")
 def list_arrears(request):
     company = _company(request)
     if not company:
@@ -247,6 +249,7 @@ def list_arrears(request):
 
 
 @login_required
+@require_feature("arrear")
 def create_arrear(request):
     company = _company(request)
     if not company:
@@ -274,6 +277,7 @@ def create_arrear(request):
 
 
 @login_required
+@require_feature("arrear")
 def view_arrear_schedule(request, arrear_id):
     """Print/record view, kept separate from the statutory recompute view below."""
     company = _company(request)
@@ -285,6 +289,7 @@ def view_arrear_schedule(request, arrear_id):
 
 
 @login_required
+@require_feature("arrear")
 def download_arrear_schedule(request, arrear_id):
     from django.http import HttpResponse
     from Aapp.app.arrear_pdf import arrear_schedule_pdf
