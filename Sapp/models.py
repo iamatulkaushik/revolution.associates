@@ -6,6 +6,7 @@ from django.shortcuts import redirect
 from django.contrib.auth.decorators import login_required
 
 from Sapp.app import bank
+from Sapp.app import professional_tax  # noqa: F401  (registers PTSlab)
 from Sapp.app.state_district import State, District
 
 # User role choices
