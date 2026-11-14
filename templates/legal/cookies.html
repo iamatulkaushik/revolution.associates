@@ -1,0 +1,34 @@
+{% extends "base_marketing.html" %}
+{% block title %}Cookie Policy | Revolution HRMS{% endblock %}
+{% block description %}The cookies Revolution HRMS uses and how to control them.{% endblock %}
+{% block canonical %}https://reas.host/cookies/{% endblock %}
+{% block og_url %}<meta property="og:url" content="https://reas.host/cookies/">{% endblock %}
+{% block content %}
+<div class="wrap"><article class="prose">
+<h1>Cookie Policy</h1>
+<p class="meta">Last updated: {{ legal_updated }}</p>
+<div class="note">We use only the cookies needed to run a secure payroll platform. We do not use analytics or advertising cookies. This page forms part of our <a href="{% url 'privacy' %}">Privacy Policy</a>.</div>
+
+<h2>1. What cookies are</h2>
+<p>Cookies are small text files stored on your browser. They keep you signed in and help keep the site secure.</p>
+
+<h2>2. Cookies we use</h2>
+<table>
+<thead><tr><th>Cookie</th><th>Purpose</th><th>Type</th><th>Duration</th></tr></thead>
+<tbody>
+<tr><td><code>sessionid</code></td><td>Keeps you signed in to the Associate, Company, Employee and admin portals</td><td>Strictly necessary</td><td>Session, up to <span class="ph">[2 weeks: verify SESSION_COOKIE_AGE]</span></td></tr>
+<tr><td><code>csrftoken</code></td><td>Protects forms against cross-site request forgery</td><td>Strictly necessary</td><td>Up to <span class="ph">[1 year: verify CSRF_COOKIE_AGE]</span></td></tr>
+<tr><td>Cloudflare security cookies, such as <code>__cf_bm</code></td><td>Detect bots and protect the site</td><td>Security</td><td>Short, set by Cloudflare</td></tr>
+</tbody></table>
+<p>Because we use only necessary cookies, we do not show a consent banner. If we add analytics or marketing cookies later, we will update this policy first and ask for your consent.</p>
+
+<h2>3. Your choices</h2>
+<p>Most browsers let you block or delete cookies. Blocking necessary cookies will stop you from signing in.</p>
+
+<h2>4. Third parties</h2>
+<p>Cloudflare sets its own security cookies under its own privacy policy.</p>
+
+<h2>5. Changes and contact</h2>
+<p>We may update this policy when our cookies change. Questions: <a href="mailto:{{ site_email }}">{{ site_email }}</a></p>
+</article></div>
+{% endblock %}

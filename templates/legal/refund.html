@@ -1,0 +1,67 @@
+{% extends "base_marketing.html" %}
+{% block title %}Refund and Cancellation Policy | Revolution HRMS{% endblock %}
+{% block description %}Cancellation, plan changes and refund rules for Revolution HRMS plans and on-premise licences.{% endblock %}
+{% block canonical %}https://reas.host/refund/{% endblock %}
+{% block og_url %}<meta property="og:url" content="https://reas.host/refund/">{% endblock %}
+{% block content %}
+<div class="wrap"><article class="prose">
+<h1>Refund and Cancellation Policy</h1>
+<p class="meta">Last updated: {{ legal_updated }}</p>
+<div class="note">Plans are flat monthly subscriptions with no long lock-in. This page forms part of our <a href="{% url 'terms' %}">Terms of Service</a>.</div>
+
+<h2>1. Plans covered</h2>
+<table>
+<thead><tr><th>Plan</th><th>Price per month</th><th>Employee limit</th></tr></thead>
+<tbody>{% for p in plans %}<tr><td>{{ p.name }}</td><td>{{ p.price_display }}</td><td>{{ p.limit }}</td></tr>{% endfor %}</tbody></table>
+<p>Prices are in INR, plus GST as applicable <span class="ph">[state clearly: exclusive or inclusive of GST]</span>. The on-premise licence is covered in section 6.</p>
+
+<h2>2. Cancelling</h2>
+<ul>
+<li>Cancel any time by emailing <a href="mailto:{{ site_email }}">{{ site_email }}</a> from your registered email.</li>
+<li>Cancellation takes effect at the <strong>end of the current billing cycle</strong>. You keep access until then. No further charges are made.</li>
+<li>Cancel at least <span class="ph">[3]</span> days before renewal so the next cycle is not billed.</li>
+<li>Before cancelling, finish payroll runs and filings, download Form 16 and 24Q, and export your data. You can export for 30 days after the subscription ends. After that, data is deleted or anonymised as described in the <a href="{% url 'privacy' %}">Privacy Policy</a>, subject to legal retention.</li>
+</ul>
+
+<h2>3. Changing plans</h2>
+<ul>
+<li><strong>Upgrade:</strong> effective at once. We charge the difference <span class="ph">[pro-rated for the rest of the cycle]</span>.</li>
+<li><strong>Downgrade:</strong> effective at next renewal. Features not on the lower plan stop from then. Your data is not deleted.</li>
+<li>If you pass your plan's employee limit, we ask you to upgrade. Your data is not locked.</li>
+</ul>
+
+<h2>4. When we refund</h2>
+<ol>
+<li><strong>First-purchase refund:</strong> new paying customers may ask for a full refund of the first payment within <span class="ph">[7]</span> days of paying, if no live payroll, statutory filing or bank file has been generated.</li>
+<li><strong>Billing errors:</strong> incorrect or double charges are refunded in full.</li>
+<li><strong>Service failure:</strong> if a core feature you paid for is unavailable for more than <span class="ph">[7]</span> continuous days because of us and we cannot fix it, you may request a pro-rated refund for that period.</li>
+<li><strong>Unauthorised payment:</strong> report it within 7 days of the charge.</li>
+</ol>
+<p>Features marked "soon" or "planned" on the pricing page are not part of what you buy. Their delay is not a ground for refund unless you bought the plan on the written promise of a date.</p>
+
+<h2>5. When we do not refund</h2>
+<ul>
+<li>Partly used billing periods after the first-purchase window.</li>
+<li>Downgrades or unused employee capacity.</li>
+<li>Penalties, interest or losses from wrong inputs, approvals you gave, late filings, or the rules of EPFO, ESIC, tax or bank portals.</li>
+<li>Accounts suspended or terminated for breach of the Terms.</li>
+<li>Government charges and payment-gateway fees, except where law requires a refund.</li>
+</ul>
+
+<h2>6. On-premise licence</h2>
+<p>The on-premise option is a one-time lifetime licence with annual support, priced by quotation. The licence fee is <strong>non-refundable once the software is delivered or activated</strong>, unless the quote says otherwise. Annual support is charged in advance and is non-refundable once the support year starts, except for billing errors. Without support renewal you may keep using your version but get no updates, including statutory rate and form changes.</p>
+
+<h2>7. How to ask</h2>
+<ol>
+<li>Email <a href="mailto:{{ site_email }}">{{ site_email }}</a> from your registered email with company name, invoice number and reason.</li>
+<li>We acknowledge within 2 business days and review within 7.</li>
+<li>Approved refunds go to the <strong>original payment method</strong> within <span class="ph">[7 to 10]</span> business days. Banks may take longer. Where GST was charged we issue a credit note.</li>
+</ol>
+
+<h2>8. Walkthroughs</h2>
+<p>Walkthroughs are free. A paid plan starts only when you order and pay.</p>
+
+<h2>9. Contact</h2>
+<p>Email: <a href="mailto:{{ site_email }}">{{ site_email }}</a><br>Phone: <span class="ph">[Phone number]</span><br>Address: <span class="ph">[Registered address]</span></p>
+</article></div>
+{% endblock %}

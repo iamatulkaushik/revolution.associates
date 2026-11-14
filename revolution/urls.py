@@ -23,7 +23,7 @@ from Sapp.app.associate_public import associate_public_profile
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from Sapp.app.marketing import (
     features, pricing, compliance, about, contact, contact_submit,
-    robots_txt, sitemap_xml,
+    privacy, terms, cookies, refund, robots_txt, sitemap_xml,
 )
 urlpatterns = [
     path('',base_home, name="base"),
@@ -38,6 +38,10 @@ urlpatterns = [
     path('about/', about, name='about'),
     path('contact/', contact, name='contact'),
     path('contact/submit/', contact_submit, name='contact_submit'),
+    path('privacy/', privacy, name='privacy'),
+    path('terms/', terms, name='terms'),
+    path('cookies/', cookies, name='cookies'),
+    path('refund/', refund, name='refund'),
     path('robots.txt', robots_txt, name='robots_txt'),
     path('sitemap.xml', sitemap_xml, name='sitemap_xml'),
 ]

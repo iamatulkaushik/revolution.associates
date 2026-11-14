@@ -1,116 +1,35 @@
 {% extends "base_marketing.html" %}
-
-{% block title %}Pricing — HRMS & Payroll Software Plans (INR) | Revolution HRMS{% endblock %}
-{% block description %}Revolution HRMS pricing in Indian Rupees. Copper, Silver, Gold and Platinum plans covering ESI, EPF, PT, gratuity, and full statutory compliance. Flat monthly pricing, no hidden fees.{% endblock %}
-{% block keywords %}HRMS pricing India, payroll software price INR, HR software cost India, payroll SaaS pricing, compliance software price{% endblock %}
+{% block title %}Pricing | Revolution HRMS{% endblock %}
+{% block description %}Flat monthly plans for Revolution HRMS: Copper, Silver, Gold and Platinum, priced in INR by employee limit.{% endblock %}
 {% block canonical %}https://reas.host/pricing/{% endblock %}
-{% block og_title %}<meta property="og:title" content="Revolution HRMS Pricing — Plans in INR">{% endblock %}
 {% block og_url %}<meta property="og:url" content="https://reas.host/pricing/">{% endblock %}
-
-{% block structured_data %}
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "Product",
-  "name": "Revolution HRMS",
-  "offers": [
-    {"@type":"Offer","name":"Copper","priceCurrency":"INR","price":"999","description":"Flat monthly price, up to 25 employees"},
-    {"@type":"Offer","name":"Silver","priceCurrency":"INR","price":"2499","description":"Flat monthly price, up to 75 employees"},
-    {"@type":"Offer","name":"Gold","priceCurrency":"INR","price":"4999","description":"Flat monthly price, up to 200 employees"},
-    {"@type":"Offer","name":"Platinum","priceCurrency":"INR","price":"8999","description":"Flat monthly price, unlimited employees"}
-  ]
-}
-</script>
-{% endblock %}
-
 {% block content %}
-<div class="breadcrumbs"><a href="{% url 'base' %}">Home</a> / Pricing</div>
-<section class="page-hero">
-  <span class="eyebrow glass"><span class="dot"></span> Simple, transparent, INR pricing</span>
-  <h1>Statutory-compliant payroll, sized to how you run HR</h1>
-  <p>Flat monthly pricing across four plans — no per-employee surprises. Upgrade any time as your compliance needs grow.</p>
-</section>
-
-<section>
-  <div class="pricing-grid">
-    <div class="price-card glass reveal">
-      <h3>Copper</h3>
-      <div class="price">₹999 <small>/ month</small></div>
-      <p class="plan-limit">Up to 25 employees</p>
-      <ul>
-        <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Employee master + onboarding</li>
-        <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Attendance — full day / half day</li>
-        <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> ESI + EPF + Professional Tax</li>
-        <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Payslips (PDF)</li>
-      </ul>
-      <a href="{% url 'contact' %}" class="btn btn-ghost">Get started</a>
+<div class="wrap">
+<div class="breadcrumb"><a href="{% url 'base' %}">Home</a> / Pricing</div>
+<div class="page-head"><p class="kicker">Pricing</p><h1>Flat monthly plans</h1>
+<p>Pay by employee limit. No per-employee meter. Prices in INR, taxes as applicable.</p></div>
+<section style="padding-top:28px">
+  <div class="plans">
+  {% for p in plans %}
+    <div class="plan{% if p.pick %} pick{% endif %}">
+      <h3>{{ p.name }}</h3>
+      <p class="price">{{ p.price_display }}<small> / month</small></p>
+      <p class="limit">{{ p.limit }}</p>
+      <ul class="ticks">{% for text, st in p.features %}<li{% if st %} class="{{ st }}"{% endif %}>{{ text }}{% if st == 'soon' %}<span class="badge soon">soon</span>{% elif st == 'plan' %}<span class="badge plan">planned</span>{% endif %}</li>{% endfor %}</ul>
+      <a class="btn{% if p.pick %} primary{% endif %}" href="{% url 'contact' %}?plan={{ p.slug }}">Talk to us</a>
     </div>
-
-    <div class="price-card glass reveal">
-      <h3>Silver</h3>
-      <div class="price">₹2,499 <small>/ month</small></div>
-      <p class="plan-limit">Up to 75 employees</p>
-      <ul>
-        <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Everything in Copper</li>
-        <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Employee self-service portal</li>
-        <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Overtime auto-calculation</li>
-        <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Biometric/RFID + shift management</li>
-        <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> LWF challan</li>
-        <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Loans & advances (EMI)</li>
-      </ul>
-      <a href="{% url 'contact' %}" class="btn btn-ghost">Get started</a>
-    </div>
-
-    <div class="price-card glass reveal featured">
-      <span class="eyebrow glass" style="display:inline-flex;width:fit-content;">Most popular</span>
-      <h3>Gold</h3>
-      <div class="price">₹4,999 <small>/ month</small></div>
-      <p class="plan-limit">Up to 200 employees</p>
-      <ul>
-        <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Everything in Silver</li>
-        <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Promotion & increment tracking</li>
-        <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Gratuity & Full-and-Final settlement</li>
-        <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Factory Act, Minimum Wages, S&E, PoW registers</li>
-        <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Bank payout files (HDFC/ICICI/SBI/Axis)</li>
-        <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Bulk payslip email + arrear recompute</li>
-      </ul>
-      <a href="{% url 'contact' %}" class="btn btn-primary">Get started</a>
-    </div>
-
-    <div class="price-card glass reveal">
-      <h3>Platinum</h3>
-      <div class="price">₹8,999 <small>/ month</small></div>
-      <p class="plan-limit">Unlimited employees</p>
-      <ul>
-        <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Everything in Gold</li>
-        <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Contract Labour & Bonus Act</li>
-        <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Multi-state Professional Tax (19+ states)</li>
-        <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Income Tax/TDS — Form 16, 24Q</li>
-        <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Audit trail & maker-checker workflow</li>
-        <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Asset & expense mgmt, direct disbursement, API access</li>
-      </ul>
-      <a href="{% url 'contact' %}" class="btn btn-ghost">Talk to sales</a>
-    </div>
+  {% endfor %}
   </div>
+  <p class="legend">✓ available now · ◔ rolling out · ○ planned. Planned features are not part of what you are buying today. On-premise lifetime licence with annual support is available by quotation.</p>
 </section>
-
-<section>
-  <div class="section-head">
-    <h2>Frequently asked</h2>
-  </div>
-  <div class="faq">
-    <details class="faq-item glass"><summary>Is pricing per employee or flat?</summary><p>Flat monthly price per plan, up to the employee limit shown. Exceeding your slab prompts an upgrade — your data is never locked.</p></details>
-    <details class="faq-item glass"><summary>Do you offer offline / on-premise licensing?</summary><p>Yes. A one-time lifetime license with annual support is available for factories needing on-premise deployment — contact sales for a quote.</p></details>
-    <details class="faq-item glass"><summary>What's included in Professional Tax coverage?</summary><p>Copper through Gold cover single-state Professional Tax. Platinum adds the multi-state PT engine across 19+ Indian states, applied automatically by employee work location.</p></details>
-    <details class="faq-item glass"><summary>Can I switch plans later?</summary><p>Yes, you can upgrade or downgrade at any renewal cycle without data migration.</p></details>
-  </div>
+<section class="faq" style="padding-top:0">
+  <div class="head"><h2>Common questions</h2></div>
+  <details><summary>Is there a free trial?</summary><p>No trial. We offer a free walkthrough, and a 7-day first-purchase refund as described in the <a href="{% url 'refund' %}">refund policy</a>.</p></details>
+  <details><summary>What if I cross my employee limit?</summary><p>We ask you to upgrade. We do not lock your data.</p></details>
+  <details><summary>Can I cancel any time?</summary><p>Yes. It takes effect at the end of the billing cycle. Export your data first.</p></details>
 </section>
-
-<section class="cta-panel glass reveal">
-  <h2>Not sure which plan fits?</h2>
-  <p>Tell us your headcount and compliance needs — we'll recommend a plan.</p>
-  <div class="cta-actions">
-    <a href="{% url 'contact' %}" class="btn btn-primary">Get a demo</a>
-  </div>
-</section>
+</div>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"ItemList","itemListElement":[{% for p in plans %}{"@type":"ListItem","position":{{ forloop.counter }},"item":{"@type":"Offer","name":"{{ p.name }}","price":"{{ p.price }}","priceCurrency":"INR"}}{% if not forloop.last %},{% endif %}{% endfor %}]}
+</script>
 {% endblock %}

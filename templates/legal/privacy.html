@@ -1,0 +1,88 @@
+{% extends "base_marketing.html" %}
+{% block title %}Privacy Policy | Revolution HRMS{% endblock %}
+{% block description %}How Revolution HRMS collects, uses, stores and protects personal data of visitors, platform users and employee data processed for customers.{% endblock %}
+{% block canonical %}https://reas.host/privacy/{% endblock %}
+{% block og_url %}<meta property="og:url" content="https://reas.host/privacy/">{% endblock %}
+{% block content %}
+<div class="wrap"><article class="prose">
+<h1>Privacy Policy</h1>
+<p class="meta">Last updated: {{ legal_updated }}</p>
+<div class="note">Revolution HRMS is payroll and compliance software. Much of the data on it belongs to our customers' employees. This policy explains what we collect, why, who sees it, how long we keep it, and how you can exercise your rights under Indian law, including the Digital Personal Data Protection Act, 2023 and the rules made under it, as they come into force.</div>
+
+<h2>1. Who we are</h2>
+<p>Revolution HRMS ("we", "us") is operated by <span class="ph">[Legal name and entity type]</span>, registered office <span class="ph">[Registered address]</span> (GSTIN <span class="ph">[GSTIN]</span>). Website: <a href="https://reas.host/">reas.host</a>. Email: <a href="mailto:{{ site_email }}">{{ site_email }}</a>.</p>
+
+<h2>2. Our role: fiduciary or processor</h2>
+<ul>
+<li><strong>Data Fiduciary (we decide why and how):</strong> website enquiries, demo requests, customer account and billing details, and platform usage logs.</li>
+<li><strong>Data Processor (we act on a customer's instructions):</strong> employee, attendance, salary and statutory data that an Associate, Company or Direct Owner enters or uploads. The customer is the Data Fiduciary for that data. We process it only to provide the service and as the customer instructs. A data processing agreement is available on request.</li>
+</ul>
+<p>If you are an employee on a customer's payroll, contact your employer first for access, correction or deletion. We will help the employer respond.</p>
+
+<h2>3. What we collect</h2>
+<table>
+<thead><tr><th>Category</th><th>Examples</th><th>Source</th></tr></thead>
+<tbody>
+<tr><td>Enquiry data</td><td>Name, company, work email, phone, message</td><td>Contact form, email</td></tr>
+<tr><td>Account and access data</td><td>Login ID, role, password hash, sign-in time</td><td>You or your administrator</td></tr>
+<tr><td>Audit and technical logs</td><td>Who changed which salary or attendance record, when, from which IP address; browser and device type</td><td>Automatic</td></tr>
+<tr><td>Workforce data processed for customers</td><td>Employee name, date of birth, gender, address, contact details, PAN, UAN, ESI number, bank account details, salary, attendance and leave, loans, tax declarations and proofs, nominations, bills and asset records, settlement details; Aadhaar only if the customer uploads it</td><td>Entered or uploaded by the customer</td></tr>
+<tr><td>Attendance device data</td><td>Punch records (employee ID, date and time, device ID) relayed from biometric or RFID devices by the local sync daemon. <span class="ph">[Confirm: we do not store fingerprint or face templates.]</span></td><td>Customer's devices</td></tr>
+<tr><td>Billing data</td><td>Billing name, GSTIN, invoices, payment reference</td><td>Customer, payment provider</td></tr>
+</tbody></table>
+<p>Payroll data is financial and sensitive. We treat it with more care than ordinary contact data.</p>
+
+<h2>4. Why we use it</h2>
+<ul>
+<li>To run payroll, attendance and statutory processing, and generate payslips, challans, return files and bank files.</li>
+<li>To create accounts, enforce role-based access and keep an audit trail.</li>
+<li>To respond to enquiries, give walkthroughs, provide support and send service notices.</li>
+<li>To send marketing only where you consented or the law permits. You can opt out at any time.</li>
+<li>To bill customers, meet tax and legal obligations, and keep the service reliable.</li>
+</ul>
+<p>We rely on your consent or, where the Act permits, on the purpose for which data was provided, legal compliance and the customer's employment-related purposes. We do not sell personal data.</p>
+
+<h2>5. Who we share data with</h2>
+<ul>
+<li><strong>The customer organisation</strong> and its users, by the roles it assigns.</li>
+<li><strong>Service providers:</strong> Oracle Cloud (hosting), Cloudflare (DNS, delivery, security and email routing) and Brevo (transactional email such as payslips and verification). They are bound by confidentiality and data-protection terms. <span class="ph">[Confirm hosting region and list any other providers.]</span></li>
+<li><strong>Government portals and banks, at the customer's direction.</strong> The platform generates files for EPFO, ESIC, income-tax and bank portals. The customer submits them.</li>
+<li><strong>Authorities</strong> when required by law or court order.</li>
+<li><strong>Successors</strong> in a merger or restructuring, on the same commitments.</li>
+</ul>
+
+<h2>6. Where data is stored</h2>
+<p>Data is hosted in <span class="ph">[country / cloud region, ideally India]</span>. We transfer personal data outside India only as the DPDP Act permits. On-premise customers store data on their own servers and are responsible for that environment.</p>
+
+<h2>7. How long we keep it</h2>
+<ul>
+<li><strong>Payroll and statutory records:</strong> while the subscription is active, then as the customer instructs or the law requires. Indian labour, EPF, ESI and tax rules require several years of retention.</li>
+<li><strong>Enquiry data:</strong> up to 24 months after last contact unless you become a customer.</li>
+<li><strong>Audit logs:</strong> for the life of the account plus the statutory period.</li>
+<li><strong>After termination:</strong> customers can export data for 30 days. Then we delete or anonymise it within <span class="ph">[60]</span> days, except where law requires retention.</li>
+</ul>
+
+<h2>8. Security</h2>
+<p>We use role-based access, separate portals for Associates, Companies and Employees, field-level encryption for Aadhaar and PAN, rate limiting on sign-in, password reset and punch endpoints, and an audit trail of salary and attendance changes. Where the approval workflow is enabled, payslips and bank files stay locked until the owner approves. <span class="ph">[Confirm and list: HTTPS/TLS, database encryption at rest, backup schedule, access reviews.]</span> No system is completely secure. If a personal data breach affects you, we will notify the affected customer and the Data Protection Board of India as the law requires.</p>
+<p>Customers must keep credentials confidential, assign roles carefully and remove access for people who leave.</p>
+
+<h2>9. Your rights</h2>
+<p>Under the DPDP Act you may ask for a summary of your personal data and who it is shared with; ask for correction, completion or erasure; withdraw consent; nominate someone to act for you if you die or become incapacitated; and have your grievance addressed. Write to us at the address below. If you remain unsatisfied after our grievance process, you may complain to the Data Protection Board of India.</p>
+
+<h2>10. Children</h2>
+<p>The service is for businesses, not children. Customers who process data of workers under 18 must follow applicable law, including any parental-consent requirement.</p>
+
+<h2>11. Cookies</h2>
+<p>See our <a href="{% url 'cookies' %}">Cookie Policy</a>.</p>
+
+<h2>12. Changes</h2>
+<p>We may update this policy. The "Last updated" date shows the latest version. We will give notice of material changes on the site or by email.</p>
+
+<h2>13. Contact and Grievance Officer</h2>
+<p>Grievance Officer: <span class="ph">[Name]</span><br>
+Email: <a href="mailto:{{ site_email }}">{{ site_email }}</a><br>
+Address: <span class="ph">[Registered address]</span><br>
+Phone: <span class="ph">[Phone number]</span><br>
+We aim to acknowledge complaints within 48 hours and resolve them within 30 days.</p>
+</article></div>
+{% endblock %}

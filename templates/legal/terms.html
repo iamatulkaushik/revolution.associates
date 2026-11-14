@@ -1,0 +1,121 @@
+{% extends "base_marketing.html" %}
+{% block title %}Terms of Service | Revolution HRMS{% endblock %}
+{% block description %}Terms governing use of Revolution HRMS by Associates, Companies, Direct Owners and Employees.{% endblock %}
+{% block canonical %}https://reas.host/terms/{% endblock %}
+{% block og_url %}<meta property="og:url" content="https://reas.host/terms/">{% endblock %}
+{% block content %}
+<div class="wrap"><article class="prose">
+<h1>Terms of Service</h1>
+<p class="meta">Last updated: {{ legal_updated }}</p>
+<div class="note">By creating an account, signing in or using Revolution HRMS, you agree to these Terms. If you accept for a business, you confirm you can bind it. If you do not agree, do not use the service.</div>
+
+<h2>1. The service</h2>
+<p>Revolution HRMS (the "Service") is cloud-based payroll, attendance and statutory compliance software operated by <span class="ph">[Legal name and entity type]</span>, <span class="ph">[Registered address]</span> ("we", "us"). Modules include EPF and ESI, Professional Tax, TDS, Form 16 and 24Q, loans, arrears, Full and Final settlement, biometric and RFID attendance sync, overtime and LOP, bank files, audit trail, and asset and expense tracking. Availability depends on your plan and on rollout status shown on our <a href="{% url 'pricing' %}">pricing page</a>.</p>
+
+<h2>2. Account types</h2>
+<table><thead><tr><th>Account</th><th>For</th></tr></thead><tbody>
+<tr><td>Associate</td><td>An HR compliance professional or firm running payroll for client companies</td></tr>
+<tr><td>Company</td><td>A company added by an Associate</td></tr>
+<tr><td>Direct Owner</td><td>A business owner using the Service without an Associate</td></tr>
+<tr><td>Employee</td><td>A worker using self-service to view payslips, apply for leave and see statutory records</td></tr>
+</tbody></table>
+<p>The organisation that signs up (the "Customer") is responsible for every user it creates and all activity under its accounts.</p>
+
+<h2>3. Eligibility and registration</h2>
+<ul>
+<li>You must be 18 or older and able to contract in India.</li>
+<li>Keep information accurate, including company registration, PAN, GSTIN, EPF and ESI codes.</li>
+<li>Statutory gates apply: the Service does not process a deduction until the relevant registration details are on file.</li>
+<li>Keep credentials confidential and tell us promptly of unauthorised use.</li>
+</ul>
+
+<h2>4. Plans, fees and taxes</h2>
+<ul>
+<li>Plans are flat monthly fees up to the employee limit shown on the pricing page. Features differ by plan.</li>
+<li>Prices are in INR, plus GST as applicable <span class="ph">[state: exclusive or inclusive]</span>. We issue a tax invoice.</li>
+<li>Fees are billed <span class="ph">[monthly in advance]</span>, due on the invoice date. We may suspend for non-payment after reasonable notice.</li>
+<li>If you pass your employee limit we ask you to upgrade. We do not lock or delete your data for that.</li>
+<li>You can change plans at a renewal. We give at least 30 days' notice of price changes before your next renewal.</li>
+<li>Features marked "soon" or "planned" are not promised for any date and are not part of your plan until released.</li>
+<li>The on-premise option is a one-time licence with annual support under the quote and licence agreement, with these Terms.</li>
+<li>Refunds follow the <a href="{% url 'refund' %}">Refund and Cancellation Policy</a>.</li>
+</ul>
+
+<h2>5. Your data and responsibilities</h2>
+<ul>
+<li><strong>You own your data.</strong> We process it only to provide the Service, under our <a href="{% url 'privacy' %}">Privacy Policy</a>.</li>
+<li>You confirm you have the right and, where required, the consent or other lawful basis to put personal data on the platform.</li>
+<li>You are responsible for the accuracy of employee master data, salary structures, attendance rules, tax declarations and every figure you approve.</li>
+<li>Review payslips, challans, ECR, bank files, Form 16 and Form 24Q before use. Approval is your decision and responsibility, including where an approval workflow is enabled.</li>
+<li>You are responsible for filing returns, paying contributions and taxes on time, and for what you submit to EPFO, ESIC, the Income Tax Department, state authorities or banks.</li>
+<li>You are responsible for your attendance hardware, network, devices and sync daemon setup.</li>
+</ul>
+
+<h2>6. Not legal, tax or accounting advice</h2>
+<p>The Service is a software tool. It applies rules and rates we configure, such as EPF and ESI thresholds, Professional Tax slabs, Labour Welfare Fund rules and tax regimes. Laws and notifications change, including the move to the Labour Codes. We work to update the Service promptly but do not guarantee every change is reflected at once or that every state rule is complete. Nothing in the Service or on our website is legal, tax or professional advice. Confirm important positions with a qualified professional. Descriptions of how the Service works are design intent, not a guarantee of any filing outcome or penalty avoidance.</p>
+
+<h2>7. Associates</h2>
+<p>If you are an Associate, you confirm you hold the authority and engagement from each client company you add, will handle client data confidentially and only as instructed, and are responsible to us for your client users. You are an independent party, not our employee, agent or partner, unless a written agreement says so.</p>
+
+<h2>8. Acceptable use</h2>
+<p>You must not:</p>
+<ul>
+<li>break the law, or use the Service to evade statutory contributions, taxes or wages;</li>
+<li>upload data you have no right to use, or malware;</li>
+<li>access another customer's data, test our systems without written permission, or bypass access controls or approval workflows;</li>
+<li>resell or sublicense the Service except as an Associate under these Terms;</li>
+<li>copy, reverse engineer or scrape the Service, except as law allows;</li>
+<li>overload the Service or interfere with other users.</li>
+</ul>
+<p>We may suspend or restrict access where we reasonably believe these rules are broken or security is at risk.</p>
+
+<h2>9. Availability and changes</h2>
+<p>We aim for reliable service but do not promise uninterrupted or error-free operation. We may do maintenance, release updates, and add, change or retire features. We give reasonable notice of changes that materially reduce your paid plan. <span class="ph">[Link an SLA here if you offer one.]</span></p>
+
+<h2>10. Third-party systems</h2>
+<p>The Service generates files for, or connects with, systems such as EPFO, ESIC, TRACES, state portals and banks (HDFC, ICICI, SBI and Axis layouts, and a generic layout). Those systems are outside our control. Their formats, availability and rules may change, and we are not responsible for their downtime, rejections or decisions.</p>
+
+<h2>11. Intellectual property</h2>
+<p>We and our licensors own the Service, its software, design, documentation and branding. We grant you a limited, non-exclusive, non-transferable right to use it during your subscription for internal business purposes. You keep ownership of your data and grant us a limited licence to host and process it to provide the Service. We may use feedback you send without obligation.</p>
+
+<h2>12. Confidentiality</h2>
+<p>Each party will protect the other's non-public information with reasonable care and use it only for the Service, except where law requires disclosure.</p>
+
+<h2>13. Disclaimers</h2>
+<p>To the extent law allows, the Service is provided "as is" and "as available". We disclaim implied warranties, including merchantability, fitness for a purpose and non-infringement. We do not warrant that outputs will be accepted by any authority or bank, or that use of the Service will prevent notices, penalties, interest or disputes.</p>
+
+<h2>14. Limitation of liability</h2>
+<ul>
+<li>We are not liable for indirect, incidental, special or consequential loss, or loss of profit, goodwill or data.</li>
+<li>We are not liable for penalties, interest or losses from inaccurate inputs, approvals you gave, late filings, third-party failures, or your failure to review outputs.</li>
+<li>Our total liability for any claim is limited to the fees you paid in the <span class="ph">[12]</span> months before the event.</li>
+<li>Nothing here limits liability that Indian law does not allow to be limited, including for fraud.</li>
+</ul>
+
+<h2>15. Indemnity</h2>
+<p>You will defend and compensate us against third-party claims, losses and reasonable costs arising from data you upload without authority, your breach of these Terms or law, or your misuse of the Service.</p>
+
+<h2>16. Suspension and termination</h2>
+<ul>
+<li>You may cancel as described in the <a href="{% url 'refund' %}">Refund and Cancellation Policy</a>.</li>
+<li>We may suspend or terminate for material breach, non-payment, legal requirement or security risk. Where practical we give notice and a chance to fix it.</li>
+<li>After termination you may export data for 30 days. Then we delete or anonymise it under the Privacy Policy, subject to legal retention.</li>
+<li>Sections on intellectual property, confidentiality, disclaimers, liability, indemnity and governing law survive termination.</li>
+</ul>
+
+<h2>17. Marketing communications</h2>
+<p>We may contact you by email, phone or WhatsApp about the Service. Opt out any time by replying "STOP" or using the unsubscribe link. Service and billing notices still apply.</p>
+
+<h2>18. Changes to these Terms</h2>
+<p>We may update these Terms. We give at least 15 days' notice of material changes by email or in the Service. Continued use after the effective date means you accept them.</p>
+
+<h2>19. Governing law and disputes</h2>
+<p>Indian law governs these Terms. The parties first try to resolve a dispute in good faith for 30 days. If unresolved, it goes to arbitration under the Arbitration and Conciliation Act, 1996, before a sole arbitrator appointed jointly by us and the Customer, seated at <span class="ph">[City, State]</span>, in English. Subject to that, the courts at <span class="ph">[City, State]</span> have exclusive jurisdiction. These Terms are an electronic record under the Information Technology Act, 2000 and need no physical signature.</p>
+
+<h2>20. General</h2>
+<p>These Terms, with the Privacy, Cookie and Refund policies and any order form or quote, are the whole agreement. If any part is unenforceable the rest continues. Not enforcing a right is not a waiver. You may not assign these Terms without our consent. We may assign them in a merger or sale. Neither party is liable for delay caused by events beyond its reasonable control.</p>
+
+<h2>21. Contact</h2>
+<p>Email: <a href="mailto:{{ site_email }}">{{ site_email }}</a><br>Address: <span class="ph">[Registered address]</span><br>Phone: <span class="ph">[Phone number]</span></p>
+</article></div>
+{% endblock %}
