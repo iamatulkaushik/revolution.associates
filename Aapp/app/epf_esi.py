@@ -408,7 +408,7 @@ def _compute_epf_ecr_totals(company, month, year):
     employee_epf = Decimal('0')
     employer_epf = Decimal('0')
     employer_eps = Decimal('0')
-    edli_contribution = Decimal('0')
+    total_edli_wages = Decimal('0')
 
     for s in slips:
         emp = s.employee_id
@@ -416,16 +416,18 @@ def _compute_epf_ecr_totals(company, month, year):
         if not uan:
             continue
         total_members += 1
-        basic = Decimal(s.basic_earned or 0)
-        eps_wage = min(basic, EPS_CEILING)
-        total_epf_wages += basic
-        employee_epf += Decimal(s.pf_deduction or 0)
-        eps_amt = (eps_wage * Decimal('0.0833')).quantize(Decimal('1'), rounding=ROUND_HALF_UP)
-        employer_eps += eps_amt
-        employer_epf += Decimal(s.pf_employer_contribution or 0) - eps_amt
-        edli_contribution += (eps_wage * Decimal('0.005')).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+        from Aapp.app.ecr_generator import ecr_member_figures
+        f = ecr_member_figures(s.basic_earned, s.gross_earnings, s.working_days, s.paid_days, month, year)
+        total_epf_wages += Decimal(f['epf_wages'])
+        employee_epf += Decimal(f['epf_ee'])
+        employer_eps += Decimal(f['eps'])
+        employer_epf += Decimal(f['diff'])
+        total_edli_wages += Decimal(f['edli_wages'])
 
-    admin_charges = max((total_epf_wages * Decimal('0.005')).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP), Decimal('500'))
+    # Portal challan: A/C 21 and A/C 2 are 0.5% of total wages in whole rupees;
+    # A/C 2 has a Rs 500 minimum.
+    edli_contribution = (total_edli_wages * Decimal('0.005')).quantize(Decimal('1'), rounding=ROUND_HALF_UP)
+    admin_charges = max((total_epf_wages * Decimal('0.005')).quantize(Decimal('1'), rounding=ROUND_HALF_UP), Decimal('500'))
 
     # New joiners: employees whose date of joining falls within this month/year.
     total_new_joiners = employee.objects.filter(

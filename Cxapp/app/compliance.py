@@ -58,7 +58,6 @@ def _q(value):
 EPF_EMPLOYEE_RATE = Decimal('0.12')
 EPF_EMPLOYER_RATE = Decimal('0.0367')
 EPS_EMPLOYER_RATE = Decimal('0.0833')
-EPS_WAGE_CEILING = Decimal('15000')
 EDLI_RATE = Decimal('0.005')
 ESI_EMPLOYEE_RATE = Decimal('0.0075')
 
@@ -149,8 +148,9 @@ def _epf_export(request):
         # CxSalary.process() in process.py for the deduction logic.
         basic_da_lines = salary.lines.filter(component_name__in=['Basic Pay', 'Dearness Allowance'])
         epf_wages = sum((l.resolved_amount for l in basic_da_lines), Decimal('0.00'))
-        eps_wages = min(epf_wages, EPS_WAGE_CEILING)
-        edli_wages = min(epf_wages, EPS_WAGE_CEILING)
+        from revolution.statutory_rates import pf_wage_ceiling
+        eps_wages = min(epf_wages, pf_wage_ceiling(month, year))
+        edli_wages = eps_wages
 
         epf_line = salary.lines.filter(component_name='EPF (Statutory)').first()
         epf_contri_employee = epf_line.resolved_amount if epf_line else _q(epf_wages * EPF_EMPLOYEE_RATE)
@@ -158,7 +158,9 @@ def _epf_export(request):
         epf_contri_employer = _q(epf_wages * EPF_EMPLOYER_RATE)
         # EPF-EPS difference remitted: employer EPF share minus what
         # went to EPS, per the ECR field's definition.
-        epf_eps_diff = _q(epf_contri_employer)
+        # Employer 12% share (on EPF wages) minus EPS, which is capped at the
+        # statutory ceiling — the 3.67% shortcut is only right below the ceiling.
+        epf_eps_diff = max(_q(epf_wages * EPF_EMPLOYEE_RATE) - eps_contri, Decimal('0'))
 
         # NCP days: non-contributory period, i.e. days NOT worked in
         # a 30-day baseline month (unpaid leave, absence).
@@ -236,10 +238,11 @@ def _esi_export(request):
         ):
             last_working_day = employment.date_of_leaving.strftime('%d-%m-%Y')
         if working_days == 0:
-            reason_for_zero = 'Non-implemented Area'  # placeholder; owner should correct per actual reason
+            reason_for_zero = '1'  # ESIC numeric reason code 1 = On Leave; correct per actual reason
 
         rows.append([
-            esi_number, employee.name, str(working_days), f'{total_wages:.2f}',
+            esi_number, employee.name, str(working_days),
+            str(int(Decimal(total_wages or 0).quantize(Decimal('1'), rounding=ROUND_HALF_UP))),
             reason_for_zero, last_working_day,
         ])
 

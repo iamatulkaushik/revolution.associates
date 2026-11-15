@@ -137,6 +137,12 @@ def add_lwf(request):
         messages.warning(request, 'Please select a company first.')
         return redirect('aapp_dashboard')
 
+    from Aapp.app.statutory_gates import get_company_gates, labour_required
+    ok, msg = labour_required(get_company_gates(company), 'LWF')
+    if not ok:
+        messages.error(request, msg)
+        return redirect('list_lwf')
+
     if request.method == 'POST':
         form = LabourWelfareFundContributionForm(request.POST)
         if form.is_valid():
@@ -170,6 +176,12 @@ def alter_lwf(request, lwf_id):
         messages.warning(request, 'Please select a company first.')
         return redirect('aapp_dashboard')
 
+    from Aapp.app.statutory_gates import get_company_gates, labour_required
+    ok, msg = labour_required(get_company_gates(company), 'LWF')
+    if not ok:
+        messages.error(request, msg)
+        return redirect('list_lwf')
+
     rec = get_object_or_404(LabourWelfareFundContribution, lwf_id=lwf_id, company=company)
 
     if request.method == 'POST':
@@ -194,6 +206,12 @@ def mark_lwf_paid(request, lwf_id):
     if not company:
         messages.warning(request, 'Please select a company first.')
         return redirect('aapp_dashboard')
+
+    from Aapp.app.statutory_gates import get_company_gates, labour_required
+    ok, msg = labour_required(get_company_gates(company), 'LWF')
+    if not ok:
+        messages.error(request, msg)
+        return redirect('list_lwf')
 
     rec = get_object_or_404(LabourWelfareFundContribution, lwf_id=lwf_id, company=company)
     if request.method == 'POST':

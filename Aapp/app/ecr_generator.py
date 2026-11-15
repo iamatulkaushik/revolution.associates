@@ -24,6 +24,7 @@ an aggregate. The EpfMonthlyEcr record supplies the header totals only.
 """
 
 import logging
+import re
 from decimal import Decimal, ROUND_HALF_UP
 
 from django.contrib.auth.decorators import login_required
@@ -32,7 +33,8 @@ from django.shortcuts import get_object_or_404
 
 logger = logging.getLogger(__name__)
 
-EPS_WAGE_CEILING = Decimal('15000')
+EPF_EE_RATE = Decimal('0.12')        # employee share, and employer EPF+EPS share
+EPS_RATE = Decimal('0.0833')
 
 
 def _company(request):
@@ -47,6 +49,52 @@ def _r2(v):
 
 def _r0(v):
     return int(Decimal(v).quantize(Decimal('1'), rounding=ROUND_HALF_UP))
+
+
+def _wage_ceiling(month=None, year=None):
+    """Statutory EPF/EPS/EDLI wage ceiling for the salary month
+    (15,000 up to 16-Sep-2026, 25,000 after; see revolution.statutory_rates).
+    settings.ECR_WAGE_CEILING, if set, overrides it."""
+    from django.conf import settings
+    from revolution.statutory_rates import pf_wage_ceiling
+    v = getattr(settings, 'ECR_WAGE_CEILING', None)
+    return Decimal(str(v)) if v else pf_wage_ceiling(month, year)
+
+
+def ecr_member_figures(basic, gross, working_days=0, paid_days=0, month=None, year=None):
+    """
+    Single source of truth for one member's ECR figures (used by the ECR
+    text file AND the monthly ECR header totals, so they can never drift).
+
+    Wage basis = gross earnings (falls back to basic if gross is 0).
+    EPF wages = EPS wages = EDLI wages = that basis, capped at the statutory
+    ceiling for the salary month (Rs 25,000 from 17-Sep-2026).
+      * EE share     = 12%   of EPF wages, whole rupees
+      * EPS share    = 8.33% of EPS wages, whole rupees
+      * EPF-EPS diff = EE share - EPS share   (employer 12% - EPS)
+    The designation's 13% employer rate is NOT used: its extra 1% is
+    admin + EDLI, which are paid separately on the challan (A/C 2, 21).
+    """
+    wage = Decimal(gross or 0) or Decimal(basic or 0)
+    wage = min(wage, _wage_ceiling(month, year))
+    epf_wages = _r0(wage)
+    eps_wages = epf_wages
+    edli_wages = epf_wages
+    gross_wages = max(_r0(gross or 0), epf_wages)
+
+    epf_ee = _r0(Decimal(epf_wages) * EPF_EE_RATE)
+    eps_contri = _r0(Decimal(eps_wages) * EPS_RATE)
+    epf_eps_diff = max(epf_ee - eps_contri, 0)
+
+    ncp_days = 0
+    if working_days and paid_days is not None:
+        ncp_days = max(0, _r0(Decimal(working_days) - Decimal(paid_days)))
+
+    return {
+        'gross': gross_wages, 'epf_wages': epf_wages, 'eps_wages': eps_wages,
+        'edli_wages': edli_wages, 'epf_ee': epf_ee, 'eps': eps_contri,
+        'diff': epf_eps_diff, 'ncp': ncp_days,
+    }
 
 
 def _member_lines(company, month, year):
@@ -74,32 +122,26 @@ def _member_lines(company, month, year):
             skipped.append(emp.employeecode)
             continue
 
-        epf_wages = _r0(s.basic_earned)
-        eps_wages = _r0(min(Decimal(epf_wages), EPS_WAGE_CEILING))
-        edli_wages = eps_wages
-        gross_wages = _r0(s.gross_earnings)
-
-        epf_contri_remitted = _r0(s.pf_deduction)          # employee 12%
-        # Employer side: EPS 8.33% (capped) + EPF diff goes to employer EPF a/c
-        eps_contri = _r0((Decimal(eps_wages) * Decimal('0.0833')).quantize(Decimal('1'), rounding=ROUND_HALF_UP))
-        epf_eps_diff = _r0(s.pf_employer_contribution) - eps_contri
-        if epf_eps_diff < 0:
-            epf_eps_diff = 0
-
-        ncp_days = 0  # Non-Contributory Period days — LOP days; wire to attendance if tracked separately
+        f = ecr_member_figures(s.basic_earned, s.gross_earnings,
+                               s.working_days, s.paid_days, month, year)
         refund = 0
+
+        if _r0(s.pf_deduction) != f['epf_ee']:
+            logger.warning(
+                'ECR %s/%s: %s PF deducted %s but ECR EE share is %s (12%% of %s)',
+                month, year, emp.employeecode, s.pf_deduction, f['epf_ee'], f['epf_wages'])
 
         line = '#~#'.join(str(x) for x in [
             uan,
-            (emp.name or '').strip(),
-            gross_wages,
-            epf_wages,
-            eps_wages,
-            edli_wages,
-            epf_contri_remitted,
-            eps_contri,
-            epf_eps_diff,
-            ncp_days,
+            re.sub(r'[^A-Za-z .]', '', (emp.name or '')).strip(),
+            f['gross'],
+            f['epf_wages'],
+            f['eps_wages'],
+            f['edli_wages'],
+            f['epf_ee'],
+            f['eps'],
+            f['diff'],
+            f['ncp'],
             refund,
         ])
         lines.append(line)

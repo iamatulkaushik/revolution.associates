@@ -139,7 +139,7 @@ class salary_slip(models.Model):
 # CONSTANTS
 # =====================================================================
 
-PF_WAGE_CEILING = Decimal('15000')       # Max basic for PF calculation
+PF_WAGE_CEILING = Decimal('25000')       # latest ceiling; real value is date-aware: see revolution.statutory_rates.pf_wage_ceiling
 ESI_WAGE_CEILING = Decimal('21000')      # Max gross for ESI applicability
 STANDARD_WORKING_HOURS = Decimal('8')    # Hours per day, for OT rate derivation
 
@@ -218,11 +218,13 @@ def _get_attendance_summary(employee_obj, month, year):
     }
 
 
-def _calculate_pf(basic, pf_applicable, ed_epf_per, er_epf_per):
-    """PF from the designation's own rate, subject to the statutory wage ceiling."""
+def _calculate_pf(basic, pf_applicable, ed_epf_per, er_epf_per, month=None, year=None):
+    """PF from the designation's own rate, subject to the statutory wage ceiling
+    in force for the salary month (15,000 up to 16-Sep-2026, 25,000 after)."""
     if not pf_applicable:
         return Decimal('0'), Decimal('0')
-    pf_base = min(basic, PF_WAGE_CEILING)
+    from revolution.statutory_rates import pf_wage_ceiling
+    pf_base = min(basic, pf_wage_ceiling(month, year))
     employee_pf = pf_base * (Decimal(str(ed_epf_per)) / Decimal('100'))
     employer_pf = pf_base * (Decimal(str(er_epf_per)) / Decimal('100'))
     return _decimal_round(employee_pf), _decimal_round(employer_pf)
@@ -394,7 +396,8 @@ def calculate_employee_salary(employee_obj, desig, month, year, company=None):
     lw_applicable = gates['labour']
 
     pf_emp, pf_empr = _calculate_pf(
-        basic_for_statutory, pf_applicable, desig.ed_epf_per, desig.er_epf_per
+        basic_for_statutory, pf_applicable, desig.ed_epf_per, desig.er_epf_per,
+        month=month, year=year,
     )
     esi_emp, esi_empr = _calculate_esi(
         gross, esi_applicable, desig.ed_esi_per, desig.er_esi_per

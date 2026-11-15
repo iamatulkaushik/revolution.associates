@@ -42,6 +42,14 @@ def download_lwf_challan(request, lwf_id):
     if not company:
         raise Http404('No company selected.')
 
+    from django.contrib import messages
+    from django.shortcuts import redirect
+    from Aapp.app.statutory_gates import get_company_gates, labour_required
+    ok, msg = labour_required(get_company_gates(company), 'LWF challan')
+    if not ok:
+        messages.error(request, msg)
+        return redirect('list_lwf')
+
     rec = get_object_or_404(LabourWelfareFundContribution, lwf_id=lwf_id, company=company)
 
     story = [kv_table([
