@@ -123,7 +123,7 @@
             </tr>
             <tr>
                 <td colspan="4">
-                    <label class="large"><input type="checkbox" name="same_as_permanent" id="same_as_permanent" onchange="togglePerm()"> Same as Permanent Address</label>
+                    <label class="large"><input type="checkbox" name="same_as_permanent" id="same_as_permanent" onchange="togglePerm()"> Permanent address same as Temporary Address</label>
                 </td>
             </tr>
             <tr>
@@ -297,10 +297,43 @@ function loadDistricts(stateSelectId, districtSelectId) {
             distSel.appendChild(o);
         }));
 }
-function togglePerm() {
-    const hide = document.getElementById('same_as_permanent').checked;
-    document.getElementById('perm_rows').style.display = hide ? 'none' : '';
+function _val(id){ return document.getElementById(id); }
+
+function copyTempToPerm() {
+    const f = _val('same_as_permanent').closest('form');
+    f.querySelector('[name=permanentaddress]').value = f.querySelector('[name=temporaryaddress]').value;
+    f.querySelector('[name=perm_pincode]').value = f.querySelector('[name=temp_pincode]').value;
+    const ps = _val('perm_state'), ts = _val('temp_state'), pd = _val('perm_district'), td = _val('temp_district');
+    ps.value = ts.value;
+    // districts load asynchronously: rebuild from the temp district list
+    pd.innerHTML = td.innerHTML;
+    pd.value = td.value;
 }
+
+function togglePerm() {
+    const same = _val('same_as_permanent').checked;
+    const f = _val('same_as_permanent').closest('form');
+    const fields = [
+        f.querySelector('[name=permanentaddress]'), f.querySelector('[name=perm_pincode]'),
+        _val('perm_state'), _val('perm_district')
+    ];
+    if (same) copyTempToPerm();
+    fields.forEach(el => {
+        if (el.tagName === 'SELECT') el.style.pointerEvents = same ? 'none' : '';
+        else el.readOnly = same;
+        el.style.background = same ? '#eee' : '';
+    });
+}
+
+// keep permanent in sync while "same" is ticked
+document.addEventListener('input', e => {
+    if (_val('same_as_permanent').checked && /temporaryaddress|temp_pincode/.test(e.target.name || '')) copyTempToPerm();
+});
+document.addEventListener('change', e => {
+    if (_val('same_as_permanent').checked && (e.target.id === 'temp_district' || e.target.id === 'temp_state')) {
+        setTimeout(copyTempToPerm, 400);
+    }
+});
 
 function toggleEmploymentFields() {
     const empType = document.getElementById('employmenttype').value;

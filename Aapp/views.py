@@ -259,8 +259,9 @@ def create_branch(request):
 
 @login_required
 def branch_list(request):
-    branches = branch.objects.all()
-    return render(request, 'Aapp/works/list_branch.html', {'branches': branches})
+    # Dead route (urls.py uses branch_department.list_branch) — kept tenant-safe.
+    from Aapp.app.branch_department import list_branch as _list_branch
+    return _list_branch(request)
 
 
 @login_required

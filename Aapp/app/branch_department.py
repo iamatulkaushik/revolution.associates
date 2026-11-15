@@ -6,6 +6,28 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from Sapp.app.company import Company
 
+# ---------------------------------------------------------------------------
+# Tenant scoping helpers — every query must be limited to the user's company
+# ---------------------------------------------------------------------------
+
+def _user_companies(user):
+    """Companies this user may access."""
+    if user.is_superuser:
+        return Company.objects.all()
+    if hasattr(user, 'associate_profile'):
+        return user.associate_profile.companyid.all()
+    if hasattr(user, 'subuser_profile'):
+        return user.subuser_profile.companyid.all()
+    return Company.objects.none()
+
+
+def _selected_company(request):
+    """Session-selected company, only if the user is allowed to access it."""
+    cid = request.session.get('selected_company_id')
+    if not cid:
+        return None
+    return _user_companies(request.user).filter(company_id=cid).first()
+
 
 class branch(models.Model):
     branchid = models.AutoField(primary_key=True)
@@ -65,7 +87,13 @@ class branch_form(forms.ModelForm):
 class department_form(forms.ModelForm):
     class Meta:
         model = department
-        fields = ['department_name', 'branch', 'companyid']
+        fields = ['department_name', 'branch']
+
+    def __init__(self, *args, company=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['branch'].queryset = (
+            branch.objects.filter(companyid=company) if company else branch.objects.none()
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -74,19 +102,11 @@ class department_form(forms.ModelForm):
 
 @login_required
 def create_branch(request):
-    user = request.user
-    if hasattr(user, 'associate_profile'):
-        companies = user.associate_profile.companyid.all()
-    elif hasattr(user, 'subuser_profile'):
-        companies = user.subuser_profile.companyid.all()
-    elif user.is_superuser:
-        companies = Company.objects.all()
-    else:
-        companies = Company.objects.none()
+    companies = _user_companies(request.user)
     if request.method == 'POST':
         form = branch_form(request.POST)
         company_id = request.POST.get('companyid')
-        company = get_object_or_404(Company, company_id=company_id)
+        company = get_object_or_404(companies, company_id=company_id)
         if form.is_valid():
             b = form.save(commit=False)
             b.companyid = company
@@ -101,13 +121,21 @@ def create_branch(request):
 
 @login_required
 def list_branch(request):
-    branches = branch.objects.select_related('companyid').all()
+    company = _selected_company(request)
+    if not company:
+        messages.warning(request, 'Please select a company first.')
+        return redirect('aapp_dashboard')
+    branches = branch.objects.select_related('companyid').filter(companyid=company)
     return render(request, 'Aapp/works/list_branch.html', {'branches': branches})
 
 
 @login_required
 def alter_branch(request, branch_id):
-    b = get_object_or_404(branch, branchid=branch_id)
+    company = _selected_company(request)
+    if not company:
+        messages.warning(request, 'Please select a company first.')
+        return redirect('aapp_dashboard')
+    b = get_object_or_404(branch, branchid=branch_id, companyid=company)
     if request.method == 'POST':
         form = branch_form(request.POST, instance=b)
         if form.is_valid():
@@ -123,11 +151,15 @@ def alter_branch(request, branch_id):
 
 @login_required
 def delete_branch(request, branch_id):
-    b = get_object_or_404(branch, branchid=branch_id)
+    company = _selected_company(request)
+    if not company:
+        messages.warning(request, 'Please select a company first.')
+        return redirect('aapp_dashboard')
+    b = get_object_or_404(branch, branchid=branch_id, companyid=company)
     if request.method == 'POST':
         b.delete()
         messages.success(request, 'Branch deleted.')
-        return redirect('Aapp:branch_list')
+        return redirect('branch_list')
     return render(request, 'Aapp/works/delete_branch.html', {'branch': b})
 
 
@@ -137,8 +169,7 @@ def delete_branch(request, branch_id):
 
 @login_required
 def create_department(request):
-    company_id = request.session.get('selected_company_id')
-    company = get_object_or_404(Company, company_id=company_id) if company_id else None
+    company = _selected_company(request)
     if not company:
         messages.warning(request, 'Please select a company first.')
         return redirect('aapp_dashboard')
@@ -163,31 +194,46 @@ def create_department(request):
 
 @login_required
 def list_department(request):
-    departments = department.objects.select_related('branch', 'companyid').all()
+    company = _selected_company(request)
+    if not company:
+        messages.warning(request, 'Please select a company first.')
+        return redirect('aapp_dashboard')
+    departments = department.objects.select_related('branch', 'companyid').filter(companyid=company)
     return render(request, 'Aapp/works/list_department.html', {'departments': departments})
 
 
 @login_required
 def alter_department(request, department_id):
-    d = get_object_or_404(department, departmentid=department_id)
+    company = _selected_company(request)
+    if not company:
+        messages.warning(request, 'Please select a company first.')
+        return redirect('aapp_dashboard')
+    d = get_object_or_404(department, departmentid=department_id, companyid=company)
     if request.method == 'POST':
-        form = department_form(request.POST, instance=d)
+        form = department_form(request.POST, instance=d, company=company)
         if form.is_valid():
             updated = form.save(commit=False)
             updated.updated_by = request.user
             updated.save()
             messages.success(request, 'Department updated.')
-            return redirect('Aapp:department_list')
+            return redirect('department_list')
     else:
-        form = department_form(instance=d)
-    return render(request, 'Aapp/works/alter_department.html', {'form': form, 'department': d})
+        form = department_form(instance=d, company=company)
+    return render(request, 'Aapp/works/alter_department.html', {
+        'form': form, 'department': d,
+        'branches': branch.objects.filter(companyid=company),
+    })
 
 
 @login_required
 def delete_department(request, department_id):
-    d = get_object_or_404(department, departmentid=department_id)
+    company = _selected_company(request)
+    if not company:
+        messages.warning(request, 'Please select a company first.')
+        return redirect('aapp_dashboard')
+    d = get_object_or_404(department, departmentid=department_id, companyid=company)
     if request.method == 'POST':
         d.delete()
         messages.success(request, 'Department deleted.')
-        return redirect('Aapp:department_list')
+        return redirect('department_list')
     return render(request, 'Aapp/works/delete_department.html', {'department': d})

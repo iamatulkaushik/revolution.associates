@@ -138,7 +138,7 @@ class company_statury(models.Model):
     company = models.ForeignKey(Company, related_name="company_statutry_company", db_column="CompanyID", on_delete=models.CASCADE)
     epfo = models.CharField(max_length=15, null=True, blank=True)
     epfo_date = models.DateField(null=True, blank=True)
-    esic = models.CharField(max_length=15, null=True, blank=True)
+    esic = models.CharField(max_length=17, null=True, blank=True)
     esic_date = models.DateField(null=True, blank=True)
     gst = models.CharField(max_length=15, null=True, blank=True)
     gst_date = models.DateField(null=True, blank=True)
@@ -173,7 +173,7 @@ class company_statury(models.Model):
         # Example validation: Check if EPFO and ESIC numbers are of valid length
         if self.epfo and len(self.epfo) != 15:
             return False
-        if self.esic and len(self.esic) != 15:
+        if self.esic and len(self.esic) != 17:
             return False
         return True
     
@@ -289,8 +289,8 @@ class create_company_form_superadmin(forms.ModelForm):
             return epfo
         def clean_esic(self):
             esic = self.cleaned_data.get('esic')
-            if esic and len(esic) != 15:
-                raise forms.ValidationError("ESIC number must be exactly 15 characters.")
+            if esic and not (esic.isdigit() and len(esic) == 17):
+                raise forms.ValidationError("ESIC code must be exactly 17 digits.")
             return esic
         def save(self, commit=True):
             statutry_instance = super().save(commit=False)
@@ -308,10 +308,22 @@ def select_company(request):
     """Select default company for associate/operator user"""
     if request.method == 'POST':
         company_id = request.POST.get('company_id')
-        if company_id:
+        # Deprecated duplicate: Aapp.views.select_company is the routed one.
+        # Kept ownership-safe in case it is ever wired up.
+        user = request.user
+        if user.is_superuser:
+            allowed = Company.objects.all()
+        elif hasattr(user, 'associate_profile'):
+            allowed = user.associate_profile.companyid.all()
+        elif hasattr(user, 'subuser_profile'):
+            allowed = user.subuser_profile.companyid.all()
+        else:
+            allowed = Company.objects.none()
+        if company_id and str(company_id).isdigit() and allowed.filter(company_id=int(company_id)).exists():
             request.session['selected_company_id'] = int(company_id)
             return JsonResponse({'status': 'success', 'company_id': company_id})
-    return redirect('Aapp:dashboard')
+        return JsonResponse({'status': 'error', 'message': 'Not allowed.'}, status=403)
+    return redirect('aapp_dashboard')
 
 @login_required
 def get_user_companies(request):
