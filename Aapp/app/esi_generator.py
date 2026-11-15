@@ -27,7 +27,7 @@ Add a nav link to select_period_for_esi_monthly next to list_esi_returns.
 import io
 import logging
 import calendar
-from decimal import Decimal, ROUND_HALF_UP
+from decimal import Decimal, ROUND_HALF_UP, ROUND_CEILING
 
 from django import forms
 from django.contrib.auth.decorators import login_required
@@ -48,6 +48,20 @@ def _company(request):
 
 def _q(v):
     return Decimal(v or 0).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+
+
+def _wage_rupees(v):
+    """ESIC portal accepts whole-rupee wages only (no paise, no '.00')."""
+    return int(Decimal(v or 0).quantize(Decimal('1'), rounding=ROUND_HALF_UP))
+
+
+def _ceil_rupee(v):
+    """ESI Act: a fraction of a rupee in a contribution rounds UP."""
+    return Decimal(v or 0).to_integral_value(rounding=ROUND_CEILING)
+
+
+# ESIC "Reason for Zero Wages" is a numeric code (1-13), not free text.
+ESIC_REASON_ON_LEAVE = '1'
 
 
 class EsiPeriodForm(forms.Form):
@@ -131,9 +145,9 @@ def download_esi_monthly_challan(request, month, year):
             'Ensure ESIC number is set on employee records and salary has been processed.'
         )
 
-    total_wages = sum((s.gross_earnings for s in eligible), Decimal('0'))
-    total_employee = sum((s.esi_deduction for s in eligible), Decimal('0'))
-    total_employer = sum((s.esi_employer_contribution for s in eligible), Decimal('0'))
+    total_wages = sum((Decimal(_wage_rupees(s.gross_earnings)) for s in eligible), Decimal('0'))
+    total_employee = sum((_ceil_rupee(s.esi_deduction) for s in eligible), Decimal('0'))
+    total_employer = sum((_ceil_rupee(s.esi_employer_contribution) for s in eligible), Decimal('0'))
     total_contribution = total_employee + total_employer
 
     story = [kv_table([
@@ -217,12 +231,14 @@ def download_esi_monthly_upload(request, month, year):
 
     for s in eligible:
         emp = s.employee_id
+        wages = _wage_rupees(s.gross_earnings)
+        days = int(s.paid_days or 0)
         row = [
             (emp.esic_number or '').strip(),
             (emp.name or '').strip().upper(),
-            str(int(s.paid_days or 0)),
-            f'{s.gross_earnings:.2f}',
-            '' if s.gross_earnings > 0 else 'LOP',
+            str(days),
+            str(wages),
+            '' if wages > 0 else ESIC_REASON_ON_LEAVE,
             '',
         ]
         ws.append(row)
