@@ -227,7 +227,11 @@ def _calculate_pf(basic, pf_applicable, ed_epf_per, er_epf_per, month=None, year
     pf_base = min(basic, pf_wage_ceiling(month, year))
     employee_pf = pf_base * (Decimal(str(ed_epf_per)) / Decimal('100'))
     employer_pf = pf_base * (Decimal(str(er_epf_per)) / Decimal('100'))
-    return _decimal_round(employee_pf), _decimal_round(employer_pf)
+    # EPFO contributions are whole rupees (nearest rupee, half up) — must equal
+    # the ECR figure exactly.
+    one = Decimal('1')
+    return (employee_pf.quantize(one, rounding=ROUND_HALF_UP),
+            employer_pf.quantize(one, rounding=ROUND_HALF_UP))
 
 
 def _calculate_esi(gross, esi_applicable, ed_esi_per, er_esi_per):
@@ -395,8 +399,13 @@ def calculate_employee_salary(employee_obj, desig, month, year, company=None):
     esi_applicable = gates['esi'] and bool(getattr(employee_obj, 'esic_number', ''))
     lw_applicable = gates['labour']
 
+    # PF wage base = gross earnings (rounded to the rupee), the SAME base the
+    # ECR and challan use (ecr_generator.ecr_member_figures), so the amount
+    # deducted from the employee always equals the EE share filed with EPFO.
+    # The statutory ceiling for the salary month is applied inside _calculate_pf.
     pf_emp, pf_empr = _calculate_pf(
-        basic_for_statutory, pf_applicable, desig.ed_epf_per, desig.er_epf_per,
+        gross.quantize(Decimal('1'), rounding=ROUND_HALF_UP), pf_applicable,
+        desig.ed_epf_per, desig.er_epf_per,
         month=month, year=year,
     )
     esi_emp, esi_empr = _calculate_esi(
