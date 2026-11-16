@@ -107,9 +107,11 @@ class Arrear(models.Model):
             self.pf_recompute = Decimal('0')
 
         # Labour Welfare recompute
-        if gates['labour'] and desig:
-            lw_rate = Decimal(str(desig.ed_labourwelfare_per)) / Decimal('100')
-            self.labour_recompute = (self.gross_shortfall * lw_rate).quantize(Decimal('0.01'))
+        if gates['labour'] and gates['shop_act'] and desig:
+            from revolution.statutory_rates import haryana_lwf
+            new_lw, _ = haryana_lwf(new_gross, self.payout_month, self.payout_year)
+            old_lw = old_slip.labour_welfare_deduction if old_slip else Decimal('0')
+            self.labour_recompute = max(Decimal('0'), new_lw - old_lw)
         else:
             self.labour_recompute = Decimal('0')
 

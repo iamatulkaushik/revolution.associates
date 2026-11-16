@@ -193,7 +193,9 @@ class CxSalary(models.Model):
                     'resolved_amount': amount, 'is_prorated': False,
                 })
             if eligibility.get('labour'):
-                amount = Decimal('20.00')  # flat LWF employee contribution
+                from revolution.statutory_rates import haryana_lwf
+                amount, _ = haryana_lwf(total_allowances,
+                                        attendance.attandance_month, attendance.attandance_year)
                 total_deductions += amount
                 lines.append({
                     'component_name': 'LABOUR (Statutory)', 'component_type': CxSalaryLine.TYPE_DEDUCTION,

@@ -181,7 +181,7 @@ class CxEmployeeStatutory(models.Model):
         return {
             'epf':    bool(self.uan_number) and gates.get('epf', False),
             'esi':    bool(self.esi_number) and gates.get('esi', False),
-            'labour': bool(self.labour_id) and gates.get('labour', False),
+            'labour': bool(self.labour_id) and gates.get('labour', False) and gates.get('shop_act', False),
         }
 
 

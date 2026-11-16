@@ -69,10 +69,16 @@ def shop_act_required(gates, feature_name=''):
     return False, f'Shop & Establishments Act registration not on file{label} — action blocked.'
 
 
+def lwf_allowed(gates):
+    """LWF needs BOTH a labour registration and a Shop Act registration."""
+    return bool(gates.get('labour')) and bool(gates.get('shop_act'))
+
+
 def labour_required(gates, feature_name=''):
-    """Same contract as shop_act_required: (ok, message). No labour
-    registration on file -> LWF actions are blocked."""
-    if gates.get('labour'):
-        return True, ''
+    """(ok, message). LWF actions need labour AND Shop Act registration."""
     label = f' for {feature_name}' if feature_name else ''
-    return False, f'Labour Welfare registration not on file{label} — action blocked.'
+    if not gates.get('labour'):
+        return False, f'Labour Welfare registration not on file{label} — action blocked.'
+    if not gates.get('shop_act'):
+        return False, f'Shop Act registration not on file{label} — action blocked.'
+    return True, ''

@@ -13,7 +13,7 @@ employee to a different designation), matching how designation.py is built.
 """
 
 import calendar
-from decimal import Decimal, ROUND_HALF_UP
+from decimal import Decimal, ROUND_HALF_UP, ROUND_CEILING
 from datetime import date, datetime
 
 from django.contrib import messages
@@ -240,7 +240,9 @@ def _calculate_esi(gross, esi_applicable, ed_esi_per, er_esi_per):
         return Decimal('0'), Decimal('0')
     employee_esi = gross * (Decimal(str(ed_esi_per)) / Decimal('100'))
     employer_esi = gross * (Decimal(str(er_esi_per)) / Decimal('100'))
-    return _decimal_round(employee_esi), _decimal_round(employer_esi)
+    # ESI Act: any fraction of a rupee in a contribution rounds UP.
+    return (employee_esi.to_integral_value(rounding=ROUND_CEILING),
+            employer_esi.to_integral_value(rounding=ROUND_CEILING))
 
 
 def _calculate_labour_welfare(ed_lw_per, er_lw_per, gross):
@@ -397,7 +399,8 @@ def calculate_employee_salary(employee_obj, desig, month, year, company=None):
     # designation, not a fixed constant.
     pf_applicable = gates['epf'] and bool(getattr(employee_obj, 'uan_number', ''))
     esi_applicable = gates['esi'] and bool(getattr(employee_obj, 'esic_number', ''))
-    lw_applicable = gates['labour']
+    # LWF only when BOTH labour and Shop Act registrations are on file.
+    lw_applicable = gates['labour'] and gates['shop_act']
 
     # PF wage base = gross earnings (rounded to the rupee), the SAME base the
     # ECR and challan use (ecr_generator.ecr_member_figures), so the amount
@@ -412,9 +415,8 @@ def calculate_employee_salary(employee_obj, desig, month, year, company=None):
         gross, esi_applicable, desig.ed_esi_per, desig.er_esi_per
     )
     if lw_applicable:
-        lw_emp, lw_empr = _calculate_labour_welfare(
-            desig.ed_labourwelfare_per, desig.er_labourwelfare_per, gross
-        )
+        from revolution.statutory_rates import haryana_lwf
+        lw_emp, lw_empr = haryana_lwf(gross, month, year)
     else:
         lw_emp, lw_empr = Decimal('0'), Decimal('0')
 
