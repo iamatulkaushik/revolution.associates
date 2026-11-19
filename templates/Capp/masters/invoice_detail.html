@@ -1,0 +1,49 @@
+{% extends 'Capp/base.html' %}
+{% block title %}{{ inv.number }}{% endblock %}
+{% block content %}
+<div class="section-header"><h2>{{ inv.number }} <small>({{ inv.get_status_display }})</small></h2>
+  <div class="section-actions">
+    <a href="{% url 'capp_invoice_download' inv.pk 'pdf' %}" class="button">PDF</a>
+    <a href="{% url 'capp_invoice_download' inv.pk 'xlsx' %}" class="button">Excel</a>
+    <a href="{% url 'capp_invoice_list' %}" class="button">Back</a></div></div>
+<div class="card"><div class="card-body">
+  <p><strong>{{ inv.client.name }}</strong> — {{ inv.get_kind_display }}, {{ inv.month }}/{{ inv.year }},
+     ESI on {{ inv.get_esi_base_display }}</p>
+  <table class="data-table"><tbody>
+    <tr><td>Wages / OT</td><td>{{ inv.pay|floatformat:2 }}</td></tr>
+    {% if inv.kind == 'SALARY' %}
+    <tr><td>EPF employer</td><td>{{ inv.epf_employer|floatformat:2 }}</td></tr>
+    <tr><td>ESI employer</td><td>{{ inv.esi_employer|floatformat:2 }}</td></tr>
+    <tr><td>LWF</td><td>{{ inv.lwf|floatformat:2 }}</td></tr>
+    <tr><td>Attendance bonus</td><td>{{ inv.att_bonus|floatformat:2 }}</td></tr>{% endif %}
+    <tr><td>Service charge ({{ inv.service_charge_pct }}%)</td><td>{{ inv.service_charge|floatformat:2 }}</td></tr>
+    <tr><td>SGST</td><td>{{ inv.sgst|floatformat:2 }}</td></tr>
+    <tr><td>CGST</td><td>{{ inv.cgst|floatformat:2 }}</td></tr>
+    {% if inv.extra_charges %}<tr><td>{{ inv.extra_label|default:"Other charges" }}</td><td>{{ inv.extra_charges }}</td></tr>{% endif %}
+    <tr><td><strong>Total</strong></td><td><strong>₹{{ inv.total }}</strong></td></tr>
+    <tr><td>Received + TDS</td><td>{{ inv.received_amount }} + {{ inv.tds_amount }}</td></tr>
+    <tr><td>Outstanding</td><td>{{ inv.outstanding }}</td></tr>
+  </tbody></table>
+  <div style="margin-top:var(--sp-4)">
+  {% if inv.status == 'DRAFT' %}
+    <form method="post" action="{% url 'capp_invoice_action' inv.pk 'issue' %}" style="display:inline">{% csrf_token %}<button class="button">Issue</button></form>
+    <form method="post" action="{% url 'capp_invoice_action' inv.pk 'delete' %}" style="display:inline" onsubmit="return confirm('Delete draft?')">{% csrf_token %}<button class="button">Delete draft</button></form>
+  {% endif %}
+  {% if inv.status != 'CANCELLED' and not inv.received_amount %}
+    <form method="post" action="{% url 'capp_invoice_action' inv.pk 'cancel' %}" style="display:inline" onsubmit="return confirm('Cancel invoice?')">{% csrf_token %}<button class="button">Cancel</button></form>
+  {% endif %}
+  </div>
+</div></div>
+{% if inv.status == 'ISSUED' %}
+<div class="card" style="margin-top:var(--sp-4)"><div class="card-body"><h3>Record payment</h3>
+<form method="post" action="{% url 'capp_invoice_action' inv.pk 'payment' %}">{% csrf_token %}
+  {% for f in pay_form %}<div style="margin-bottom:var(--sp-2)"><label>{{ f.label }}</label> {{ f }}</div>{% endfor %}
+  <button class="button">Save payment</button></form></div></div>
+{% endif %}
+<div class="card" style="margin-top:var(--sp-4)"><div class="table-wrap"><table class="data-table"><thead><tr>
+  <th>Code</th><th>Name</th><th>Days</th><th>Gross</th><th>EPF</th><th>ESI</th><th>LWF</th><th>Bonus</th><th>OT</th></tr></thead><tbody>
+  {% for l in lines %}<tr><td>{{ l.emp_code }}</td><td>{{ l.name }}</td><td>{{ l.paid_days }}</td><td>{{ l.gross|floatformat:2 }}</td>
+    <td>{{ l.epf_employer|floatformat:2 }}</td><td>{{ l.esi_employer|floatformat:2 }}</td><td>{{ l.lwf|floatformat:2 }}</td>
+    <td>{{ l.att_bonus|floatformat:2 }}</td><td>{{ l.ot_pay|floatformat:2 }}</td></tr>{% endfor %}
+</tbody></table></div></div>
+{% endblock %}

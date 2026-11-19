@@ -15,8 +15,8 @@
         return;
       }
 
-      fetch(`/admin/get_districts/${stateId}/`)
-        .then(response => response.json())
+      fetch(`{% url 'get_districts' 0 %}`.replace('/0/', `/${stateId}/`), {credentials: 'same-origin'})
+        .then(response => { if(!response.ok) throw new Error('HTTP ' + response.status); return response.json(); })
         .then(data => {
           districtSelect.innerHTML = '<option value="">---------</option>';
           data.forEach(district => {

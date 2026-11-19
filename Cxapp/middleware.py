@@ -77,8 +77,7 @@ class CxLicenseMiddleware:
             try:
                 url_name = resolve(request.path_info).url_name
             except Resolver404:
-                url_name = None
-
+                return self.get_response(request)  # let Django serve 404
             if url_name not in ALWAYS_ALLOWED_NAMES:
                 plan = getattr(owner_profile, 'plan', None)
                 if plan is None or not plan.is_valid():

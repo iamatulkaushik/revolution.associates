@@ -76,6 +76,26 @@
         {% endif %}
 
         {% if access.attendance %}
+        {% if request.owner_profile.can_manage_masters %}
+        <li class="nav-item" id="nav-masters">
+          <button class="nav-link employees" onclick="toggleNav('nav-masters')" aria-expanded="false">
+            <span class="nav-label">Masters</span>
+            <span class="nav-chevron">&#9658;</span>
+          </button>
+          <ul class="nav-sub">
+            <li><a href="{% url 'capp_company_details' %}" class="nav-link">Company &amp; Bank</a></li>
+            <li><a href="{% url 'capp_branch_list' %}" class="nav-link">Branches</a></li>
+            <li><a href="{% url 'capp_department_list' %}" class="nav-link">Departments</a></li>
+            <li><a href="{% url 'capp_designation_list' %}" class="nav-link">Designations</a></li>
+            <li><a href="{% url 'capp_bankformat_list' %}" class="nav-link">Bank Formats</a></li>
+            <li><a href="{% url 'capp_import_employees' %}" class="nav-link">Import Employees (Excel)</a></li>
+            <li><a href="{% url 'capp_client_list' %}" class="nav-link">Billing Clients</a></li>
+            <li><a href="{% url 'capp_invoice_list' %}" class="nav-link">Invoices</a></li>
+            <li><a href="{% url 'capp_deduction_list' %}" class="nav-link">Deductions</a></li>
+          </ul>
+        </li>
+        {% endif %}
+
         <li class="nav-item" id="nav-att">
           <button class="nav-link attandance" onclick="toggleNav('nav-att')" aria-expanded="false">
             <span class="nav-label">Attendance</span>
@@ -99,6 +119,7 @@
             <li><a href="{% url 'capp_salary_slip' %}"    class="nav-link">Salary Slip (PDF)</a></li>
             <li><a href="{% url 'capp_salary_sheet' %}"   class="nav-link">Salary Sheet (PDF)</a></li>
             <li><a href="{% url 'capp_salary_abstract' %}" class="nav-link">Abstract (PDF)</a></li>
+            <li><a href="{% url 'capp_bank_file' %}" class="nav-link">Bank Payment Files</a></li>
           </ul>
         </li>
         {% endif %}

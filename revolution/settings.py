@@ -31,7 +31,7 @@ SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-fallback-dev-k
 # Must be set in production via env var; fallback is dev-only.
 FIELD_ENCRYPTION_KEY = os.environ.get('FIELD_ENCRYPTION_KEY', 'xR9gxHjMRuaYcZBisFbIYKaVrVc3dYpXYJsmV77oCPs')
 FIELD_ENCRYPTION_ALGORITHM = 'xchacha20'  # or 'aes-gcm'
-DEBUG = os.environ.get('DJANGO_DEBUG', 'True') == 'True'
+DEBUG = os.environ.get('DJANGO_DEBUG', 'False') == 'True'
 ALLOWED_HOSTS = [
     'localhost', '127.0.0.1', 'aapp.localhost', 'capp.localhost', 'sapp.localhost', 'cxapp.localhost',
     'www.localhost', 'admin.localhost',

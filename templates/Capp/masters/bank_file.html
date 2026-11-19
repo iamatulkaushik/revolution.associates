@@ -1,0 +1,24 @@
+{% extends 'Capp/base.html' %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block content %}
+<div class="section-header"><h2>{{ page_title }}</h2></div>
+<form method="get" style="margin-bottom:var(--sp-4)">
+  <select name="month">{% for m in months %}<option value="{{ m }}"{% if m == month %} selected{% endif %}>{{ m }}</option>{% endfor %}</select>
+  <input type="number" name="year" value="{{ year }}" style="width:90px">
+  <button class="button">Show</button>
+</form>
+<div class="card">
+  {% if summary %}
+  <div class="table-wrap"><table class="data-table"><thead><tr><th>Bank (IFSC)</th><th>Format</th><th>Employees</th><th>Total ₹</th><th></th></tr></thead><tbody>
+    {% for s in summary %}<tr><td>{{ s.prefix }}</td><td>{{ s.format }}</td><td>{{ s.count }}</td><td>{{ s.total }}</td>
+      <td><a href="?month={{ month }}&year={{ year }}&bank={{ s.prefix }}">Download</a></td></tr>{% endfor %}
+    <tr><td colspan="3"><strong>Grand total</strong></td><td><strong>{{ grand_total }}</strong></td><td></td></tr>
+  </tbody></table></div>
+  {% else %}<div class="card-body text-center"><p class="text-muted">No payable salary for this month.</p></div>{% endif %}
+</div>
+<form method="post" style="margin-top:var(--sp-4)">{% csrf_token %}
+  <button name="close_month" value="1" class="button"
+    onclick="return confirm('Reduce loan/advance balances for this month? Do this once, after paying.')">
+    Mark month paid (update deduction balances)</button>
+</form>
+{% endblock %}

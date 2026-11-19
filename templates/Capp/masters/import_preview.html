@@ -1,0 +1,19 @@
+{% extends 'Capp/base.html' %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block content %}
+<div class="section-header"><h2>{{ page_title }}</h2></div>
+<p>{{ summary.total }} rows: <strong>{{ summary.create }}</strong> new, <strong>{{ summary.update }}</strong> to update,
+   <strong>{{ summary.bad }}</strong> with problems (skipped).</p>
+{% for n in notes %}<p class="text-muted text-sm">{{ n }}</p>{% endfor %}
+<div class="card"><div class="table-wrap"><table class="data-table"><thead><tr>
+  <th>Row</th><th>ID</th><th>Name</th><th>Action</th><th>Problems</th></tr></thead><tbody>
+  {% for r in rows %}<tr><td>{{ r.row }}</td><td>{{ r.code }}</td><td>{{ r.name }}</td>
+    <td>{% if r.issues %}Skip{% else %}{{ r.action|title }}{% endif %}</td>
+    <td>{% for i in r.issues %}<div class="text-sm" style="color:#b00020">{{ i }}</div>{% empty %}—{% endfor %}</td></tr>
+  {% empty %}<tr><td colspan="5">No employee rows found.</td></tr>{% endfor %}
+</tbody></table></div></div>
+<form method="post" style="margin-top:var(--sp-4)">{% csrf_token %}
+  {% if summary.ok %}<button name="confirm" value="1" class="button">Import {{ summary.ok }} employee(s)</button>{% endif %}
+  <a href="{% url 'capp_import_employees' %}" class="button">Back</a>
+</form>
+{% endblock %}

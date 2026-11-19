@@ -25,6 +25,7 @@ from Sapp.app.marketing import (
     features, pricing, compliance, about, contact, contact_submit,
     privacy, terms, cookies, refund, robots_txt, sitemap_xml,
 )
+handler404 = 'revolution.views.custom_404'
 urlpatterns = [
     path('',base_home, name="base"),
     path('baseurls/', admin.site.urls),

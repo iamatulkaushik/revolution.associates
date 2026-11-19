@@ -18,6 +18,25 @@ from Capp.views import (
 # NOTE: Capp/urls.py is the ROOT urlconf for the 'capp' host in django-hosts.
 # Use bare URL names (no namespace prefix) — same pattern as Aapp.urls.
 
+from Capp.bank_views import (
+    capp_bankformat_list, capp_bankformat_edit, capp_bankformat_delete, capp_bank_file,
+)
+from Capp.billing_views import (
+    capp_deduction_list, capp_deduction_edit, capp_deduction_delete,
+    capp_client_list, capp_client_edit, capp_client_delete,
+)
+from Capp.invoice_views import (
+    capp_invoice_list, capp_invoice_generate, capp_invoice_detail,
+    capp_invoice_action, capp_invoice_download,
+)
+from Capp.import_views import capp_import_employees
+from Capp.masters import (
+    capp_company_details,
+    capp_branch_list, capp_branch_edit, capp_branch_delete,
+    capp_department_list, capp_department_edit, capp_department_delete,
+    capp_designation_list, capp_designation_edit, capp_designation_delete,
+)
+
 urlpatterns = [
 
     # ── Auth ──────────────────────────────────────────────────────────────────
@@ -63,4 +82,38 @@ urlpatterns = [
     path('reports/wages-register/', capp_wages_register_report, name='capp_wages_register_report'),
     path('reports/wages-slip/<int:slip_id>/', capp_wages_slip_report, name='capp_wages_slip_report'),
     path('reports/wages-slip-bulk/', capp_wages_slip_bulk_report, name='capp_wages_slip_bulk_report'),
+
+    # ── Masters (owner-managed) ──────────────────────────────────────────
+    path('masters/company/', capp_company_details, name='capp_company_details'),
+    path('masters/branches/', capp_branch_list, name='capp_branch_list'),
+    path('masters/branches/add/', capp_branch_edit, name='capp_branch_add'),
+    path('masters/branches/<int:pk>/edit/', capp_branch_edit, name='capp_branch_edit'),
+    path('masters/branches/<int:pk>/delete/', capp_branch_delete, name='capp_branch_delete'),
+    path('masters/departments/', capp_department_list, name='capp_department_list'),
+    path('masters/departments/add/', capp_department_edit, name='capp_department_add'),
+    path('masters/departments/<int:pk>/edit/', capp_department_edit, name='capp_department_edit'),
+    path('masters/departments/<int:pk>/delete/', capp_department_delete, name='capp_department_delete'),
+    path('masters/designations/', capp_designation_list, name='capp_designation_list'),
+    path('masters/designations/add/', capp_designation_edit, name='capp_designation_add'),
+    path('masters/designations/<int:pk>/edit/', capp_designation_edit, name='capp_designation_edit'),
+    path('masters/designations/<int:pk>/delete/', capp_designation_delete, name='capp_designation_delete'),
+    path('masters/bank-formats/', capp_bankformat_list, name='capp_bankformat_list'),
+    path('masters/bank-formats/add/', capp_bankformat_edit, name='capp_bankformat_add'),
+    path('masters/bank-formats/<int:pk>/edit/', capp_bankformat_edit, name='capp_bankformat_edit'),
+    path('masters/bank-formats/<int:pk>/delete/', capp_bankformat_delete, name='capp_bankformat_delete'),
+    path('wages/bank-file/', capp_bank_file, name='capp_bank_file'),
+    path('billing/deductions/', capp_deduction_list, name='capp_deduction_list'),
+    path('billing/deductions/add/', capp_deduction_edit, name='capp_deduction_add'),
+    path('billing/deductions/<int:pk>/edit/', capp_deduction_edit, name='capp_deduction_edit'),
+    path('billing/deductions/<int:pk>/delete/', capp_deduction_delete, name='capp_deduction_delete'),
+    path('billing/clients/', capp_client_list, name='capp_client_list'),
+    path('billing/clients/add/', capp_client_edit, name='capp_client_add'),
+    path('billing/clients/<int:pk>/edit/', capp_client_edit, name='capp_client_edit'),
+    path('billing/clients/<int:pk>/delete/', capp_client_delete, name='capp_client_delete'),
+    path('billing/invoices/', capp_invoice_list, name='capp_invoice_list'),
+    path('billing/invoices/generate/', capp_invoice_generate, name='capp_invoice_generate'),
+    path('billing/invoices/<int:pk>/', capp_invoice_detail, name='capp_invoice_detail'),
+    path('billing/invoices/<int:pk>/do/<str:action>/', capp_invoice_action, name='capp_invoice_action'),
+    path('billing/invoices/<int:pk>/download/<str:fmt>/', capp_invoice_download, name='capp_invoice_download'),
+    path('masters/import/employees/', capp_import_employees, name='capp_import_employees'),
 ]

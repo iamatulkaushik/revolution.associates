@@ -1,0 +1,23 @@
+{% extends 'Capp/base.html' %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block content %}
+<div class="section-header"><h2>{{ page_title }}</h2></div>
+<div class="card"><div class="card-body">
+<form method="post" enctype="multipart/form-data">{% csrf_token %}
+  {{ form.non_field_errors }}
+  {% for field in form %}
+  <div style="margin-bottom:var(--sp-3)"><label for="{{ field.id_for_label }}">{{ field.label }}</label> {{ field }}
+    {% for e in field.errors %}<div class="text-sm" style="color:#b00020">{{ e }}</div>{% endfor %}</div>
+  {% endfor %}
+  <h3>Columns (output order)</h3>
+  <p class="text-muted text-sm">Source "Fixed Value" writes the text in the Fixed column. Width pads TXT files.</p>
+  {{ formset.management_form }}{{ formset.non_form_errors }}
+  <div class="table-wrap"><table class="data-table"><thead><tr><th>Pos</th><th>Header</th><th>Source</th><th>Fixed</th><th>Width</th><th>Delete</th></tr></thead><tbody>
+  {% for f in formset %}<tr>{{ f.id }}
+    <td>{{ f.position }}{{ f.position.errors }}</td><td>{{ f.header }}</td><td>{{ f.source }}{{ f.source.errors }}</td>
+    <td>{{ f.fixed_value }}</td><td>{{ f.width }}</td><td>{% if f.instance.pk %}{{ f.DELETE }}{% endif %}</td></tr>{% endfor %}
+  </tbody></table></div>
+  <button type="submit" class="button">Save</button>
+  <a href="{% url 'capp_bankformat_list' %}" class="button">Cancel</a>
+</form></div></div>
+{% endblock %}

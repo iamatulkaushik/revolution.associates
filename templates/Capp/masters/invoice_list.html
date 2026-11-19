@@ -1,0 +1,17 @@
+{% extends 'Capp/base.html' %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block content %}
+<div class="section-header"><h2>{{ page_title }}</h2>
+  <div class="section-actions"><a href="{% url 'capp_invoice_generate' %}" class="button">+ Generate</a></div></div>
+<p class="text-muted text-sm">Billed (excl. cancelled): ₹{{ total }} &nbsp;|&nbsp; Outstanding on issued: ₹{{ due }}</p>
+<div class="card">
+{% if invoices %}<div class="table-wrap"><table class="data-table"><thead><tr>
+  <th>Invoice</th><th>Client</th><th>Type</th><th>Period</th><th>Total ₹</th><th>Outstanding ₹</th><th>Status</th></tr></thead><tbody>
+  {% for i in invoices %}<tr><td><a href="{% url 'capp_invoice_detail' i.pk %}">{{ i.number }}</a></td>
+    <td>{{ i.client.name }}</td><td>{{ i.get_kind_display }}</td><td>{{ i.month }}/{{ i.year }}</td>
+    <td>{{ i.total }}</td><td>{% if i.status == 'ISSUED' %}{{ i.outstanding }}{% else %}—{% endif %}</td>
+    <td>{{ i.get_status_display }}</td></tr>{% endfor %}
+</tbody></table></div>
+{% else %}<div class="card-body text-center"><p class="text-muted">No invoices yet.</p></div>{% endif %}
+</div>
+{% endblock %}

@@ -42,6 +42,8 @@ class CompanyOwnerProfile(models.Model):
     can_view_reports      = models.BooleanField(default=True)
     can_download_pdf      = models.BooleanField(default=True)
     can_view_statutory    = models.BooleanField(default=True)
+    # Owner may add/edit own company masters (company details, branch, department, designation)
+    can_manage_masters    = models.BooleanField(default=True)
 
     is_active       = models.BooleanField(default=True)
     last_login_ip   = models.GenericIPAddressField(null=True, blank=True)
@@ -71,9 +73,12 @@ class CompanyOwnerProfile(models.Model):
             'reports':    self.can_view_reports,
             'pdf':        self.can_download_pdf,
             'statutory':  self.can_view_statutory,
+            'masters':    self.can_manage_masters,
         }
 
 
 # ── Import models from Aapp/Sapp so migrations pick them up ──────────────────
 # (Capp reads Aapp data — no new tables needed for those)
 # Company imported via ForeignKey string reference above
+
+from Capp.billing_models import *  # noqa: F401,F403
