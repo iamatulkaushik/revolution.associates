@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import include, path
 from Capp.views import (
     capp_login, capp_logout, capp_dashboard,
     capp_password_reset_request, capp_password_reset_confirm,
@@ -116,4 +116,6 @@ urlpatterns = [
     path('billing/invoices/<int:pk>/do/<str:action>/', capp_invoice_action, name='capp_invoice_action'),
     path('billing/invoices/<int:pk>/download/<str:fmt>/', capp_invoice_download, name='capp_invoice_download'),
     path('masters/import/employees/', capp_import_employees, name='capp_import_employees'),
+    path('', include('Capp.entry.urls')),    # ENTRY track
+    path('', include('Capp.direct.urls')),   # DIRECT track
 ]

@@ -82,3 +82,5 @@ class CompanyOwnerProfile(models.Model):
 # Company imported via ForeignKey string reference above
 
 from Capp.billing_models import *  # noqa: F401,F403
+from Capp.entry.models import *   # noqa: F401,F403  (ENTRY track)
+from Capp.direct.models import *  # noqa: F401,F403  (DIRECT track)
