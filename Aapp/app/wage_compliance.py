@@ -180,42 +180,9 @@ def list_minwages_returns(request):
     })
 
 
-@login_required
 def _compute_minwages_totals(company, year):
-    from decimal import Decimal
-    from Aapp.app.salary_processing import salary_slip
-    from Aapp.app.attandance import MinimumWagesOvertimeRegister
-    from Aapp.app.wages import wages_fine, wages_deduction
-
-    slips = salary_slip.objects.filter(company_id=company, processing_id__year=year).select_related('employee_id')
-    male = female = 0
-    total_wages = Decimal('0')
-    seen_employees = set()
-    for s in slips:
-        total_wages += Decimal(s.gross_earnings or 0)
-        if s.employee_id_id not in seen_employees:
-            seen_employees.add(s.employee_id_id)
-            if s.employee_id.gender == 'Male':
-                male += 1
-            elif s.employee_id.gender == 'Female':
-                female += 1
-
-    ot_records = MinimumWagesOvertimeRegister.objects.filter(
-        attendance__companyid=company, attendance__salary_year=year)
-    total_ot_hours = sum((r.overtime_hours for r in ot_records), Decimal('0'))
-    total_ot_wages = sum((r.ot_wages_paid for r in ot_records), Decimal('0'))
-
-    total_fines = wages_fine.objects.filter(company=company, salary_year=year).aggregate(
-        t=models.Sum('fine_amount'))['t'] or Decimal('0')
-    total_deductions = wages_deduction.objects.filter(company=company, salary_year=year).aggregate(
-        t=models.Sum('deduction_amount'))['t'] or Decimal('0')
-
-    return {
-        'total_employees_male': male, 'total_employees_female': female,
-        'total_wages_paid': total_wages, 'total_ot_hours': int(total_ot_hours),
-        'total_ot_wages': total_ot_wages, 'total_fines_imposed': total_fines,
-        'total_deductions': total_deductions,
-    }
+    from Aapp.app.services.wage_returns import compute_minwages_totals
+    return compute_minwages_totals(company, year)
 
 
 @login_required
@@ -310,26 +277,9 @@ def list_pow_returns(request):
     })
 
 
-@login_required
 def _compute_pow_totals(company, year):
-    from decimal import Decimal
-    from Aapp.app.salary_processing import salary_slip
-    from Aapp.app.wages import wages_fine, wages_deduction
-
-    slips = salary_slip.objects.filter(company_id=company, processing_id__year=year).select_related('employee_id')
-    total_wages = sum((Decimal(s.gross_earnings or 0) for s in slips), Decimal('0'))
-    total_employed = slips.values('employee_id').distinct().count()
-
-    total_fines_imposed = wages_fine.objects.filter(company=company, salary_year=year).aggregate(
-        t=models.Sum('fine_amount'))['t'] or Decimal('0')
-    total_deductions = wages_deduction.objects.filter(company=company, salary_year=year).aggregate(
-        t=models.Sum('deduction_amount'))['t'] or Decimal('0')
-
-    return {
-        'total_employed': total_employed, 'total_wages_paid': total_wages,
-        'total_fines_imposed': total_fines_imposed, 'total_fines_realised': total_fines_imposed,
-        'total_deductions': total_deductions,
-    }
+    from Aapp.app.services.wage_returns import compute_pow_totals
+    return compute_pow_totals(company, year)
 
 
 @login_required

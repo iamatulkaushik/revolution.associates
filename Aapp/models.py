@@ -18,5 +18,6 @@ from Aapp.app import wage_compliance
 from Aapp.app import labour_welfare
 from Aapp.app import compliance_tracker
 from Aapp.app import salary_processing
+from Aapp.app import batch_job  # noqa: F401  (registers BatchJob so makemigrations sees it)
 
 # Create your models here.

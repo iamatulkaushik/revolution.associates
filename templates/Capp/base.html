@@ -56,115 +56,24 @@
 
     <nav class="sidebar-nav" aria-label="Owner navigation">
       <ul>
-
+{% for g in capp_nav %}
+        {% if g.url %}
         <li class="nav-item">
-          <a href="{% url 'capp_dashboard' %}" class="nav-link dashboard">
-            <span class="nav-label">Dashboard</span>
-          </a>
+          <a href="{{ g.url }}" class="nav-link {{ g.css }}"><span class="nav-label">{{ g.label }}</span></a>
         </li>
-
-        {% if access.employees %}
-        <li class="nav-item" id="nav-emp">
-          <button class="nav-link employees" onclick="toggleNav('nav-emp')" aria-expanded="false">
-            <span class="nav-label">Employees</span>
+        {% else %}
+        <li class="nav-item" id="nav-{{ g.id }}">
+          <button class="nav-link {{ g.css }}" onclick="toggleNav('nav-{{ g.id }}')" aria-expanded="false">
+            <span class="nav-label">{{ g.label }}</span>
             <span class="nav-chevron">&#9658;</span>
           </button>
           <ul class="nav-sub">
-            <li><a href="{% url 'capp_employee_list' %}" class="nav-link">All Employees</a></li>
+            {% for i in g.items %}<li><a href="{{ i.url }}" class="nav-link">{{ i.label }}</a></li>
+            {% endfor %}
           </ul>
         </li>
         {% endif %}
-
-        {% if access.attendance %}
-        {% if request.owner_profile.can_manage_masters %}
-        <li class="nav-item" id="nav-masters">
-          <button class="nav-link employees" onclick="toggleNav('nav-masters')" aria-expanded="false">
-            <span class="nav-label">Masters</span>
-            <span class="nav-chevron">&#9658;</span>
-          </button>
-          <ul class="nav-sub">
-            <li><a href="{% url 'capp_company_details' %}" class="nav-link">Company &amp; Bank</a></li>
-            <li><a href="{% url 'capp_branch_list' %}" class="nav-link">Branches</a></li>
-            <li><a href="{% url 'capp_department_list' %}" class="nav-link">Departments</a></li>
-            <li><a href="{% url 'capp_designation_list' %}" class="nav-link">Designations</a></li>
-            <li><a href="{% url 'capp_bankformat_list' %}" class="nav-link">Bank Formats</a></li>
-            <li><a href="{% url 'capp_import_employees' %}" class="nav-link">Import Employees (Excel)</a></li>
-            <li><a href="{% url 'capp_client_list' %}" class="nav-link">Billing Clients</a></li>
-            <li><a href="{% url 'capp_invoice_list' %}" class="nav-link">Invoices</a></li>
-            <li><a href="{% url 'capp_deduction_list' %}" class="nav-link">Deductions</a></li>
-          </ul>
-        </li>
-        {% endif %}
-
-        <li class="nav-item" id="nav-att">
-          <button class="nav-link attandance" onclick="toggleNav('nav-att')" aria-expanded="false">
-            <span class="nav-label">Attendance</span>
-            <span class="nav-chevron">&#9658;</span>
-          </button>
-          <ul class="nav-sub">
-            <li><a href="{% url 'capp_attendance_list' %}" class="nav-link">Attendance Register</a></li>
-            <li><a href="{% url 'capp_overtime_list' %}"   class="nav-link">Overtime Register</a></li>
-          </ul>
-        </li>
-        {% endif %}
-
-        {% if access.wages %}
-        <li class="nav-item" id="nav-wages">
-          <button class="nav-link statuary" onclick="toggleNav('nav-wages')" aria-expanded="false">
-            <span class="nav-label">Wages & Payroll</span>
-            <span class="nav-chevron">&#9658;</span>
-          </button>
-          <ul class="nav-sub">
-            <li><a href="{% url 'capp_wages_list' %}"     class="nav-link">Wage Register</a></li>
-            <li><a href="{% url 'capp_salary_slip' %}"    class="nav-link">Salary Slip (PDF)</a></li>
-            <li><a href="{% url 'capp_salary_sheet' %}"   class="nav-link">Salary Sheet (PDF)</a></li>
-            <li><a href="{% url 'capp_salary_abstract' %}" class="nav-link">Abstract (PDF)</a></li>
-            <li><a href="{% url 'capp_bank_file' %}" class="nav-link">Bank Payment Files</a></li>
-          </ul>
-        </li>
-        {% endif %}
-
-        {% if access.statutory %}
-        <li class="nav-item" id="nav-stat">
-          <button class="nav-link statuary" onclick="toggleNav('nav-stat')" aria-expanded="false">
-            <span class="nav-label">Statutory</span>
-            <span class="nav-chevron">&#9658;</span>
-          </button>
-          <ul class="nav-sub">
-            <li><a href="{% url 'capp_epf_ecr' %}"    class="nav-link">EPF ECR</a></li>
-            <li><a href="{% url 'capp_esi_returns' %}" class="nav-link">ESI Returns</a></li>
-            <li><a href="{% url 'capp_gratuity' %}"    class="nav-link">Gratuity</a></li>
-            <li><a href="{% url 'capp_bonus' %}"       class="nav-link">Bonus</a></li>
-            <li><a href="{% url 'capp_maternity' %}"   class="nav-link">Maternity</a></li>
-            <li><a href="{% url 'capp_lwf' %}"         class="nav-link">Labour Welfare Fund</a></li>
-          </ul>
-        </li>
-        {% endif %}
-
-        {% if access.compliance %}
-        <li class="nav-item">
-          <a href="{% url 'capp_compliance' %}" class="nav-link statuary">
-            <span class="nav-label">Compliance Calendar</span>
-          </a>
-        </li>
-        {% endif %}
-
-        {% if access.reports %}
-        <li class="nav-item" id="nav-rep">
-          <button class="nav-link statuary" onclick="toggleNav('nav-rep')" aria-expanded="false">
-            <span class="nav-label">Reports & Docs</span>
-            <span class="nav-chevron">&#9658;</span>
-          </button>
-          <ul class="nav-sub">
-            <li><a href="{% url 'capp_company_profile_pdf' %}"                  class="nav-link">Company Profile</a></li>
-            <li><a href="{% url 'capp_letterhead' doc_type='quotation' %}"       class="nav-link">Quotation</a></li>
-            <li><a href="{% url 'capp_letterhead' doc_type='appointment_letter' %}" class="nav-link">Appointment Letter</a></li>
-            <li><a href="{% url 'capp_letterhead' doc_type='show_cause' %}"      class="nav-link">Show Cause Notice</a></li>
-            <li><a href="{% url 'capp_letterhead' doc_type='notice' %}"          class="nav-link">Office Notice</a></li>
-          </ul>
-        </li>
-        {% endif %}
-
+{% endfor %}
       </ul>
     </nav>
 
@@ -181,7 +90,8 @@
     <header class="topbar">
       <div class="topbar-left">
         <h1 class="topbar-title">Owner Portal</h1>
-        <span class="owner-badge">Owner Portal</span>
+        <span class="owner-badge">{{ capp_mode_label|default:"Owner Portal" }}{% if capp_role == "OPERATOR" %} · Operator{% endif %}</span>
+        {% if plan_usage %}<span class="owner-badge" title="Active employees / plan limit">Employees {{ plan_usage.text }}</span>{% endif %}
       </div>
       <div class="topbar-right">
         <div class="company-chip" aria-label="Selected company">

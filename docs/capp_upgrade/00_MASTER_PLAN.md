@@ -8,28 +8,27 @@ Capp (the company-owner portal, `capp.<domain>`) must support two kinds of compa
 |---|---|---|
 | Who runs payroll | Company itself | The associate (Aapp) |
 | Statutory setup (EPF/ESIC/LWF/PT) | Company edits it | Associate only |
-| Bank details | Company edits | Associate only |
-| Challans, returns | Company handles and downloads | Company downloads (associate files them) |
+| Bank, challans, returns | Company handles | Associate only |
 | Employees, attendance, loans, advances | Company enters | Owner and operators **help enter** data |
 | Payroll batch process / finalize | Company | Associate only |
 | Salary sheet, slips, abstracts | Download any time after finalize | Download after batch is finalized |
-| Employee limit | Set by Sapp on the licence | Set by Sapp on the licence |
+| Plan and employee limit | Set by Sapp | Set by Sapp |
 
 Mode is a property of the company, set by Sapp superadmin: `Company.management_mode` = `DIRECT` | `ASSOCIATE` (default `ASSOCIATE`; all existing companies stay ASSOCIATE).
 
 ## 2. Decisions
 ### Decided by the owner
 - **A.** Direct mode is a **separate new build inside Capp**. Cxapp is not reused and not touched.
-- **B.** Employee limit is **set when the licence is issued** (stored on the company's licence). `Company.plan` only supplies the default: copper = 150. Other plans have no default cap.
+- **B.** Employee limits follow `Company.plan` (copper / silver / gold / platinum). Copper = 150.
 - **C.** Over the limit: **only adding is blocked**. Existing employees stay. Reactivating a relieved employee counts as adding.
 
 ### Assumed defaults (owner may change before Day 0 freeze; each is cheap to change now, costly later)
 | ID | Question | Default used in all task files |
 |---|---|---|
-| D1 | Where the limit lives | **Decided:** on the licence at issue time. New field `License.max_employees` (None = unlimited). `License.max_users` (login-user seats, defaults 5/10) is left untouched. No licence: plan default (copper 150, else unlimited) |
+| D1 | Limits for silver / gold / platinum | silver 500, gold 2000, platinum unlimited — **placeholders** in `plan_limits.py` |
 | D2 | Who finalizes a batch in ASSOCIATE mode | Associate only |
 | D3 | Who are "operators" | New Capp `CompanyOperator`, created by the owner. Separate from Aapp `SubUser`. Associate can suspend them |
-| D4 | Challans / returns in ASSOCIATE mode | **Decided:** company may download them (read-only; the associate generates and files). Same gate as salary sheet: batch `APPROVED` or `PAID` |
+| D4 | Challans / returns in ASSOCIATE mode | Not available to the company (associate handles) |
 | D5 | Changing a company's mode | Sapp superadmin only; blocked while any batch is PROCESSED or APPROVED-not-PAID |
 | D6 | What counts toward the limit | Employees with `is_working=True` |
 | D7 | Entry lock | In ASSOCIATE mode attendance/loan entry for a month is locked once its batch is PROCESSED. Associate unlocks. In DIRECT mode owner may reopen while batch is DRAFT/PROCESSED |
@@ -55,7 +54,7 @@ Mode is a property of the company, set by Sapp superadmin: `Company.management_m
 | payroll.process / finalize | ✔ | — | — | — |
 | payroll.download | ✔ | flag | ✔ | flag |
 | statutory.edit | ✔ | — | — | — |
-| challan.download | ✔ | flag | ✔ | flag |
+| challan.download | ✔ | — | — | — |
 | bank.edit | ✔ | — | — | — |
 | masters.edit | ✔ | flag | ✔ | — |
 | billing.manage | ✔ | flag | ✔ | — |
@@ -82,19 +81,19 @@ Phase 0 already contains working stubs — code against them today.
 ## 6. Tracks and file ownership
 | Track | File | Branch | Owns (may edit) |
 |---|---|---|---|
-| **AI-1 Foundation & Governance** | `02_AI1_FOUNDATION.md` | `capp_upgrades/ai1-foundation` | `Capp/access.py`, `Capp/audit.py`, `Capp/middleware.py`, `Capp/models.py`, `Capp/context_processors.py`, `templates/Capp/base.html`, `Capp/foundation/*`, Sapp company and licence screens, `Sapp/app/license.py`, `revolution/app/plan_limits.py`, all migrations |
+| **AI-1 Foundation & Governance** | `02_AI1_FOUNDATION.md` | `capp_upgrades/ai1-foundation` | `Capp/access.py`, `Capp/audit.py`, `Capp/middleware.py`, `Capp/models.py`, `Capp/context_processors.py`, `templates/Capp/base.html`, `Capp/foundation/*`, Sapp company/plan screens, `revolution/app/plan_limits.py`, all migrations |
 | **AI-2 Direct company engine** | `03_AI2_DIRECT_ENGINE.md` | `capp_upgrades/ai2-direct` | `Capp/direct/*`, `templates/Capp/direct/*`, `Aapp/app/services/*` (new files only) |
 | **AI-3 Entry & downloads** | `04_AI3_ENTRY_DOWNLOADS.md` | `capp_upgrades/ai3-entry` | `Capp/entry/*`, `templates/Capp/entry/*` |
 
 Everything else is **read-only for all tracks**. A needed change in someone else's file is requested in the handoff report, not made.
 
-Workload split (balanced by surface area, not by title): AI-1 = 6 work packages, 4 touch shared code. AI-2 = 6 packages, heaviest in Aapp reading. AI-3 = 6 packages, heaviest in UI, validation and generator wrappers. **All file downloads (salary sheet, slips, abstract, challan files, statutory reports) are AI-3's single code path for both modes.**
+Workload split (balanced by surface area, not by title): AI-1 = 6 work packages, 4 touch shared code. AI-2 = 6 packages, heaviest in Aapp reading. AI-3 = 6 packages, heaviest in UI and validation.
 
 ## 7. Schedule (relative days; start Day 0 when you say go)
 | Day | AI-1 | AI-2 | AI-3 | You |
 |---|---|---|---|---|
 | 0 | Freeze contracts (this doc) | read, inventory | read, inventory | answer D1–D8, create 3 sub-branches |
-| 1 | F1 mode field, F2 licence employee limit | **C1:** `INVENTORY.md` of reusable Aapp functions | employees CRUD | **C1 review (30 min)** |
+| 1 | F1 mode field, F2 PlanLimit | **C1:** `INVENTORY.md` of reusable Aapp functions | employees CRUD | **C1 review (30 min)** |
 | 2 | F3 operators + real `has_perm` | batch lifecycle | attendance entry | |
 | 3 | F4 nav refactor, F5 audit | statutory setup, challans | loans/advances entry | **C2: merge AI-1, smoke test (1 h)** |
 | 4 | support merges | month-end checklist, reports | downloads + operator dashboard | |
@@ -109,9 +108,9 @@ Your real bottleneck is review time (about 3.5 h total), not AI speed. Do not sk
 | Three AIs edit one file | Ownership table above; stub seams already in place |
 | Migration number clash | Only AI-1 runs `makemigrations`. Tracks deliver models; AI-1 generates one migration per checkpoint |
 | Aapp logic is view-bound, not reusable | C1 inventory; extraction with golden tests |
-| Licence limit missing or wrong | Limit is a licence field editable in Sapp; backfill command covers existing licences; no code change needed |
+| Plan numbers wrong | Table-driven limits editable in Sapp; no code change needed |
 | Direct mode rebuilds half of Aapp | Principle 1 plus C1 inventory; stretch items (FNF) are optional |
-| Three vocabularies (`Company.plan` copper..platinum, `License.license_type` trial..enterprise, `CxPlan`) | Capp reads only `License.max_employees` and `Company.plan`; never `CxPlan`, never `license_type` |
+| Two plan systems (`Company.plan`, `CxPlan`) | Capp uses `Company.plan` only; never read CxPlan |
 
 ## 9. Definition of done
 - `python manage.py test Capp` green (38 tests exist today; none may be deleted).

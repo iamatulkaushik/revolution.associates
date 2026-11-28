@@ -1,0 +1,19 @@
+{% extends 'Capp/base.html' %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block content %}
+<div class="section-header"><h2>{{ page_title }} — {{ job.month }}/{{ job.year }}</h2></div>
+<div class="card"><div class="card-body">
+  <p id="st">Status: {{ job.status }}</p><p id="dl"></p>
+  <a class="button" href="{% url 'capp_ent_dl_hub' %}?month={{ job.month }}&year={{ job.year }}">Back</a>
+</div></div>
+<script>
+(function poll(){
+  fetch("{% url 'capp_ent_dl_job_json' job.pk %}", {credentials:'same-origin'}).then(r=>r.json()).then(j=>{
+    document.getElementById('st').textContent = 'Status: ' + j.status + (j.failed ? ' (' + j.failed + ' failed)' : '');
+    if (j.download_url) { document.getElementById('dl').innerHTML = '<a class="button" href="' + j.download_url + '">Download PDF</a>'; }
+    else if (j.status !== 'failed') { setTimeout(poll, 2500); }
+    else { document.getElementById('dl').textContent = j.error; }
+  });
+})();
+</script>
+{% endblock %}

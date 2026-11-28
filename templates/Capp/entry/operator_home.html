@@ -1,0 +1,13 @@
+<div class="card" style="margin-bottom:var(--sp-4)"><div class="card-body">
+  <h3>My work — {{ operator_home.month_label }}</h3>
+  <p>Payroll batch: <strong>{{ operator_home.batch_status }}</strong>.
+    {% if operator_home.entry_open %}Entry is open.{% else %}<span style="color:#b00020">{{ operator_home.lock_reason }}</span>{% endif %}</p>
+  <ul>
+    <li>Employees I added this month: <strong>{{ operator_home.employees_added }}</strong></li>
+    <li>Attendance entered: <strong>{{ operator_home.attendance_entered }}</strong>
+        {% if operator_home.attendance_missing %}— <strong>{{ operator_home.attendance_missing }}</strong> still missing{% endif %}</li>
+    {% if operator_home.loans_entered is not None %}<li>Loans and advances I entered: <strong>{{ operator_home.loans_entered }}</strong></li>{% endif %}
+    <li>Plan usage: <strong>{{ plan_usage.text }}</strong>{% if plan_usage.full %} — plan is full, no more employees can be added{% endif %}</li>
+  </ul>
+  <p>{% for l in operator_home.links %}<a class="button" href="{{ l.url }}">{{ l.label }}</a> {% endfor %}</p>
+</div></div>

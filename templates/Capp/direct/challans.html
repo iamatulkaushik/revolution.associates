@@ -1,0 +1,43 @@
+{% extends 'Capp/base.html' %}
+{% block title %}Challans and returns{% endblock %}
+{% block content %}
+<div class="section-header"><h2>Challans and returns: {{ month_name }} {{ year }}</h2></div>
+
+<div class="card" style="margin-bottom:var(--sp-4)"><div class="card-body">
+  <form method="get" style="display:flex;gap:var(--sp-3);flex-wrap:wrap;align-items:end">
+    <div><label for="month">Month</label>
+      <select name="month" id="month" class="form-control">
+        {% for n, name in months %}<option value="{{ n }}"{% if n == month %} selected{% endif %}>{{ name }}</option>{% endfor %}
+      </select></div>
+    <div><label for="year">Year</label>
+      <select name="year" id="year" class="form-control">
+        {% for y in years %}<option value="{{ y }}"{% if y == year %} selected{% endif %}>{{ y }}</option>{% endfor %}
+      </select></div>
+    <button type="submit" class="button">Show</button>
+  </form>
+  {% if not finalized %}
+  <p class="text-sm" style="margin-top:var(--sp-3)"><strong>This month is not finalized yet.</strong>
+    Files are offered after payroll is finalized. <a href="{% url 'capp_dir_payroll' %}">Go to payroll</a>.</p>
+  {% endif %}
+</div></div>
+
+{% for s in schemes %}
+<div class="card" style="margin-bottom:var(--sp-4)"><div class="card-body">
+  <h3>{{ s.title }}</h3>
+  {% if not s.on %}
+    <p class="text-muted">{{ s.off_note }} <a href="{% url 'capp_dir_statutory' %}">Statutory setup</a></p>
+  {% elif not finalized %}
+    <p class="text-muted">Available once this month is finalized.</p>
+  {% else %}
+    <div style="display:flex;gap:var(--sp-3);flex-wrap:wrap">
+      {% for a in s.actions %}<a class="button" href="{{ a.url }}">{{ a.label }}</a>{% endfor %}
+      {% if s.create %}
+      <form method="post" action="{{ s.create.url }}">{% csrf_token %}
+        <input type="hidden" name="month" value="{{ month }}"><input type="hidden" name="year" value="{{ year }}">
+        <button class="button" type="submit">{{ s.create.label }}</button></form>
+      {% endif %}
+    </div>
+  {% endif %}
+</div></div>
+{% endfor %}
+{% endblock %}

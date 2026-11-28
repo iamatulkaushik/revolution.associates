@@ -1,0 +1,14 @@
+{% extends 'Capp/base.html' %}
+{% block title %}Nominations and declarations{% endblock %}
+{% block content %}
+<div class="section-header"><h2>Nominations and declarations</h2></div>
+<div class="card"><div class="card-body">
+  <p class="text-muted text-sm">Keep employee nominations, family declarations and leave records, and download each register as a PDF. These are records only; they do not change salary. A register switches on when its registration number is on file under Statutory setup.</p>
+  <div style="display:flex;gap:var(--sp-3);flex-wrap:wrap">
+    {% for key, title, url, on in items %}
+      {% if on %}<a class="button" href="{{ url }}">{{ title }}</a>
+      {% else %}<span class="text-muted">{{ title }} (off: registration number missing)</span>{% endif %}
+    {% endfor %}
+  </div>
+</div></div>
+{% endblock %}

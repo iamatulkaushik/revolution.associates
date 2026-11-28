@@ -1,0 +1,21 @@
+{% extends 'Capp/base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="section-header"><h2>{{ title }}</h2></div>
+<div class="card"><div class="card-body">
+  <form method="post">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    {% for field in form %}
+    <div style="margin-bottom:var(--sp-4)">
+      <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+      {{ field }}
+      {% if field.help_text %}<div class="text-muted text-sm">{{ field.help_text }}</div>{% endif %}
+      {% for e in field.errors %}<div class="text-sm" style="color:#b00020">{{ e }}</div>{% endfor %}
+    </div>
+    {% endfor %}
+    <button type="submit" class="button">Save</button>
+    <a href="{{ back }}" class="button">Cancel</a>
+  </form>
+</div></div>
+{% endblock %}

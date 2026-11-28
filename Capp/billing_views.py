@@ -9,7 +9,7 @@ from django.shortcuts import get_object_or_404, redirect
 
 from Aapp.app.employee import employee
 from Capp.billing_models import BillingClient, ClientEmployee, EmployeeDeduction
-from Capp.masters import masters_required, _list, _edit, _delete, _style
+from Capp.masters import billing_required, _list, _edit, _delete, _style
 
 GSTIN_RE = re.compile(r'^\d{2}[A-Z]{5}\d{4}[A-Z][A-Z0-9]Z[A-Z0-9]$')
 
@@ -111,7 +111,7 @@ class BillingClientForm(forms.ModelForm):
 
 # ── Deductions ────────────────────────────────────────────────────────────────
 
-@masters_required
+@billing_required
 def capp_deduction_list(request):
     qs = EmployeeDeduction.objects.filter(company=request.owned_company) \
         .select_related('employee').order_by('is_closed', '-start_month', 'employee__name')
@@ -128,7 +128,7 @@ def capp_deduction_list(request):
                  delete_name='capp_deduction_delete')
 
 
-@masters_required
+@billing_required
 def capp_deduction_edit(request, pk=None):
     company = request.owned_company
     inst = get_object_or_404(EmployeeDeduction, pk=pk, company=company) if pk else None
@@ -142,7 +142,7 @@ def capp_deduction_edit(request, pk=None):
                  list_name='capp_deduction_list', save=save)
 
 
-@masters_required
+@billing_required
 def capp_deduction_delete(request, pk):
     obj = get_object_or_404(EmployeeDeduction, pk=pk, company=request.owned_company)
     if obj.last_applied:
@@ -154,7 +154,7 @@ def capp_deduction_delete(request, pk):
 
 # ── Billing clients ───────────────────────────────────────────────────────────
 
-@masters_required
+@billing_required
 def capp_client_list(request):
     qs = BillingClient.objects.filter(company=request.owned_company).order_by('name')
     return _list(request, title='Billing Clients', qs=qs, pk='pk',
@@ -165,7 +165,7 @@ def capp_client_list(request):
                  delete_name='capp_client_delete')
 
 
-@masters_required
+@billing_required
 def capp_client_edit(request, pk=None):
     company = request.owned_company
     inst = get_object_or_404(BillingClient, pk=pk, company=company) if pk else None
@@ -186,7 +186,7 @@ def capp_client_edit(request, pk=None):
                  list_name='capp_client_list', save=save)
 
 
-@masters_required
+@billing_required
 def capp_client_delete(request, pk):
     obj = get_object_or_404(BillingClient, pk=pk, company=request.owned_company)
     return _delete(request, obj=obj, label=f'Client "{obj.name}"', list_name='capp_client_list')

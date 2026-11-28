@@ -462,18 +462,12 @@ def add_epf_ecr(request):
     if request.method == 'POST':
         month = int(request.POST.get('salary_month'))
         year = int(request.POST.get('salary_year'))
-        if EpfMonthlyEcr.objects.filter(company=company, salary_month=month, salary_year=year).exists():
-            messages.error(request, f'An ECR for {month}/{year} already exists. Edit it instead.')
+        from Aapp.app.services import statutory_files as sf
+        try:
+            sf.create_epf_ecr(company, month, year, request.user)
+        except sf.StatutoryFileError as e:
+            messages.error(request, str(e))
             return redirect('list_epf_ecr')
-
-        totals = _compute_epf_ecr_totals(company, month, year)
-        if totals['total_members'] == 0:
-            messages.error(request, f'No EPF-enrolled employees with salary processed for {month}/{year}.')
-            return redirect('list_epf_ecr')
-
-        ecr = EpfMonthlyEcr(company=company, salary_month=month, salary_year=year,
-                             created_by=request.user, **totals)
-        ecr.save()
         messages.success(request, f'EPF ECR for {month}/{year} generated from salary sheet.')
         return redirect('list_epf_ecr')
 

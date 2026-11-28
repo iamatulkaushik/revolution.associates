@@ -1,6 +1,7 @@
 {% extends 'Capp/base.html' %}
 {% block title %}Dashboard{% endblock %}
 {% block content %}
+{% if operator_home %}{% include 'Capp/entry/operator_home.html' %}{% endif %}
 
 <div class="section-header">
   <h2>{{ owned_company.company_name }}</h2>

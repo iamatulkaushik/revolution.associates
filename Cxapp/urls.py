@@ -232,3 +232,10 @@ urlpatterns = [
     path('employee/reset-password/', cxapp_emp_password_reset_request, name='cxapp_emp_password_reset_request'),
     path('employee/reset/<str:token>/', cxapp_emp_password_reset_confirm, name='cxapp_emp_password_reset_confirm'),
 ]
+
+# Custom error pages (revolution/error_views.py). Each URLconf needs its own: django-hosts
+# serves every subdomain from its own URLconf, which Django asks for handler400/403/404/500.
+handler400 = 'revolution.error_views.custom_400'
+handler403 = 'revolution.error_views.custom_403'
+handler404 = 'revolution.error_views.custom_404'
+handler500 = 'revolution.error_views.custom_500'

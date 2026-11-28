@@ -1,0 +1,38 @@
+{% extends 'Capp/base.html' %}
+{% block title %}Payroll batches{% endblock %}
+{% block content %}
+<div class="section-header"><h2>Payroll batches</h2></div>
+
+<div class="card" style="margin-bottom:var(--sp-4)"><div class="card-body">
+  <h3>Start a month</h3>
+  <form method="post" style="display:flex;gap:var(--sp-3);flex-wrap:wrap;align-items:end">
+    {% csrf_token %}
+    <div><label for="month">Month</label>
+      <select name="month" id="month" class="form-control">
+        {% for n, name in months %}<option value="{{ n }}"{% if n == current_month %} selected{% endif %}>{{ name }}</option>{% endfor %}
+      </select></div>
+    <div><label for="year">Year</label>
+      <select name="year" id="year" class="form-control">
+        {% for y in years %}<option value="{{ y }}"{% if y == current_year %} selected{% endif %}>{{ y }}</option>{% endfor %}
+      </select></div>
+    <button type="submit" class="button">Create batch</button>
+  </form>
+</div></div>
+
+<div class="card"><div class="card-body">
+  {% if batches %}
+  <table class="table">
+    <thead><tr><th>Month</th><th>Status</th><th>Employees</th><th>Gross</th><th>Net pay</th><th></th></tr></thead>
+    <tbody>
+    {% for b in batches %}
+      <tr>
+        <td>{{ b.month }}/{{ b.year }}</td><td>{{ b.status }}</td><td>{{ b.total_employees }}</td>
+        <td>{{ b.total_gross }}</td><td>{{ b.total_net }}</td>
+        <td><a href="{% url 'capp_dir_payroll_detail' b.pk %}">Open</a></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}<p class="text-muted">No batches yet.</p>{% endif %}
+</div></div>
+{% endblock %}

@@ -1,0 +1,26 @@
+{% extends 'Capp/base.html' %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block content %}
+<div class="section-header"><h2>{{ page_title }}</h2></div>
+<form method="get" style="margin-bottom:var(--sp-4)">
+  <select name="month">{% for m in months %}<option value="{{ m }}"{% if m == month %} selected{% endif %}>{{ m }}</option>{% endfor %}</select>
+  <input type="number" name="year" value="{{ year }}" style="width:90px"> <button class="button">Show</button>
+</form>
+<div class="card"><div class="card-body">
+  <p><strong>Payroll batch {{ month }}/{{ year }}:</strong>
+    {% if batch %}{{ batch.status }} — {{ slip_count }} slip(s){% else %}not created yet{% endif %}</p>
+  {% if final %}
+    <p>
+      <a class="button" href="{% url 'capp_ent_dl_sheet' month year %}">Salary Sheet (PDF)</a>
+      <a class="button" href="{% url 'capp_ent_dl_abstract' month year %}">Salary Abstract (PDF)</a>
+      {% if instant_ok %}<a class="button" href="{% url 'capp_ent_dl_slips_all' month year %}">All Salary Slips (PDF)</a>{% endif %}
+    </p>
+    {% if not instant_ok and slip_count %}<p class="text-muted text-sm">More than {{ max_instant }} slips: use the background file below.</p>{% endif %}
+    <form method="post" action="{% url 'capp_ent_dl_wages_job_start' month year %}">{% csrf_token %}
+      <button class="button">Prepare Wages Slips file (background)</button></form>
+    <p class="text-muted text-sm">Single slips: open the Wage Register and use the slip link.</p>
+  {% else %}
+    <p style="color:#b00020">{{ blocked_reason }}</p>
+  {% endif %}
+</div></div>
+{% endblock %}

@@ -21,7 +21,7 @@
     </div>
     {% endfor %}
     <button type="submit" class="button">Save</button>
-    <a href="{% url cancel_url %}" class="button">Cancel</a>
+    <a href="{% if cancel_href %}{{ cancel_href }}{% else %}{% url cancel_url %}{% endif %}" class="button">Cancel</a>
   </form>
 </div></div>
 {% endblock %}

@@ -26,18 +26,18 @@ Use two companies. Company X = DIRECT, copper. Company Y = ASSOCIATE, copper. Ea
 | 1 | Sapp: create X with mode Direct, Y with mode Associate | Mode shown in Capp header badge |
 | 2 | X owner: set statutory registrations | Gates update; challans appear only for registered schemes |
 | 3 | Y owner: open statutory / challans / process payroll URLs | Blocked with message |
-| 4 | Sapp: issue licences with max_employees = 150 for X and Y. Both: add employees to the limit | 151st blocked with plan message; existing untouched |
+| 4 | Both: add employees until copper limit (150) | 151st blocked with plan message; existing untouched |
 | 5 | Y operator: add attendance for a month | Saved; audit log shows operator name |
 | 6 | Y operator: try employees add (no flag) | Denied |
 | 7 | X owner: run month → process → finalize → paid | Status transitions; reopen rules respected |
-| 8 | Y: associate processes and approves batch in Aapp | Y owner and operator (flags on) can download salary sheet, slip, abstract and challan files |
+| 8 | Y: associate processes and approves batch in Aapp | Y owner and operator can now download salary sheet, slip, abstract |
 | 9 | Y before approval: try download | "Batch not finalized yet" |
 | 10 | Y after PROCESSED: operator edits attendance | Locked |
 | 11 | Open another company's slip URL | 404 |
 | 12 | Suspend operator | Cannot log in |
-| 13 | Sapp: edit X's licence to max_employees = 200 | Limit rises without code change; Capp shows "n / 200" |
+| 13 | Raise X to silver in Sapp | Limit rises without code change |
 | 14 | Import the owner's sample workbook (employees, then ATT) | Preview then confirm; re-import updates |
 
 ## Release and rollback
-- Release: merge `capp_upgrades` → `main` only after UAT. Run `pip install -r requirements.txt`, `migrate`, `backfill_license_max_employees` (dry-run first).
+- Release: merge `capp_upgrades` → `main` only after UAT. Run `pip install -r requirements.txt`, `migrate`, `seed_plan_limits`.
 - Rollback: migrations in this upgrade only add fields/tables (no drops). Revert the merge commit; unused tables are harmless.

@@ -1,0 +1,37 @@
+{% extends 'Capp/base.html' %}
+{% block title %}Bonus records{% endblock %}
+{% block content %}
+<div class="section-header"><h2>Bonus records (Form A and C)</h2></div>
+<div class="card"><div class="card-body">
+  <form method="get" style="display:flex;gap:var(--sp-3);flex-wrap:wrap;align-items:end;margin-bottom:var(--sp-3)">
+    <label>Year <select name="year" class="form-control">{% for y in years %}<option value="{{ y }}"{% if y == year %} selected{% endif %}>{{ y }}</option>{% endfor %}</select></label>
+    <label>Month (for Form C) <select name="month" class="form-control">{% for n, name in months %}<option value="{{ n }}"{% if n == month %} selected{% endif %}>{{ name }}</option>{% endfor %}</select></label>
+    <button class="button" type="submit">Show</button>
+  </form>
+  <div style="display:flex;gap:var(--sp-3);flex-wrap:wrap;margin-bottom:var(--sp-3)">
+    <a class="button" href="{% url 'capp_dir_bonus_add' %}">Add bonus record</a>
+    <a class="button" href="{{ register_url }}">Download Form C for selected month (PDF)</a>
+    <a class="button" href="{% url 'capp_dir_returns' %}">Annual returns</a>
+  </div>
+  <p class="text-muted text-sm">Mark a record paid once the bonus is paid; paid records are locked and are the ones counted in the Form D return.</p>
+  {% if rows %}
+  <table class="table">
+    <thead><tr><th>Employee</th><th>Month</th><th>Bonus %</th><th>Total</th><th>Status</th><th>Paid on</th><th></th></tr></thead>
+    <tbody>
+    {% for r in rows %}
+      <tr><td>{{ r.employee.name }}</td><td>{{ r.salary_month }}/{{ r.salary_year }}</td><td>{{ r.bonus_percentage }}%</td>
+        <td>{{ r.total_bonus }}</td><td>{% if r.is_paid %}Paid{% else %}Pending{% endif %}</td><td>{{ r.payment_date|default:"—" }}</td>
+        <td style="white-space:nowrap">
+          {% if not r.is_paid %}
+          <a class="button" href="{% url 'capp_dir_bonus_edit' r.bonus_id %}">Edit</a>
+          <a class="button" href="{% url 'capp_dir_bonus_pay' r.bonus_id %}">Mark paid</a>
+          <form method="post" action="{% url 'capp_dir_bonus_delete' r.bonus_id %}" style="display:inline" onsubmit="return confirm('Delete this bonus record?')">{% csrf_token %}<button class="button" type="submit">Delete</button></form>
+          {% endif %}
+        </td></tr>
+    {% endfor %}
+    </tbody>
+    <tfoot><tr><td colspan="3"><strong>Total</strong></td><td><strong>{{ total }}</strong></td><td colspan="3"></td></tr></tfoot>
+  </table>
+  {% else %}<p class="text-muted">No bonus records for {{ year }}.</p>{% endif %}
+</div></div>
+{% endblock %}

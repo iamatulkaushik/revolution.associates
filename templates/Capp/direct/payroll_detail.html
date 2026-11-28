@@ -1,0 +1,60 @@
+{% extends 'Capp/base.html' %}
+{% block title %}Payroll {{ label }}{% endblock %}
+{% block content %}
+<div class="section-header"><h2>Payroll: {{ label }}</h2></div>
+
+<div class="card" style="margin-bottom:var(--sp-4)"><div class="card-body">
+  <p><strong>Status:</strong> {{ batch.status }}
+    {% if locked %}<span class="text-muted text-sm"> (locked: cannot be processed again. Ask your associate if it must be changed.)</span>{% endif %}</p>
+  <table class="table">
+    <tr><td>Employees</td><td>{{ batch.total_employees }}</td></tr>
+    <tr><td>Gross earnings</td><td>{{ batch.total_gross }}</td></tr>
+    <tr><td>Deductions</td><td>{{ batch.total_deductions }}</td></tr>
+    <tr><td>Net pay</td><td>{{ batch.total_net }}</td></tr>
+    <tr><td>Employer cost</td><td>{{ batch.total_employer_cost }}</td></tr>
+  </table>
+
+  <div style="display:flex;gap:var(--sp-3);flex-wrap:wrap">
+    {% if can_process %}
+    <form method="post" action="{% url 'capp_dir_payroll_process' batch.pk %}">{% csrf_token %}
+      <button class="button" type="submit">{% if batch.status == 'DRAFT' %}Process salary{% else %}Process again{% endif %}</button></form>
+    {% endif %}
+    {% if can_reopen %}
+    <form method="post" action="{% url 'capp_dir_payroll_reopen' batch.pk %}">{% csrf_token %}
+      <button class="button" type="submit">Reopen as draft</button></form>
+    {% endif %}
+    {% if can_finalize %}<a class="button" href="{% url 'capp_dir_payroll_finalize' batch.pk %}">Finalize</a>{% endif %}
+    {% if can_pay %}
+    <form method="post" action="{% url 'capp_dir_payroll_paid' batch.pk %}" onsubmit="return confirm('Mark this month as paid?')">{% csrf_token %}
+      <button class="button" type="submit">Mark paid</button></form>
+    {% endif %}
+    {% if can_delete %}
+    <form method="post" action="{% url 'capp_dir_payroll_delete' batch.pk %}" onsubmit="return confirm('Delete this batch and its slips?')">{% csrf_token %}
+      <button class="button" type="submit">Delete batch</button></form>
+    {% endif %}
+    <a class="button" href="{% url 'capp_dir_payroll' %}">All batches</a>
+  </div>
+</div></div>
+
+{% if errors %}
+<div class="card" style="margin-bottom:var(--sp-4)"><div class="card-body">
+  <h3>Skipped employees</h3>
+  <ul>{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul>
+</div></div>
+{% endif %}
+
+<div class="card"><div class="card-body">
+  <h3>Salary slips</h3>
+  {% if slips %}
+  <table class="table">
+    <thead><tr><th>Code</th><th>Name</th><th>Gross</th><th>Deductions</th><th>Net pay</th></tr></thead>
+    <tbody>
+    {% for s in slips %}
+      <tr><td>{{ s.employee_id.employeecode }}</td><td>{{ s.employee_id.name }}</td>
+          <td>{{ s.gross_earnings }}</td><td>{{ s.total_deductions }}</td><td>{{ s.net_pay }}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}<p class="text-muted">Not processed yet.</p>{% endif %}
+</div></div>
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends "Sapp/base.html" %}
+{% block title %}Company Operators{% endblock %}
+{% block content %}
+{% if messages %}<div class="messages-container">{% for message in messages %}
+<div class="message-alert {% if message.tags == 'error' %}message-error{% else %}message-success{% endif %}" role="alert">{{ message }}</div>{% endfor %}</div>{% endif %}
+<h2>Company Operators</h2>
+<table class="data-table"><thead><tr><th>Company</th><th>Username</th><th>Status</th><th>Created</th><th></th></tr></thead><tbody>
+{% for o in operators %}<tr><td>{{ o.company.company_name }}</td><td>{{ o.user.username }}</td>
+  <td>{% if o.is_active %}Active{% else %}Suspended{% endif %}</td><td>{{ o.created_at|date:"d-m-Y" }}</td>
+  <td><form method="post" action="{% url 'toggle_company_operator' o.pk %}">{% csrf_token %}
+    <button class="button">{% if o.is_active %}Suspend{% else %}Enable{% endif %}</button></form></td></tr>
+{% empty %}<tr><td colspan="5">No operators.</td></tr>{% endfor %}
+</tbody></table>
+{% endblock %}

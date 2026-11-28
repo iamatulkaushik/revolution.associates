@@ -163,6 +163,7 @@ from Aapp.app.compliance_tracker import (
     alter_compliance_item, mark_compliance_filed, seed_compliance_calendar,
 )
 
+from Aapp.app.company_operators import list_company_operators_aapp, toggle_company_operator_aapp
 from Aapp.app.loans_advances import (
     list_loans, create_loan, alter_loan, view_loan_schedule, download_loan_schedule,
     list_advances, create_advance, alter_advance, view_advance_schedule, download_advance_schedule,
@@ -524,6 +525,8 @@ urlpatterns = [
     path('compliance/seed/', seed_compliance_calendar, name='seed_compliance_calendar'),
 
     path('loans/', list_loans, name='list_loans'),
+    path('company-operators/', list_company_operators_aapp, name='list_company_operators_aapp'),
+    path('company-operators/<int:operator_id>/toggle/', toggle_company_operator_aapp, name='toggle_company_operator_aapp'),
     path('loans/add/', create_loan, name='create_loan'),
     path('loans/alter/<int:loan_id>/', alter_loan, name='alter_loan'),
     path('loans/schedule/<int:loan_id>/', view_loan_schedule, name='view_loan_schedule'),
@@ -640,3 +643,10 @@ urlpatterns = [
     path('income-tax/investment-declaration/<int:profile_id>/download/', download_investment_declaration, name='download_investment_declaration'),
     path('income-tax/form24q-export/<str:financial_year>/download/', download_form24q_export, name='download_form24q_export'),
 ]
+
+# Custom error pages (revolution/error_views.py). Each URLconf needs its own: django-hosts
+# serves every subdomain from its own URLconf, which Django asks for handler400/403/404/500.
+handler400 = 'revolution.error_views.custom_400'
+handler403 = 'revolution.error_views.custom_403'
+handler404 = 'revolution.error_views.custom_404'
+handler500 = 'revolution.error_views.custom_500'

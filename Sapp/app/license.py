@@ -28,7 +28,12 @@ class License(models.Model):
     expiry_date = models.DateField()
     is_active = models.BooleanField(default=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
-    max_users = models.PositiveIntegerField(default=5)
+    max_users = models.PositiveIntegerField(default=5)   # login-user seats (Aapp sub-users)
+    # Employee cap, defined when the licence is issued. NULL = unlimited.
+    max_employees = models.PositiveIntegerField(
+        null=True, blank=True,
+        help_text='Maximum active employees for the company. Blank = unlimited.',
+    )
     suspension_reason = models.TextField(blank=True, null=True)
     revoke_reason = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -101,7 +106,8 @@ class License(models.Model):
 class LicenseForm(ModelForm):
     class Meta:
         model = License
-        fields = ['company', 'associate', 'license_key', 'license_type', 'issue_date', 'max_users']
+        fields = ['company', 'associate', 'license_key', 'license_type', 'issue_date', 'max_users',
+                  'max_employees']
         widgets = {
             'company': forms.Select(attrs={'class': 'form-control'}),
             'associate': forms.Select(attrs={'class': 'form-control'}),
@@ -109,6 +115,7 @@ class LicenseForm(ModelForm):
             'license_type': forms.Select(attrs={'class': 'form-control'}),
             'issue_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'max_users': forms.NumberInput(attrs={'class': 'form-control'}),
+            'max_employees': forms.NumberInput(attrs={'class': 'form-control', 'min': 1}),
         }
     
     def __init__(self, *args, **kwargs):

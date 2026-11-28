@@ -22,8 +22,9 @@ class PlanLimitContract(TestCase):
             pl.check_can_add(self.co, 151)
         self.assertEqual((cm.exception.limit, cm.exception.current), (150, 0))
 
-    def test_plan_without_default_is_unlimited(self):
-        self.co.plan = 'silver'                  # limit comes from the licence when issued
+    def test_unlimited_plan(self):
+        self.co.plan = 'platinum'
+        pl.PLAN_EMPLOYEE_LIMITS['platinum'] = None
         pl.check_can_add(self.co, 10 ** 6)
         self.assertIsNone(pl.remaining(self.co))
 

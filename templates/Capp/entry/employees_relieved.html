@@ -1,0 +1,16 @@
+{% extends 'Capp/base.html' %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block content %}
+<div class="section-header"><h2>{{ page_title }}</h2></div>
+<p class="text-muted text-sm">Reactivating an employee counts toward your plan limit ({{ plan_usage.text }}).</p>
+<div class="card">
+{% if employees %}<div class="table-wrap"><table class="data-table"><thead><tr>
+  <th>Code</th><th>Name</th><th>Left on</th><th>Reason</th><th></th></tr></thead><tbody>
+  {% for e in employees %}<tr><td>{{ e.employeecode }}</td><td>{{ e.name }}</td>
+    <td>{{ e.dateofleaving|date:"d-m-Y"|default:"—" }}</td><td>{{ e.leaving_reason|default:"—" }}</td>
+    <td><form method="post" action="{% url 'capp_ent_emp_reactivate' e.employeeid %}">{% csrf_token %}
+      <button class="button">Reactivate</button></form></td></tr>{% endfor %}
+</tbody></table></div>
+{% else %}<div class="card-body text-center"><p class="text-muted">No relieved employees.</p></div>{% endif %}
+</div>
+{% endblock %}

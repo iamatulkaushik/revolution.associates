@@ -80,6 +80,20 @@ class Company(models.Model):
         help_text='Subscription plan — controls which modules this company can access.',
     )
 
+    # ── Management mode (Capp upgrade) ───────────────────────────────────
+    # DIRECT    : the company runs its own payroll and statutory work in Capp.
+    # ASSOCIATE : an associate (Aapp) runs payroll; the company helps with data entry.
+    MODE_DIRECT = 'DIRECT'
+    MODE_ASSOCIATE = 'ASSOCIATE'
+    MODE_CHOICES = [
+        (MODE_DIRECT, 'Direct company'),
+        (MODE_ASSOCIATE, 'Under associate'),
+    ]
+    management_mode = models.CharField(
+        max_length=10, choices=MODE_CHOICES, default=MODE_ASSOCIATE,
+        help_text='Set by Sapp superadmin. Changing it is blocked while a payroll batch is open.',
+    )
+
     def __str__(self):
         return self.company_name
 
@@ -182,9 +196,11 @@ class create_company_form_superadmin(forms.ModelForm):
         model = Company
         fields = ['company_name', 'start_date', 'shut_date', 'tagline1', 'address1', 'address2', 'address3',
                   'state_id', 'district_id', 'pin', 'phone', 'phone2', 'mobile', 'mobile2', 'email1', 'email2',
-                  'website', 'pan', 'tan', 'cin', 'bank_id', 'account', 'ifsc', 'branch_address', 'plan']
+                  'website', 'pan', 'tan', 'cin', 'bank_id', 'account', 'ifsc', 'branch_address', 'plan',
+                  'management_mode']
         widgets = {
             'plan': forms.Select(attrs={'class': 'form-control'}),
+            'management_mode': forms.Select(attrs={'class': 'form-control'}),
             'company_name': forms.TextInput(attrs={'placeholder': 'Company Name'}),
             'start_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'shut_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
@@ -210,6 +226,19 @@ class create_company_form_superadmin(forms.ModelForm):
             'ifsc': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'IFSC Code'}),
             'branch_address': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Bank Branch Address'}),
         }
+
+    def clean_management_mode(self):
+        """D5: mode can change only while no payroll batch is open (DRAFT/PROCESSED).
+        APPROVED batches are closed history: Aapp never sets PAID, so they must not block."""
+        mode = self.cleaned_data.get('management_mode')
+        if self.instance.pk and mode != self.instance.management_mode:
+            from Aapp.app.salary_processing import salary_processing
+            if salary_processing.objects.filter(
+                    company_id=self.instance, status__in=['DRAFT', 'PROCESSED']).exists():
+                raise forms.ValidationError(
+                    'Mode cannot change while a payroll batch is open (DRAFT or PROCESSED). '
+                    'Approve or delete the batch first.')
+        return mode
 
     def clean_pan(self):
         pan = self.cleaned_data.get('pan')

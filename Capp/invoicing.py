@@ -18,6 +18,7 @@ from Aapp.app.salary_processing import salary_slip
 from Aapp.app.statutory_gates import get_company_gates
 from Capp.billing_engine import (EmployeeLine, compute_employee, ot_invoice, salary_invoice)
 from Capp.billing_models import ClientEmployee, Invoice, InvoiceLine
+from Capp.entry.gates import batch_for, is_final, not_final_message
 
 
 class InvoiceError(Exception):
@@ -40,6 +41,11 @@ def generate_invoice(company, client, kind, year, month, user='', extra_label=''
     if Invoice.objects.filter(client=client, kind=kind, year=year, month=month,
                               status__in=['DRAFT', 'ISSUED']).exists():
         raise InvoiceError('An invoice for this client, month and type already exists.')
+
+    batch = batch_for(company, month, year)
+    if not is_final(batch):                       # owner decision: only approved payroll is billed
+        raise InvoiceError(not_final_message(batch, month, year).replace(
+            'Downloads open after', 'Invoices can be made after'))
 
     emp_ids = ClientEmployee.objects.filter(company=company, client=client) \
         .values_list('employee_id', flat=True)

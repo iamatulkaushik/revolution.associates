@@ -8,8 +8,24 @@ from django.shortcuts import render, redirect, get_object_or_404
 
 from Capp.bank_export import apply_month, build_rows, group_by_bank, render_file, seed_canara
 from Capp.billing_models import BankFormat, BankFormatColumn
+from Capp.audit import log_action
 from Capp.masters import masters_required, _style
 from Capp.views import access_required
+from revolution.app.plan_gate import has_feature
+
+
+def bank_plan_required(view_func):
+    """Bank payment files are a plan feature (`bank_file`, Gold), as in Aapp."""
+    from functools import wraps
+
+    @wraps(view_func)
+    def wrapper(request, *args, **kwargs):
+        if not has_feature(request.owned_company, 'bank_file'):
+            messages.warning(request, 'Bank payment files need the Gold plan '
+                             f'(you are on {request.owned_company.get_plan_display()}).')
+            return redirect('capp_dashboard')
+        return view_func(request, *args, **kwargs)
+    return wrapper
 
 
 class BankFormatForm(forms.ModelForm):
@@ -42,6 +58,7 @@ ColumnFormSet = forms.inlineformset_factory(
 
 
 @masters_required
+@bank_plan_required
 def capp_bankformat_list(request):
     company = request.owned_company
     if request.method == 'POST' and 'seed_canara' in request.POST:
@@ -57,6 +74,7 @@ def capp_bankformat_list(request):
 
 
 @masters_required
+@bank_plan_required
 def capp_bankformat_edit(request, pk=None):
     company = request.owned_company
     inst = get_object_or_404(BankFormat, pk=pk, company=company) if pk else None
@@ -70,6 +88,7 @@ def capp_bankformat_edit(request, pk=None):
             obj.save()
             fs.instance = obj
             fs.save()
+            log_action(request, 'update' if pk else 'create', obj, 'bank format')
             messages.success(request, 'Bank format saved.')
             return redirect('capp_bankformat_list')
     return render(request, 'Capp/masters/bank_format_form.html', {
@@ -77,9 +96,11 @@ def capp_bankformat_edit(request, pk=None):
 
 
 @masters_required
+@bank_plan_required
 def capp_bankformat_delete(request, pk):
     obj = get_object_or_404(BankFormat, pk=pk, company=request.owned_company)
     if request.method == 'POST':
+        log_action(request, 'delete', obj, 'bank format')
         obj.delete()
         messages.success(request, 'Bank format deleted.')
         return redirect('capp_bankformat_list')
@@ -88,6 +109,7 @@ def capp_bankformat_delete(request, pk):
 
 
 @access_required('wages')
+@bank_plan_required
 def capp_bank_file(request):
     from Aapp.app.salary_processing import salary_slip
     company = request.owned_company
@@ -95,6 +117,7 @@ def capp_bank_file(request):
     year = int(request.GET.get('year', date.today().year))
     if request.method == 'POST' and 'close_month' in request.POST:
         n = apply_month(company, year, month)
+        log_action(request, 'deductions_month_paid', None, f'{month:02d}/{year}: {n} updated')
         messages.success(request, f'{n} deduction(s) updated for {month:02d}/{year}.')
         return redirect(f"{request.path}?month={month}&year={year}")
     slips = salary_slip.objects.filter(

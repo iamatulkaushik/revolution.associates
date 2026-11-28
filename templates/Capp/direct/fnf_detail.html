@@ -1,0 +1,43 @@
+{% extends 'Capp/base.html' %}
+{% block title %}Settlement: {{ s.employee.name }}{% endblock %}
+{% block content %}
+<div class="section-header"><h2>Final settlement: {{ s.employee.name }} ({{ s.employee.employeecode }})</h2></div>
+<div class="card"><div class="card-body">
+  <p>Last working day {{ s.last_working_day }} &middot; Status <strong>{{ s.get_status_display }}</strong></p>
+  <table class="table">
+    <thead><tr><th colspan="2">Earnings</th></tr></thead>
+    <tbody>
+      <tr><td>Unpaid salary</td><td>{{ s.pending_salary }}</td></tr>
+      <tr><td>Leave encashment ({{ s.leave_encashment_days }} days)</td><td>{{ s.leave_encashment_amount }}</td></tr>
+      <tr><td>Notice pay (excess notice served)</td><td>{% if s.notice_pay_recovery > 0 %}{{ s.notice_pay_recovery }}{% else %}0{% endif %}</td></tr>
+      <tr><td>Gratuity</td><td>{{ s.gratuity_amount }}</td></tr>
+      <tr><td><strong>Total earnings</strong></td><td><strong>{{ s.total_earnings }}</strong></td></tr>
+    </tbody>
+    <thead><tr><th colspan="2">Recoveries</th></tr></thead>
+    <tbody>
+      <tr><td>Notice shortfall</td><td>{% if s.notice_pay_recovery < 0 %}{{ s.notice_pay_recovery }}{% else %}0{% endif %}</td></tr>
+      <tr><td>Loan balance</td><td>{{ s.loan_outstanding_recovery }}</td></tr>
+      <tr><td>Advance balance</td><td>{{ s.advance_outstanding_recovery }}</td></tr>
+      <tr><td>Assets</td><td>{{ s.asset_recovery_amount }}</td></tr>
+      <tr><td>Other deductions</td><td>{{ s.other_deductions }}</td></tr>
+      <tr><td><strong>Total recoveries</strong></td><td><strong>{{ s.total_recoveries }}</strong></td></tr>
+    </tbody>
+  </table>
+  <h3>Net settlement: {{ s.net_settlement_amount }}</h3>
+  {% if s.net_settlement_amount < 0 %}<p class="text-muted">A negative amount means the employee owes the company.</p>{% endif %}
+  {% if s.remarks %}<p>{{ s.remarks }}</p>{% endif %}
+  <div style="display:flex;gap:var(--sp-3);flex-wrap:wrap;margin-top:var(--sp-3)">
+    <a class="button" href="{% url 'capp_dir_fnf' %}">Back</a>
+    <a class="button" href="{% url 'capp_dir_fnf_pdf' s.settlement_id %}">Statement (PDF)</a>
+    {% for key, label, ready in certs %}{% if ready %}<a class="button" href="{% url 'capp_dir_fnf_cert' s.settlement_id key %}">{{ label }}</a>{% endif %}{% endfor %}
+    {% if s.status == 'draft' %}
+      <a class="button" href="{% url 'capp_dir_fnf_edit' s.settlement_id %}">Edit</a>
+      <form method="post" action="{% url 'capp_dir_fnf_recompute' s.settlement_id %}" style="display:inline">{% csrf_token %}<button class="button" type="submit">Recalculate</button></form>
+      <form method="post" action="{% url 'capp_dir_fnf_finalize' s.settlement_id %}" style="display:inline" onsubmit="return confirm('Finalize? It cannot be changed afterwards.')">{% csrf_token %}<button class="button" type="submit">Finalize</button></form>
+      <form method="post" action="{% url 'capp_dir_fnf_delete' s.settlement_id %}" style="display:inline" onsubmit="return confirm('Delete this draft?')">{% csrf_token %}<button class="button" type="submit">Delete</button></form>
+    {% elif s.status == 'finalized' %}
+      <form method="post" action="{% url 'capp_dir_fnf_paid' s.settlement_id %}" style="display:inline" onsubmit="return confirm('Mark as paid?')">{% csrf_token %}<button class="button" type="submit">Mark paid</button></form>
+    {% endif %}
+  </div>
+</div></div>
+{% endblock %}

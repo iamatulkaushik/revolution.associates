@@ -1,0 +1,23 @@
+{% extends 'Capp/base.html' %}
+{% block title %}Finalize {{ label }}{% endblock %}
+{% block content %}
+<div class="section-header"><h2>Finalize: {{ label }}</h2></div>
+<h3>Last check before you finalize</h3>
+<p>{% if warnings %}<strong>{{ warnings }} item(s) need a look.</strong> You can still finalize; this is for your review.{% else %}Everything checks out.{% endif %}</p>
+{% include 'Capp/direct/_checklist_items.html' %}
+
+<div class="card"><div class="card-body">
+  <p><strong>Finalizing locks this month.</strong> It cannot be processed again or deleted. Check the figures first.</p>
+  <table class="table">
+    <tr><td>Employees</td><td>{{ batch.total_employees }}</td></tr>
+    <tr><td>Gross earnings</td><td>{{ batch.total_gross }}</td></tr>
+    <tr><td>Deductions</td><td>{{ batch.total_deductions }}</td></tr>
+    <tr><td>Net pay</td><td>{{ batch.total_net }}</td></tr>
+    <tr><td>Employer cost</td><td>{{ batch.total_employer_cost }}</td></tr>
+  </table>
+  <form method="post">{% csrf_token %}
+    <button class="button" type="submit">Confirm and finalize</button>
+    <a class="button" href="{% url 'capp_dir_payroll_detail' batch.pk %}">Back</a>
+  </form>
+</div></div>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends 'Capp/base.html' %}
+{% block title %}Statutory reports{% endblock %}
+{% block content %}
+<div class="section-header"><h2>Statutory reports: {{ month_name }} {{ year }}</h2></div>
+<div class="card" style="margin-bottom:var(--sp-4)"><div class="card-body">
+  <form method="get" style="display:flex;gap:var(--sp-3);flex-wrap:wrap;align-items:end">
+    <div><label for="month">Month</label>
+      <select name="month" id="month" class="form-control">
+        {% for n, name in months %}<option value="{{ n }}"{% if n == month %} selected{% endif %}>{{ name }}</option>{% endfor %}
+      </select></div>
+    <div><label for="year">Year</label>
+      <select name="year" id="year" class="form-control">
+        {% for y in years %}<option value="{{ y }}"{% if y == year %} selected{% endif %}>{{ y }}</option>{% endfor %}
+      </select></div>
+    <button type="submit" class="button">Show</button>
+  </form>
+</div></div>
+
+<div class="card" style="margin-bottom:var(--sp-4)"><div class="card-body">
+  <h3>Wages reports</h3>
+  {% if finalized %}
+  <div style="display:flex;gap:var(--sp-3);flex-wrap:wrap">
+    {% for key, label, url in kinds %}<a class="button" href="{{ url }}">{{ label }}</a>{% endfor %}
+  </div>
+  {% else %}
+  <p class="text-muted">Available once this month is finalized. <a href="{% url 'capp_dir_payroll' %}">Go to payroll</a>.</p>
+  {% endif %}
+</div></div>
+
+<div class="card"><div class="card-body">
+  <h3>Income tax: Form 24Q prep sheet</h3>
+  {% if tan_on %}
+  <div style="display:flex;gap:var(--sp-3);flex-wrap:wrap">
+    {% for fy, url in fys %}<a class="button" href="{{ url }}">FY {{ fy }}</a>{% endfor %}
+  </div>
+  {% else %}
+  <p class="text-muted">The company TAN is not on file, so income tax is off. Add it under Company details.</p>
+  {% endif %}
+</div></div>
+{% endblock %}

@@ -1,0 +1,12 @@
+{% extends 'Capp/base.html' %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block content %}
+<div class="section-header"><h2>{{ page_title }} — {{ obj.employee.employeecode }} {{ obj.employee.name }}</h2>
+  <div class="section-actions"><a href="{% url 'capp_ent_loan_pdf' kind pk %}" class="button">PDF</a>
+  <a href="{% url 'capp_ent_loan_list' kind %}" class="button">Back</a></div></div>
+<p>Amount ₹{{ obj.principal_amount }} · total payable ₹{{ obj.total_payable }} · {{ obj.get_status_display }}</p>
+<div class="card"><div class="table-wrap"><table class="data-table"><thead><tr>
+  {% for k in schedule.0.keys %}<th>{{ k }}</th>{% endfor %}</tr></thead><tbody>
+  {% for row in schedule %}<tr>{% for v in row.values %}<td>{{ v }}</td>{% endfor %}</tr>{% empty %}<tr><td>No schedule.</td></tr>{% endfor %}
+</tbody></table></div></div>
+{% endblock %}

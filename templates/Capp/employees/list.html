@@ -5,9 +5,10 @@
 <div class="section-header">
   <h2>Employees — {{ company.company_name }}</h2>
   <span class="text-muted text-sm">{{ employees|length }} record{{ employees|length|pluralize }}</span>
+  {% if can_add %}<a href="{% url 'capp_ent_emp_add' %}" class="button btn-primary">+ Add employee</a>{% endif %}
 </div>
 
-<div class="readonly-notice">Read-only view. Contact your associate to add or edit employees.</div>
+{% if not can_add and not can_edit %}<div class="readonly-notice">Read-only view. Contact your associate to add or edit employees.</div>{% endif %}
 
 <!-- Search / filter bar -->
 <div class="card" style="margin-bottom:var(--sp-4)">
@@ -49,9 +50,9 @@
           <td class="text-muted text-sm">{{ forloop.counter }}</td>
           <td><strong>{{ emp.employeecode }}</strong></td>
           <td>{{ emp.name }}</td>
-          <td class="text-muted">{{ emp.designation_name|default:"—" }}</td>
-          <td class="text-muted">{{ emp.department_name|default:"—" }}</td>
-          <td class="text-sm">{{ emp.date_of_joining|default:"—" }}</td>
+          <td class="text-muted">{{ emp.designationID.designationname|default:"—" }}</td>
+          <td class="text-muted">{{ emp.departmentID.department_name|default:"—" }}</td>
+          <td class="text-sm">{{ emp.dateofjoining|date:"d-m-Y"|default:"—" }}</td>
           <td class="text-sm">{{ emp.mobile|default:"—" }}</td>
           <td>
             {% if emp.is_working %}
@@ -62,6 +63,7 @@
           </td>
           <td>
             <a href="{% url 'capp_employee_detail' emp.employeeid %}" class="action-edit">View</a>
+            {% if can_edit %} · <a href="{% url 'capp_ent_emp_edit' emp.employeeid %}" class="action-edit">Edit</a>{% endif %}
           </td>
         </tr>
         {% endfor %}

@@ -163,23 +163,11 @@ def download_ecr_text(request, ecr_id):
 
     ecr = get_object_or_404(EpfMonthlyEcr, ecr_id=ecr_id, company=company)
 
-    lines, skipped = _member_lines(company, ecr.salary_month, ecr.salary_year)
-    if not lines:
-        raise Http404(
-            'No EPF-enrolled employees with salary slips found for '
-            f'{ecr.salary_month}/{ecr.salary_year}. Ensure UAN is set on '
-            'employee records and salary has been processed for this period.'
-        )
-
-    if skipped:
-        logger.warning(
-            'ECR %s/%s for %s: skipped %d employee(s) with no UAN: %s',
-            ecr.salary_month, ecr.salary_year, company.company_name,
-            len(skipped), ', '.join(skipped)
-        )
-
-    content = '\n'.join(lines) + '\n'
-    fname = f'ECR_{company.company_name.replace(" ", "_")}_{ecr.salary_month}_{ecr.salary_year}.txt'
+    from Aapp.app.services import statutory_files as sf
+    try:
+        content, fname, skipped = sf.build_ecr_text(company, ecr)
+    except sf.StatutoryFileError as e:
+        raise Http404(str(e))
 
     response = HttpResponse(content, content_type='text/plain')
     response['Content-Disposition'] = f'attachment; filename="{fname}"'
@@ -196,62 +184,18 @@ def download_epf_challan(request, ecr_id):
     summarizing the amounts to remit, using the EpfMonthlyEcr header totals.
     """
     from Aapp.app.epf_esi import EpfMonthlyEcr
-    from Aapp.app.pdf_engine import build_pdf, doc_styles, kv_table, INR, section_divider
-    from reportlab.platypus import Table, TableStyle, Spacer
-    from reportlab.lib import colors
-    from reportlab.lib.units import mm
+    from Aapp.app.services import statutory_files as sf
 
     company = _company(request)
     if not company:
         raise Http404('No company selected.')
 
     ecr = get_object_or_404(EpfMonthlyEcr, ecr_id=ecr_id, company=company)
-    styles = doc_styles()
-
-    story = []
-    story.append(kv_table([
-        ('Establishment Name', company.company_name),
-        ('Wage Month', f'{ecr.salary_month}/{ecr.salary_year}'),
-        ('Total Members', str(ecr.total_members)),
-    ]))
-    story.append(Spacer(1, 8 * mm))
-    story.append(section_divider())
-
-    rows = [
-        ['A/C No.', 'Particulars', 'Amount (₹)'],
-        ['1',  'EPF Contribution (Employee 12% + Employer 3.67%)',
-         INR(Decimal(ecr.employee_epf) + Decimal(ecr.employer_epf))],
-        ['2',  'EPF Admin Charges (0.5%, min ₹500)', INR(ecr.admin_charges)],
-        ['10', 'EPS Contribution (Employer 8.33%)',  INR(ecr.employer_eps)],
-        ['21', 'EDLI Contribution (0.5%)',            INR(ecr.edli_contribution)],
-        ['22', 'EDLI Admin Charges',                  INR(Decimal('0.00'))],
-        ['',   'TOTAL REMITTANCE',                    INR(ecr.total_contribution)],
-    ]
-    t = Table(rows, colWidths=[60, 300, 120])
-    t.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#0B2545')),
-        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
-        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-        ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
-        ('LINEBELOW', (0, -2), (-1, -2), 1, colors.black),
-        ('GRID', (0, 0), (-1, -2), 0.4, colors.HexColor('#CBD5E1')),
-        ('ALIGN', (2, 0), (2, -1), 'RIGHT'),
-        ('ALIGN', (0, 0), (0, -1), 'CENTER'),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
-        ('TOPPADDING', (0, 0), (-1, -1), 6),
-    ]))
-    story.append(t)
-
     try:
-        pdf = build_pdf(story, company, doc_meta={
-            'title': 'EPF Combined Challan',
-            'doc_number': ecr.challan_no or f'ECR-{ecr.salary_month}-{ecr.salary_year}',
-        })
-    except Exception as e:
-        logger.exception('EPF challan PDF failed for ecr_id=%s: %s', ecr_id, e)
-        raise Http404('Could not generate EPF challan.')
+        pdf, fname = sf.build_epf_challan_pdf(company, ecr)
+    except sf.StatutoryFileError as e:
+        raise Http404(str(e))
 
-    fname = f'EPF_Challan_{company.company_name.replace(" ", "_")}_{ecr.salary_month}_{ecr.salary_year}.pdf'
     response = HttpResponse(pdf, content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="{fname}"'
     return response

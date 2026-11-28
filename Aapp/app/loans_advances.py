@@ -278,6 +278,7 @@ def mark_completed_if_schedule_ended(month, year):
 from django.contrib.auth.decorators import login_required
 from revolution.app.plan_gate import require_feature
 from django.contrib import messages
+from django.db.models import Q
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 
@@ -329,6 +330,8 @@ def create_loan(request):
 
     if request.method == 'POST':
         form = LoanForm(request.POST)
+        # SECURITY: scope the employee list on POST too (it was GET-only)
+        form.fields['employee'].queryset = employee_model.objects.filter(CompanyID=company, is_working=True)
         if form.is_valid():
             loan = form.save(commit=False)
             loan.company = company
@@ -351,6 +354,8 @@ def alter_loan(request, loan_id):
 
     if request.method == 'POST':
         form = LoanForm(request.POST, instance=loan)
+        form.fields['employee'].queryset = employee_model.objects.filter(CompanyID=company).filter(
+            Q(is_working=True) | Q(pk=loan.employee_id))
         if form.is_valid():
             form.save()
             messages.success(request, 'Loan updated successfully.')
@@ -431,6 +436,8 @@ def create_advance(request):
 
     if request.method == 'POST':
         form = AdvanceForm(request.POST)
+        # SECURITY: scope the employee list on POST too (it was GET-only)
+        form.fields['employee'].queryset = employee_model.objects.filter(CompanyID=company, is_working=True)
         if form.is_valid():
             advance = form.save(commit=False)
             advance.company = company
@@ -453,6 +460,8 @@ def alter_advance(request, advance_id):
 
     if request.method == 'POST':
         form = AdvanceForm(request.POST, instance=advance)
+        form.fields['employee'].queryset = employee_model.objects.filter(CompanyID=company).filter(
+            Q(is_working=True) | Q(pk=advance.employee_id))
         if form.is_valid():
             form.save()
             messages.success(request, 'Advance updated successfully.')

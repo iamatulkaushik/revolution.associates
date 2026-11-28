@@ -722,6 +722,17 @@ def remove_subuser_company_access(request, company_id):
 # ---------------------------------------------------------------------------
 
 @superadmin_required
+def _parse_max_employees(raw):
+    """Blank = unlimited (None). Otherwise a positive whole number."""
+    raw = (raw or '').strip()
+    if not raw:
+        return None
+    n = int(raw)
+    if n < 1:
+        raise ValueError('Max employees must be 1 or more, or blank for unlimited.')
+    return n
+
+
 def issue_license(request):
     if request.method == 'POST':
         try:
@@ -739,6 +750,7 @@ def issue_license(request):
                 license_type=request.POST['license_type'],
                 issue_date=issue_date,
                 max_users=request.POST.get('max_users', 5),
+                max_employees=_parse_max_employees(request.POST.get('max_employees')),
             )
             logger.info("License '%s' issued by superadmin='%s'", license.license_key, request.user.username)
             messages.success(request, f'License {license.license_key} issued successfully!')
@@ -771,6 +783,7 @@ def alter_license(request, license_id):
             license.associate = get_object_or_404(associateuser, id=associate_id) if associate_id else None
             license.license_type = request.POST['license_type']
             license.max_users = request.POST['max_users']
+            license.max_employees = _parse_max_employees(request.POST.get('max_employees'))
             license.issue_date = request.POST['issue_date']
             license.expiry_date = request.POST['expiry_date']
             license.save()
@@ -815,3 +828,27 @@ def revoke_suspend_license(request, license_id):
             messages.error(request, f'Error: {e}')
 
     return render(request, 'Sapp/license/revoke_suspend_licese.html', {'license': license})
+
+
+# ── Company operators (Capp upgrade): superadmin can see and suspend them ─────
+
+@superadmin_required
+def list_company_operators(request):
+    from Capp.models import CompanyOperator
+    ops = CompanyOperator.objects.select_related('user', 'company').order_by('company__company_name',
+                                                                           'user__username')
+    return render(request, 'Sapp/operators/list_operators.html', {'operators': ops})
+
+
+@superadmin_required
+def toggle_company_operator(request, operator_id):
+    from Capp.models import CompanyOperator
+    op = get_object_or_404(CompanyOperator, pk=operator_id)
+    if request.method == 'POST':
+        op.is_active = not op.is_active
+        op.suspended_reason = '' if op.is_active else 'Suspended by superadmin'
+        op.save(update_fields=['is_active', 'suspended_reason'])
+        logger.info("Operator '%s' %s by superadmin='%s'", op.user.username,
+                    'enabled' if op.is_active else 'suspended', request.user.username)
+        messages.success(request, f"Operator {op.user.username} {'enabled' if op.is_active else 'suspended'}.")
+    return redirect('list_company_operators')

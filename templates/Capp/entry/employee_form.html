@@ -1,0 +1,46 @@
+{% extends 'Capp/base.html' %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block content %}
+<div class="section-header"><h2>{{ page_title }}</h2></div>
+<form method="post">{% csrf_token %}
+  {% if form.non_field_errors %}<div class="card"><div class="card-body" style="color:#b00020">{{ form.non_field_errors }}</div></div>{% endif %}
+  {% for label, fields in sections %}
+  <div class="card" style="margin-bottom:var(--sp-4)"><div class="card-body">
+    <h3>{{ label }}</h3>
+    {% for field in fields %}
+    <div style="margin-bottom:var(--sp-3)">
+      <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} *{% endif %}</label>
+      {{ field }}
+      {% for e in field.errors %}<div class="text-sm" style="color:#b00020">{{ e }}</div>{% endfor %}
+    </div>
+    {% endfor %}
+  </div></div>
+  {% endfor %}
+  <button class="button btn-primary" type="submit">Save</button>
+  <a href="{% url 'capp_employee_list' %}" class="button">Cancel</a>
+</form>
+<script>
+(function () {
+  var url = "{% url 'capp_ent_districts' %}";
+  function link(stateId, distId) {
+    var s = document.getElementById(stateId), d = document.getElementById(distId);
+    if (!s || !d) return;
+    var all = Array.prototype.slice.call(d.options);
+    function filter() {
+      if (!s.value) return;
+      fetch(url + '?state=' + encodeURIComponent(s.value), {credentials: 'same-origin'})
+        .then(function (r) { return r.json(); }).then(function (j) {
+          var keep = d.value, ids = j.districts.map(function (x) { return String(x.id); });
+          d.innerHTML = '<option value="">---------</option>' + j.districts.map(function (x) {
+            return '<option value="' + x.id + '"' + (String(x.id) === keep ? ' selected' : '') + '>' + x.name + '</option>';
+          }).join('');
+        });
+    }
+    s.addEventListener('change', filter);
+    if (s.value) filter();
+  }
+  link('id_temp_state', 'id_temp_district');
+  link('id_perm_state', 'id_perm_district');
+})();
+</script>
+{% endblock %}

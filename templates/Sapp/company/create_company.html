@@ -158,6 +158,11 @@ document.addEventListener('DOMContentLoaded', loadDistricts);
                 {{form.plan}}
                 {{form.plan.errors}}
             </div>
+            <div class="form-group">
+                <label for="id_management_mode">Management mode *</label>
+                {{form.management_mode}}
+                {{form.management_mode.errors}}
+            </div>
         </div>
         <div class="form-group">
             <button type="submit" class="button btn-primary">Register Company</button>

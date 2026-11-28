@@ -28,6 +28,7 @@ ZERO = {f: D('0') for f in (
 class BankExportTests(TestCase):
     def setUp(self):
         self.co = make_company('JSK', 'AAAAA1111A')
+        self.co.plan = 'gold'; self.co.save()                      # bank_file is a Gold feature
         self.user = User.objects.create_user('owner', password='x')
         CompanyOwnerProfile.objects.create(user=self.user, company=self.co)
         self.client.login(username='owner', password='x')
@@ -142,3 +143,25 @@ class BankExportTests(TestCase):
         d.last_applied = date(2026, 11, 1); d.save()
         self.client.post(f'/billing/deductions/{d.pk}/delete/', **HOST)
         self.assertTrue(EmployeeDeduction.objects.filter(pk=d.pk).exists())
+
+
+@override_settings(ALLOWED_HOSTS=['*'])
+class BankPlanGateTests(TestCase):
+    def test_copper_and_silver_are_refused_gold_is_allowed(self):
+        co = make_company('JSK', 'AAAAA1111A')
+        u = User.objects.create_user('owner', password='pw-Strong-1')
+        CompanyOwnerProfile.objects.create(user=u, company=co)
+        self.client.login(username='owner', password='pw-Strong-1')
+        urls = ('/masters/bank-formats/', '/masters/bank-formats/add/', '/wages/bank-file/')
+        for plan in ('copper', 'silver'):
+            type(co).objects.filter(pk=co.pk).update(plan=plan)
+            for url in urls:
+                r = self.client.get(url, **HOST)
+                self.assertEqual(r.status_code, 302, (plan, url))
+                self.assertEqual(r.url, '/dashboard/')
+            labels = {i['label'] for g in self.client.get('/dashboard/', **HOST).context['capp_nav']
+                      for i in g.get('items', [])}
+            self.assertNotIn('Bank Payment Files', labels)
+        type(co).objects.filter(pk=co.pk).update(plan='gold')
+        for url in urls:
+            self.assertEqual(self.client.get(url, **HOST).status_code, 200, url)

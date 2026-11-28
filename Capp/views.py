@@ -73,11 +73,11 @@ def capp_login(request):
         form = OwnerLoginForm(data=request.POST)
         if form.is_valid():
             user = form.get_user()
-            try:
-                from Capp.models import CompanyOwnerProfile
-                profile = CompanyOwnerProfile.objects.get(user=user, is_active=True)
-            except CompanyOwnerProfile.DoesNotExist:
-                messages.error(request, 'No owner account found for these credentials.')
+            from Capp.models import CompanyOwnerProfile, CompanyOperator
+            profile = (CompanyOwnerProfile.objects.filter(user=user, is_active=True).first()
+                       or CompanyOperator.objects.filter(user=user, is_active=True).first())
+            if profile is None:
+                messages.error(request, 'No active owner or operator account found for these credentials.')
                 return render(request, 'Capp/login.html', {'form': form})
 
             auth_login(request, user)
@@ -85,6 +85,14 @@ def capp_login(request):
             ip = request.META.get('HTTP_X_FORWARDED_FOR', request.META.get('REMOTE_ADDR', ''))
             profile.last_login_ip = ip.split(',')[0].strip() if ip else None
             profile.save(update_fields=['last_login_ip'])
+            try:                                   # login trail; must never block a login
+                from Capp.foundation.models import CappAuditLog
+                CappAuditLog.objects.create(
+                    company=profile.company, user=user, username=user.username,
+                    role='OPERATOR' if isinstance(profile, CompanyOperator) else 'OWNER',
+                    action='login', ip=profile.last_login_ip)
+            except Exception:
+                logger.exception('login audit failed for %s', user.username)
             logger.info("Owner login: user='%s' company='%s'", user.username, profile.company.company_name)
             return redirect('capp_dashboard')
     else:
@@ -126,6 +134,9 @@ def capp_password_reset_confirm(request, uidb64, token):
 def capp_dashboard(request):
     company = request.owned_company
     ctx = {'company': company}
+    if getattr(request, 'capp_role', None) == 'OPERATOR':
+        from Capp.entry.home import operator_home           # E5: the operator's own block
+        ctx['operator_home'] = operator_home(request)
 
     try:
         from Aapp.app.employee import employee
@@ -186,10 +197,13 @@ def capp_employee_list(request):
     elif status == 'inactive':
         employees = employees.filter(is_working=False)
 
+    from Capp.access import has_perm
     return render(request, 'Capp/employees/list.html', {
-        'employees': employees,
+        'employees': employees.select_related('designationID', 'departmentID'),
         'q': q, 'status': status,
         'company': request.owned_company,
+        'can_add': has_perm(request, 'employees.add'),
+        'can_edit': has_perm(request, 'employees.edit'),
     })
 
 
@@ -297,41 +311,22 @@ def capp_salary_slip_select(request):
 def capp_salary_slip_download(request, wages_id):
     from Aapp.app.salary_processing import salary_slip
     from Aapp.app.salary_pdf import salary_slip_pdf
-    rec = get_object_or_404(salary_slip, id=wages_id, company_id=request.owned_company)
-    if not request.owner_profile.can_download_pdf:
-        raise Http404('PDF download not permitted.')
-    pdf = salary_slip_pdf(rec)
-    fname = f'Slip_{rec.employee_id.employeecode}_{rec.processing_id.month}_{rec.processing_id.year}.pdf'
-    return HttpResponse(pdf, content_type='application/pdf',
-                        headers={'Content-Disposition': f'attachment; filename="{fname}"'})
+    get_object_or_404(salary_slip, id=wages_id, company_id=request.owned_company)
+    return redirect('capp_ent_dl_slip', slip_id=wages_id)         # single gated download path
 
 
 @access_required('wages')
 def capp_salary_sheet(request):
-    from Aapp.app.salary_pdf import salary_sheet_pdf
-    company = request.owned_company
     month = int(request.GET.get('month', date.today().month))
     year  = int(request.GET.get('year',  date.today().year))
-    if not request.owner_profile.can_download_pdf:
-        raise Http404('PDF download not permitted.')
-    pdf   = salary_sheet_pdf(company, month, year)
-    fname = f'SalarySheet_{month}_{year}.pdf'
-    return HttpResponse(pdf, content_type='application/pdf',
-                        headers={'Content-Disposition': f'attachment; filename="{fname}"'})
+    return redirect('capp_ent_dl_sheet', month=month, year=year)  # single gated download path
 
 
 @access_required('wages')
 def capp_salary_abstract(request):
-    from Aapp.app.salary_pdf import salary_abstract_pdf
-    company = request.owned_company
     month = int(request.GET.get('month', date.today().month))
     year  = int(request.GET.get('year',  date.today().year))
-    if not request.owner_profile.can_download_pdf:
-        raise Http404('PDF download not permitted.')
-    pdf   = salary_abstract_pdf(company, month, year)
-    fname = f'SalaryAbstract_{month}_{year}.pdf'
-    return HttpResponse(pdf, content_type='application/pdf',
-                        headers={'Content-Disposition': f'attachment; filename="{fname}"'})
+    return redirect('capp_ent_dl_abstract', month=month, year=year)  # single gated download path
 
 
 # ── Statutory views (read-only) ───────────────────────────────────────────────

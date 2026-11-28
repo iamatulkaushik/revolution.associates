@@ -1,0 +1,28 @@
+{% extends 'Capp/base.html' %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block content %}
+<div class="section-header"><h2>{{ page_title }}</h2>
+  <div class="section-actions"><a href="{% url 'capp_ent_att_import' %}" class="button">Import from Excel</a></div></div>
+<form method="get" style="margin-bottom:var(--sp-3)">
+  <select name="month">{% for m in months %}<option value="{{ m }}"{% if m == month %} selected{% endif %}>{{ m }}</option>{% endfor %}</select>
+  <input type="number" name="year" value="{{ year }}" style="width:90px"> <button class="button">Show</button>
+</form>
+{% if lock %}<div class="readonly-notice" style="color:#b00020">{{ lock }}</div>{% endif %}
+{% if note %}<div class="readonly-notice">{{ note }}</div>{% endif %}
+{% if ot_on %}<p class="text-muted text-sm">Overtime is paid at double the hourly rate from the designation's basic pay.</p>{% endif %}
+{% if no_shop_act %}<div class="readonly-notice" style="color:#b00020">No Shop Act registration on file: payroll will not pay overtime, whatever hours are entered.</div>{% endif %}
+{% if missing %}<p class="text-muted text-sm">{{ missing }} employee(s) have no entry. Payroll will assume a full month for them. Month has {{ days_in_month }} days. Paid days = days worked + work-pay days.</p>{% endif %}
+<form method="post">{% csrf_token %}
+<input type="hidden" name="month" value="{{ month }}"><input type="hidden" name="year" value="{{ year }}">
+<div class="card"><div class="table-wrap"><table class="data-table"><thead><tr>
+  <th>Code</th><th>Name</th>{% for n, l in columns %}<th>{{ l }}</th>{% endfor %}<th></th></tr></thead><tbody>
+  {% for r in rows %}<tr>
+    <td>{{ r.emp.employeecode }}</td><td>{{ r.emp.name }}</td>
+    {% for c in r.cells %}<td><input name="{{ c.name }}_{{ r.emp.pk }}" value="{{ c.value }}" style="width:70px" {% if lock %}disabled{% endif %} inputmode="decimal"></td>{% endfor %}
+    <td>{% if r.entered %}saved{% else %}<span class="text-muted">no entry</span>{% endif %}
+      {% for e in r.errors %}<div class="text-sm" style="color:#b00020">{{ e }}</div>{% endfor %}</td></tr>
+  {% empty %}<tr><td colspan="12">No active employees.</td></tr>{% endfor %}
+</tbody></table></div></div>
+{% if not lock %}<button class="button btn-primary" style="margin-top:var(--sp-3)">Save attendance</button>{% endif %}
+</form>
+{% endblock %}

@@ -127,68 +127,19 @@ def _no_esi_data_response(request, month, year, message):
 @login_required
 def download_esi_monthly_challan(request, month, year):
     """GET /esi/monthly/<month>/<year>/challan/ — printable ESIC challan PDF."""
-    from Aapp.app.pdf_engine import build_pdf, doc_styles, kv_table, INR, section_divider
-    from reportlab.platypus import Table, TableStyle, Spacer
-    from reportlab.lib import colors
-    from reportlab.lib.units import mm
+    from Aapp.app.services import statutory_files as sf
 
     company = _company(request)
     if not company:
         raise Http404('No company selected.')
 
-    slips = _esi_slips(company, month, year)
-    eligible = [s for s in slips if (getattr(s.employee_id, 'esic_number', '') or '').strip()]
-    if not eligible:
-        return _no_esi_data_response(
-            request, month, year,
-            f'No ESI-eligible employees with ESIC number found for {calendar.month_name[month]} {year}. '
-            'Ensure ESIC number is set on employee records and salary has been processed.'
-        )
-
-    total_wages = sum((Decimal(_wage_rupees(s.gross_earnings)) for s in eligible), Decimal('0'))
-    total_employee = sum((_ceil_rupee(s.esi_deduction) for s in eligible), Decimal('0'))
-    total_employer = sum((_ceil_rupee(s.esi_employer_contribution) for s in eligible), Decimal('0'))
-    total_contribution = total_employee + total_employer
-
-    story = [kv_table([
-        ('Establishment Name', company.company_name),
-        ('Contribution Month', f'{calendar.month_name[month]} {year}'),
-        ('No. of Insured Persons', str(len(eligible))),
-    ])]
-    story.append(Spacer(1, 8 * mm))
-    story.append(section_divider())
-
-    rows = [
-        ['Particulars', 'Amount (₹)'],
-        ['Total Wages', INR(total_wages)],
-        ['Employee Contribution (0.75%)', INR(total_employee)],
-        ['Employer Contribution (3.25%)', INR(total_employer)],
-        ['TOTAL CONTRIBUTION', INR(total_contribution)],
-    ]
-    t = Table(rows, colWidths=[300, 150])
-    t.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#0B2545')),
-        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
-        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-        ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
-        ('LINEBELOW', (0, -2), (-1, -2), 1, colors.black),
-        ('GRID', (0, 0), (-1, -2), 0.4, colors.HexColor('#CBD5E1')),
-        ('ALIGN', (1, 0), (1, -1), 'RIGHT'),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
-        ('TOPPADDING', (0, 0), (-1, -1), 6),
-    ]))
-    story.append(t)
-
     try:
-        pdf = build_pdf(story, company, doc_meta={
-            'title': 'ESI Monthly Contribution Challan',
-            'doc_number': f'ESI-{month}-{year}',
-        })
-    except Exception as e:
-        logger.exception('ESI challan PDF failed for %s/%s: %s', month, year, e)
-        raise Http404('Could not generate ESI challan.')
+        pdf, fname = sf.build_esi_challan_pdf(company, month, year)
+    except sf.NothingToGenerate as e:
+        return _no_esi_data_response(request, month, year, str(e))
+    except sf.StatutoryFileError as e:
+        raise Http404(str(e))
 
-    fname = f'ESI_Challan_{company.company_name.replace(" ", "_")}_{month}_{year}.pdf'
     response = HttpResponse(pdf, content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="{fname}"'
     return response
@@ -203,58 +154,21 @@ def download_esi_monthly_upload(request, month, year):
     text to avoid the portal's numeric-cell rejection (same fix already
     used in Cxapp/app/compliance.py's ESI export).
     """
-    import openpyxl
-    from openpyxl.styles import Font, PatternFill
+    from Aapp.app.services import statutory_files as sf
 
     company = _company(request)
     if not company:
         raise Http404('No company selected.')
 
-    slips = _esi_slips(company, month, year)
-    eligible = [s for s in slips if (getattr(s.employee_id, 'esic_number', '') or '').strip()]
-    if not eligible:
-        return _no_esi_data_response(
-            request, month, year,
-            f'No ESI-eligible employees with ESIC number found for {calendar.month_name[month]} {year}.'
-        )
+    try:
+        content, fname = sf.build_esi_upload_xlsx(company, month, year)
+    except sf.NothingToGenerate as e:
+        return _no_esi_data_response(request, month, year, str(e))
+    except sf.StatutoryFileError as e:
+        raise Http404(str(e))
 
-    wb = openpyxl.Workbook()
-    ws = wb.active
-    ws.title = 'ESI Monthly Upload'
-
-    headers = ['IP Number', 'IP Name', 'No. of Days', 'Total Monthly Wages',
-               'Reason for Zero Wages', 'Last Working Day']
-    ws.append(headers)
-    for cell in ws[1]:
-        cell.font = Font(bold=True, color='FFFFFF')
-        cell.fill = PatternFill('solid', fgColor='0B2545')
-
-    for s in eligible:
-        emp = s.employee_id
-        wages = _wage_rupees(s.gross_earnings)
-        days = int(s.paid_days or 0)
-        row = [
-            (emp.esic_number or '').strip(),
-            (emp.name or '').strip().upper(),
-            str(days),
-            str(wages),
-            '' if wages > 0 else ESIC_REASON_ON_LEAVE,
-            '',
-        ]
-        ws.append(row)
-        for col_idx in range(1, len(row) + 1):
-            ws.cell(row=ws.max_row, column=col_idx).number_format = '@'
-
-    for col_letter, width in zip('ABCDEF', [14, 28, 12, 18, 20, 16]):
-        ws.column_dimensions[col_letter].width = width
-
-    buffer = io.BytesIO()
-    wb.save(buffer)
-    buffer.seek(0)
-
-    fname = f'ESI_Upload_{company.company_name.replace(" ", "_")}_{month}_{year}.xlsx'
     response = HttpResponse(
-        buffer.read(),
+        content,
         content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )
     response['Content-Disposition'] = f'attachment; filename="{fname}"'

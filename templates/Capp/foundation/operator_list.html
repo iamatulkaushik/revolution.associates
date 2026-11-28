@@ -1,0 +1,18 @@
+{% extends 'Capp/base.html' %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block content %}
+<div class="section-header"><h2>{{ page_title }}</h2>
+  <div class="section-actions"><a href="{% url 'capp_operator_add' %}" class="button">+ Add operator</a></div></div>
+<p class="text-muted text-sm">Operators enter data for your company. You choose what each one can do. Active operators: <strong>{{ active }} / {{ limit }}</strong>.</p>
+<div class="card">
+{% if operators %}<div class="table-wrap"><table class="data-table"><thead><tr>
+  <th>Username</th><th>Name</th><th>Status</th><th>Last login IP</th><th>Actions</th></tr></thead><tbody>
+  {% for o in operators %}<tr><td>{{ o.user.username }}</td><td>{{ o.user.get_full_name|default:"—" }}</td>
+    <td>{% if o.is_active %}Active{% else %}Suspended{% endif %}</td><td>{{ o.last_login_ip|default:"—" }}</td>
+    <td><a href="{% url 'capp_operator_edit' o.pk %}">Edit</a> ·
+      <form method="post" action="{% url 'capp_operator_toggle' o.pk %}" style="display:inline">{% csrf_token %}
+        <button class="button" style="padding:2px 8px">{% if o.is_active %}Suspend{% else %}Enable{% endif %}</button></form></td></tr>{% endfor %}
+</tbody></table></div>
+{% else %}<div class="card-body text-center"><p class="text-muted">No operators yet.</p></div>{% endif %}
+</div>
+{% endblock %}

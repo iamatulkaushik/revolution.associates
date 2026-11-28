@@ -49,6 +49,8 @@ urlpatterns = [
     # License URLs
     path('license/issue/', views.issue_license, name="issue_license"),
     path('license/list/', views.list_licenses, name="list_licenses"),
+    path('operators/', views.list_company_operators, name="list_company_operators"),
+    path('operators/<int:operator_id>/toggle/', views.toggle_company_operator, name="toggle_company_operator"),
     path('license/alter/<int:license_id>/', views.alter_license, name="alter_license"),
     path('license/revoke-suspend/<int:license_id>/', views.revoke_suspend_license, name="revoke_suspend_license"),
 
@@ -56,3 +58,10 @@ urlpatterns = [
     path('audit/', audit_log_list, name="audit_log_list"),
     path('audit/<int:log_id>/', audit_log_detail, name="audit_log_detail"),
 ]
+
+# Custom error pages (revolution/error_views.py). Each URLconf needs its own: django-hosts
+# serves every subdomain from its own URLconf, which Django asks for handler400/403/404/500.
+handler400 = 'revolution.error_views.custom_400'
+handler403 = 'revolution.error_views.custom_403'
+handler404 = 'revolution.error_views.custom_404'
+handler500 = 'revolution.error_views.custom_500'

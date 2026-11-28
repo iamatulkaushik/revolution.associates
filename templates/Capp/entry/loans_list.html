@@ -1,0 +1,19 @@
+{% extends 'Capp/base.html' %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block content %}
+<div class="section-header"><h2>{{ page_title }}</h2>
+  {% if can_edit %}<div class="section-actions"><a href="{% url 'capp_ent_loan_add' kind %}" class="button">+ Add {{ cfg.label|lower }}</a></div>{% endif %}</div>
+<div class="card">
+{% if rows %}<div class="table-wrap"><table class="data-table"><thead><tr>
+  <th>Employee</th><th>Amount ₹</th><th>Interest %</th><th>Deduction</th><th>From</th><th>Status</th><th></th></tr></thead><tbody>
+  {% for r in rows %}{% with o=r.obj %}<tr>
+    <td>{{ o.employee.employeecode }} {{ o.employee.name }}</td><td>{{ o.principal_amount }}</td><td>{{ o.interest_rate_annual }}</td>
+    <td>{% if o.deduction_mode == 'instalments' %}{{ o.number_of_instalments }} instalments{% else %}₹{{ o.fixed_deduction_amount }} / month{% endif %}</td>
+    <td>{{ o.deduction_start_month }}/{{ o.deduction_start_year }}</td><td>{{ o.get_status_display }}</td>
+    <td><a href="{% url 'capp_ent_loan_schedule' kind r.pk %}">Schedule</a> · <a href="{% url 'capp_ent_loan_pdf' kind r.pk %}">PDF</a>
+      {% if can_edit and o.status == 'active' %} · <a href="{% url 'capp_ent_loan_edit' kind r.pk %}">Edit</a> ·
+      <form method="post" action="{% url 'capp_ent_loan_stop' kind r.pk %}" style="display:inline" onsubmit="return confirm('Stop this {{ cfg.label|lower }}?')">{% csrf_token %}<button class="button" style="padding:2px 8px">Stop</button></form>{% endif %}</td></tr>{% endwith %}{% endfor %}
+</tbody></table></div>
+{% else %}<div class="card-body text-center"><p class="text-muted">No {{ cfg.plural|lower }} yet.</p></div>{% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,30 @@
+{% extends 'Capp/base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="section-header"><h2>{{ title }}</h2></div>
+<div class="card"><div class="card-body">
+  <div style="display:flex;gap:var(--sp-3);flex-wrap:wrap;margin-bottom:var(--sp-3)">
+    <a class="button" href="{{ add_url }}">Add entry</a>
+    {% if download_url %}<a class="button" href="{{ download_url }}">Download register (PDF)</a>{% endif %}
+    <a class="button" href="{{ back }}">Contract labour</a>
+  </div>
+  {% if note %}<p class="text-muted text-sm">{{ note }}</p>{% endif %}
+  {% if rows %}
+  <table class="table">
+    <thead><tr>{% for c in columns %}<th>{{ c }}</th>{% endfor %}<th></th></tr></thead>
+    <tbody>
+    {% for r in rows %}
+      <tr>{% for c in r.cells %}<td>{{ c }}</td>{% endfor %}
+        <td style="white-space:nowrap">
+          {% if r.edit_url %}<a class="button" href="{{ r.edit_url }}">Edit</a>{% endif %}
+          {% if r.download_url %}<a class="button" href="{{ r.download_url }}">PDF</a>{% endif %}
+          {% if r.recompute_url %}<form method="post" action="{{ r.recompute_url }}" style="display:inline">{% csrf_token %}<button class="button" type="submit">Recompute</button></form>{% endif %}
+          {% if r.end_url %}<form method="post" action="{{ r.end_url }}" style="display:inline" onsubmit="return confirm('End this deployment today?')">{% csrf_token %}<button class="button" type="submit">End today</button></form>{% endif %}
+          {% if r.delete_url %}<form method="post" action="{{ r.delete_url }}" style="display:inline" onsubmit="return confirm('Delete this entry?')">{% csrf_token %}<button class="button" type="submit">Delete</button></form>{% endif %}
+        </td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}<p class="text-muted">No entries yet.</p>{% endif %}
+</div></div>
+{% endblock %}

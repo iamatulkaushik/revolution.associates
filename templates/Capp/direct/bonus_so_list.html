@@ -1,0 +1,26 @@
+{% extends 'Capp/base.html' %}
+{% block title %}Bonus set-on / set-off{% endblock %}
+{% block content %}
+<div class="section-header"><h2>Bonus set-on / set-off (Form B)</h2></div>
+<div class="card"><div class="card-body">
+  <div style="display:flex;gap:var(--sp-3);flex-wrap:wrap;margin-bottom:var(--sp-3)">
+    <a class="button" href="{% url 'capp_dir_bonus_so_add' %}">Add record</a>
+    <a class="button" href="{% url 'capp_dir_returns' %}">Annual returns</a>
+  </div>
+  {% if rows %}
+  <table class="table">
+    <thead><tr><th>Year</th><th>Allocable surplus</th><th>Bonus paid</th><th>Set on</th><th>Set off</th><th>Cumulative set-on</th><th></th></tr></thead>
+    <tbody>
+    {% for r in rows %}
+      <tr><td>{{ r.year }}</td><td>{{ r.allocable_surplus }}</td><td>{{ r.bonus_paid }}</td><td>{{ r.set_on_amount }}</td><td>{{ r.set_off_amount }}</td><td>{{ r.cumulative_set_on }}</td>
+        <td style="white-space:nowrap">
+          <a class="button" href="{% url 'capp_dir_bonus_so_edit' r.record_id %}">Edit</a>
+          <a class="button" href="{% url 'capp_dir_bonus_so_pdf' r.record_id %}">PDF</a>
+          <form method="post" action="{% url 'capp_dir_bonus_so_delete' r.record_id %}" style="display:inline" onsubmit="return confirm('Delete this record?')">{% csrf_token %}<button class="button" type="submit">Delete</button></form>
+        </td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}<p class="text-muted">No records yet.</p>{% endif %}
+</div></div>
+{% endblock %}

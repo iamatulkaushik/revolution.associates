@@ -570,23 +570,15 @@ def create_salary_batch(request):
             month = int(request.POST.get('month'))
             year = int(request.POST.get('year'))
 
-            existing = salary_processing.objects.filter(
-                company_id=company_obj, month=month, year=year
-            ).first()
-            if existing:
+            from Aapp.app.services import payroll_batch as svc
+            batch, created = svc.create_batch(
+                company_obj, month, year, request.user.username)
+            if not created:
                 messages.info(
                     request,
                     f'A batch already exists for {dict(MONTH_CHOICES).get(month)} {year}.'
                 )
-                return redirect('process_salary_batch', batch_id=existing.id)
-
-            batch = salary_processing.objects.create(
-                company_id=company_obj,
-                month=month,
-                year=year,
-                status='DRAFT',
-                created_by=request.user.username,
-            )
+                return redirect('process_salary_batch', batch_id=batch.id)
 
             messages.success(
                 request,
@@ -632,76 +624,19 @@ def process_salary_batch(request, batch_id):
 
     if request.method == 'POST':
         try:
-            with transaction.atomic():
-                salary_slip.objects.filter(processing_id=batch).delete()
+            from Aapp.app.services import payroll_batch as svc
+            processed, skipped, error_rows = svc.process_batch(
+                batch, company_obj, request.user.username)
 
-                employees = employee.objects.filter(
-                    CompanyID=company_obj, is_working=True
-                ).select_related('perm_state', 'temp_state', 'designationID')
+            if error_rows:
+                request.session['salary_errors'] = error_rows
 
-                processed = 0
-                skipped = 0
-                error_rows = []
-                total_gross = Decimal('0')
-                total_deductions = Decimal('0')
-                total_net = Decimal('0')
-                total_employer = Decimal('0')
-
-                for emp in employees:
-                    desig = emp.designationID
-
-                    if not desig:
-                        skipped += 1
-                        error_rows.append(
-                            f'{emp.employeecode} - {emp.name}: No designation assigned'
-                        )
-                        continue
-
-                    try:
-                        calc = calculate_employee_salary(
-                            emp, desig, batch.month, batch.year, company=company_obj
-                        )
-
-                        salary_slip.objects.create(
-                            processing_id=batch,
-                            employee_id=emp,
-                            company_id=company_obj,
-                            designation_id=desig,
-                            **calc,
-                            created_by=request.user.username,
-                        )
-
-                        total_gross += calc['gross_earnings']
-                        total_deductions += calc['total_deductions']
-                        total_net += calc['net_pay']
-                        total_employer += calc['employer_total_cost']
-                        processed += 1
-
-                    except Exception as e:
-                        skipped += 1
-                        error_rows.append(
-                            f'{emp.employeecode} - {emp.name}: {str(e)}'
-                        )
-
-                batch.total_employees = processed
-                batch.total_gross = _decimal_round(total_gross)
-                batch.total_deductions = _decimal_round(total_deductions)
-                batch.total_net = _decimal_round(total_net)
-                batch.total_employer_cost = _decimal_round(total_employer)
-                batch.status = 'PROCESSED'
-                batch.processed_at = timezone.now()
-                batch.updated_by = request.user.username
-                batch.save()
-
-                if error_rows:
-                    request.session['salary_errors'] = error_rows
-
-                messages.success(
-                    request,
-                    f'Salary processed: {processed} employees. '
-                    f'Skipped: {skipped}.'
-                )
-                return redirect('view_salary_batch', batch_id=batch.id)
+            messages.success(
+                request,
+                f'Salary processed: {processed} employees. '
+                f'Skipped: {skipped}.'
+            )
+            return redirect('view_salary_batch', batch_id=batch.id)
 
         except Exception as e:
             messages.error(request, f'Error processing: {str(e)}')
@@ -860,10 +795,8 @@ def approve_salary_batch(request, batch_id):
         return redirect('view_salary_batch', batch_id=batch.id)
 
     if request.method == 'POST':
-        batch.status = 'APPROVED'
-        batch.approved_at = timezone.now()
-        batch.updated_by = request.user.username
-        batch.save()
+        from Aapp.app.services import payroll_batch as svc
+        svc.approve_batch(batch, request.user.username)
 
         messages.success(request, 'Salary batch approved successfully.')
 
@@ -891,7 +824,8 @@ def delete_salary_batch(request, batch_id):
     if request.method == 'POST':
         month_name = dict(MONTH_CHOICES).get(batch.month)
         year = batch.year
-        batch.delete()
+        from Aapp.app.services import payroll_batch as svc
+        svc.delete_batch(batch)
         messages.success(request, f'Salary batch for {month_name} {year} deleted.')
         return redirect('salary_dashboard')
 

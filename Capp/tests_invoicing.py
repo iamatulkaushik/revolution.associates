@@ -39,7 +39,9 @@ class InvoiceTests(TestCase):
             email='e@x.com', aadhar_number='111122223333', aadhar_name='x', bank_name='B',
             bank_account='14288100020591', bank_ifsc='BARB0SIKAND', dateofjoining=date(2020, 1, 1),
             designationID=ds, departmentID=dp, branchID=br, CompanyID=self.co)
-        batch = salary_processing.objects.create(company_id=self.co, month=11, year=2026)
+        batch = salary_processing.objects.create(company_id=self.co, month=11, year=2026,
+                                                 status='APPROVED')
+        self.batch = batch
         salary_slip.objects.create(
             processing_id=batch, employee_id=self.emp, company_id=self.co, designation_id=ds,
             paid_days=D('30'), overtime_hours=D('40'), basic_earned=D('15221'), hra_earned=D('2779'),
@@ -69,6 +71,16 @@ class InvoiceTests(TestCase):
             generate_invoice(self.co, self.cl, 'SALARY', 2026, 11)
         with self.assertRaises(InvoiceError):
             generate_invoice(self.co, self.cl, 'SALARY', 2026, 10)      # no slips
+
+    def test_only_approved_payroll_is_billed(self):
+        for status in ('DRAFT', 'PROCESSED'):
+            salary_processing.objects.filter(pk=self.batch.pk).update(status=status)
+            with self.assertRaises(InvoiceError) as cm:
+                generate_invoice(self.co, self.cl, 'SALARY', 2026, 11)
+            self.assertIn('Invoices can be made after', str(cm.exception))
+        self.assertEqual(Invoice.objects.count(), 0)
+        salary_processing.objects.filter(pk=self.batch.pk).update(status='APPROVED')
+        self.assertEqual(generate_invoice(self.co, self.cl, 'SALARY', 2026, 11).total, D('27663.55'))
 
     def test_extra_charge_conveyance(self):
         inv = generate_invoice(self.co, self.cl, 'OT', 2026, 11, extra_label='Conveyance',

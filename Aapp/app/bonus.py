@@ -445,25 +445,9 @@ def list_bonus_returns(request):
     })
 
 
-@login_required
-@require_feature("bonus_act")
 def _compute_bonus_return_totals(company, year):
-    from decimal import Decimal
-    from Aapp.app.salary_processing import salary_slip
-
-    slips = salary_slip.objects.filter(company_id=company, processing_id__year=year)
-    total_employees = slips.values('employee_id').distinct().count()
-    total_wages = slips.aggregate(t=models.Sum('gross_earnings'))['t'] or Decimal('0')
-
-    bonus_records = bonus_record.objects.filter(company=company, salary_year=year)
-    total_bonus_paid = bonus_records.aggregate(t=models.Sum('total_bonus'))['t'] or Decimal('0')
-
-    bonus_percentage = (total_bonus_paid / total_wages * 100).quantize(Decimal('0.01')) if total_wages else Decimal('0')
-    # Clamp to the statutory 8.33%–20% band; flag out-of-band instead of silently capping.
-    return {
-        'total_employees': total_employees, 'total_wages': total_wages,
-        'total_bonus_paid': total_bonus_paid, 'bonus_percentage': bonus_percentage,
-    }
+    from Aapp.app.services.bonus_returns import compute_bonus_return_totals
+    return compute_bonus_return_totals(company, year)
 
 
 @login_required

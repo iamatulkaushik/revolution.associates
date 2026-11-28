@@ -11,7 +11,8 @@ from Capp.billing_models import BillingClient, Invoice
 from Capp.billing_views import MonthField
 from Capp.invoice_export import invoice_pdf, invoice_xlsx
 from Capp.invoicing import InvoiceError, generate_invoice
-from Capp.masters import masters_required, _style
+from Capp.audit import log_action
+from Capp.masters import billing_required, _style
 
 
 class GenerateForm(forms.Form):
@@ -52,7 +53,7 @@ def _inv(request, pk):
     return get_object_or_404(Invoice, pk=pk, company=request.owned_company)
 
 
-@masters_required
+@billing_required
 def capp_invoice_list(request):
     qs = Invoice.objects.filter(company=request.owned_company).select_related('client')
     if request.GET.get('status'):
@@ -63,7 +64,7 @@ def capp_invoice_list(request):
         'page_title': 'Invoices', 'invoices': qs, 'total': total, 'due': due})
 
 
-@masters_required
+@billing_required
 def capp_invoice_generate(request):
     company = request.owned_company
     form = GenerateForm(request.POST or None, company=company)
@@ -76,13 +77,14 @@ def capp_invoice_generate(request):
         except InvoiceError as e:
             form.add_error(None, str(e))
         else:
+            log_action(request, 'invoice_generate', inv, f'{inv.number} {inv.get_kind_display()}')
             messages.success(request, f'Draft {inv.number} created.')
             return redirect('capp_invoice_detail', pk=inv.pk)
     return render(request, 'Capp/masters/form.html', {
         'form': form, 'page_title': 'Generate Invoice', 'cancel_url': 'capp_invoice_list'})
 
 
-@masters_required
+@billing_required
 def capp_invoice_detail(request, pk):
     inv = _inv(request, pk)
     pay_form = PaymentForm(instance=inv)
@@ -90,7 +92,7 @@ def capp_invoice_detail(request, pk):
         'page_title': inv.number, 'inv': inv, 'lines': inv.lines.all(), 'pay_form': pay_form})
 
 
-@masters_required
+@billing_required
 def capp_invoice_action(request, pk, action):
     inv = _inv(request, pk)
     if request.method != 'POST':
@@ -98,12 +100,15 @@ def capp_invoice_action(request, pk, action):
     if action == 'issue' and inv.status == 'DRAFT':
         inv.status = 'ISSUED'
         inv.save(update_fields=['status'])
+        log_action(request, 'invoice_issue', inv, inv.number)
         messages.success(request, f'{inv.number} issued.')
     elif action == 'cancel' and inv.status in ('DRAFT', 'ISSUED') and not inv.received_amount:
         inv.status = 'CANCELLED'
         inv.save(update_fields=['status'])
+        log_action(request, 'invoice_cancel', inv, inv.number)
         messages.success(request, f'{inv.number} cancelled.')
     elif action == 'delete' and inv.status == 'DRAFT':
+        log_action(request, 'invoice_delete', inv, inv.number)
         inv.delete()
         messages.success(request, 'Draft deleted.')
         return redirect('capp_invoice_list')
@@ -111,6 +116,7 @@ def capp_invoice_action(request, pk, action):
         form = PaymentForm(request.POST, instance=inv)
         if form.is_valid():
             form.save()
+            log_action(request, 'invoice_payment', inv, f'{inv.number} received {inv.received_amount} tds {inv.tds_amount}')
             messages.success(request, 'Payment recorded.')
         else:
             messages.error(request, ' '.join(e for es in form.errors.values() for e in es))
@@ -119,7 +125,7 @@ def capp_invoice_action(request, pk, action):
     return redirect('capp_invoice_detail', pk=pk)
 
 
-@masters_required
+@billing_required
 def capp_invoice_download(request, pk, fmt):
     inv = _inv(request, pk)
     name = inv.number.replace('/', '-')

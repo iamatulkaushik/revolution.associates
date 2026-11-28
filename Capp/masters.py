@@ -9,7 +9,6 @@ Every query is scoped to request.owned_company. Writes need the
 """
 import re
 from decimal import Decimal
-from functools import wraps
 
 from django import forms
 from django.contrib import messages
@@ -19,21 +18,16 @@ from django.utils import timezone
 
 from Aapp.app.branch_department import branch, department
 from Aapp.app.designation import designation
-from Capp.views import owner_required
+from Capp.access import capp_perm
+from Capp.audit import log_action
 from Sapp.app.company import Company
 
 IFSC_RE = re.compile(r'^[A-Z]{4}0[A-Z0-9]{6}$')
 
 
-def masters_required(view_func):
-    @wraps(view_func)
-    @owner_required
-    def _wrapped(request, *args, **kwargs):
-        if not request.owner_profile.can_manage_masters:
-            messages.error(request, 'You do not have permission to manage masters.')
-            return redirect('capp_dashboard')
-        return view_func(request, *args, **kwargs)
-    return _wrapped
+# Permission names come from Capp/access.py; the matrix decides per mode and role.
+masters_required = capp_perm('masters.edit')
+billing_required = capp_perm('billing.manage')
 
 
 def _style(form):
@@ -179,6 +173,7 @@ def capp_company_details(request):
         obj.updated_at = timezone.now()
         obj.updated_by = request.user.username
         obj.save()
+        log_action(request, 'update', obj, 'company details and bank')
         messages.success(request, 'Company details saved.')
         return redirect('capp_company_details')
     return render(request, 'Capp/masters/form.html', {
@@ -204,8 +199,11 @@ def _edit(request, *, form_cls, instance, title, list_name, save):
     form = form_cls(request.POST or None, instance=instance, company=company) \
         if form_cls is not CompanyDetailsForm else form_cls(request.POST or None, instance=instance)
     if request.method == 'POST' and form.is_valid():
-        save(form.save(commit=False))
+        obj = form.save(commit=False)
+        created = obj.pk is None
+        save(obj)
         form.save_m2m()
+        log_action(request, 'create' if created else 'update', obj, title)
         messages.success(request, f'{title} saved.')
         return redirect(list_name)
     return render(request, 'Capp/masters/form.html', {
@@ -215,6 +213,7 @@ def _edit(request, *, form_cls, instance, title, list_name, save):
 def _delete(request, *, obj, label, list_name, remover=None):
     if request.method == 'POST':
         try:
+            log_action(request, 'delete', obj, label)
             remover(obj) if remover else obj.delete()
             messages.success(request, f'{label} deleted.')
         except ProtectedError:

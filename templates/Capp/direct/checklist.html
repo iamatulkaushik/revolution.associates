@@ -1,0 +1,20 @@
+{% extends 'Capp/base.html' %}
+{% block title %}Month-end checklist{% endblock %}
+{% block content %}
+<div class="section-header"><h2>Month-end checklist: {{ month_name }} {{ year }}</h2></div>
+<div class="card" style="margin-bottom:var(--sp-4)"><div class="card-body">
+  <form method="get" style="display:flex;gap:var(--sp-3);flex-wrap:wrap;align-items:end">
+    <div><label for="month">Month</label>
+      <select name="month" id="month" class="form-control">
+        {% for n, name in months %}<option value="{{ n }}"{% if n == month %} selected{% endif %}>{{ name }}</option>{% endfor %}
+      </select></div>
+    <div><label for="year">Year</label>
+      <select name="year" id="year" class="form-control">
+        {% for y in years %}<option value="{{ y }}"{% if y == year %} selected{% endif %}>{{ y }}</option>{% endfor %}
+      </select></div>
+    <button type="submit" class="button">Show</button>
+  </form>
+  <p style="margin-top:var(--sp-3)">{% if warnings %}<strong>{{ warnings }} item(s) need a look.</strong>{% else %}Everything checks out.{% endif %}</p>
+</div></div>
+{% include 'Capp/direct/_checklist_items.html' %}
+{% endblock %}

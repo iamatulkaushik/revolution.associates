@@ -10,14 +10,18 @@ FROZEN CONTRACT (signatures must not change):
 Rule (decided): only ADDING is blocked. Existing employees stay untouched.
 Reactivating a relieved employee counts as adding.
 
-The limit is DEFINED WHEN THE LICENCE IS ISSUED (decision D1):
-    1. the company's valid licence field `max_employees` (None = unlimited);
-    2. else PLAN_DEFAULTS below (only copper = 150 is a business number;
-       any other plan without a licence value is unlimited).
-`License.max_employees` does not exist yet: Track AI-1 (package F2) adds it.
-Until then step 1 is skipped, so Phase 0 behaves as step 2. Signatures stay.
+Phase 0 reads PLAN_EMPLOYEE_LIMITS below. Track AI-1 replaces the source with a
+database-backed PlanLimit table that Sapp superadmin edits. Signatures stay.
+
+Only copper = 150 is a business decision. The other numbers are PLACEHOLDERS
+until the owner confirms them (docs/capp_upgrade/00_MASTER_PLAN.md, D1).
 """
-PLAN_DEFAULTS = {'copper': 150}
+PLAN_EMPLOYEE_LIMITS = {
+    'copper': 150,
+    'silver': 500,       # PLACEHOLDER - confirm (D1)
+    'gold': 2000,        # PLACEHOLDER - confirm (D1)
+    'platinum': None,    # PLACEHOLDER - unlimited, confirm (D1)
+}
 
 
 class PlanLimitExceeded(Exception):
@@ -26,20 +30,8 @@ class PlanLimitExceeded(Exception):
         self.limit, self.current = limit, current
 
 
-def _licence_limit(company):
-    """(found, limit). found=False when no valid licence carries max_employees."""
-    from datetime import date
-    from Sapp.app.license import License
-    lic = License.objects.filter(company=company, is_active=True, status='active',
-                                 expiry_date__gte=date.today()).order_by('-expiry_date').first()
-    if lic is None or not hasattr(lic, 'max_employees'):
-        return False, None
-    return True, lic.max_employees
-
-
 def employee_limit(company):
-    found, limit = _licence_limit(company)
-    return limit if found else PLAN_DEFAULTS.get(company.plan)
+    return PLAN_EMPLOYEE_LIMITS.get(company.plan, PLAN_EMPLOYEE_LIMITS['copper'])
 
 
 def active_employee_count(company):

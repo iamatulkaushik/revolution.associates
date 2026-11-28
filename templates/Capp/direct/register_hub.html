@@ -1,0 +1,11 @@
+{% extends 'Capp/base.html' %}
+{% block title %}Registers{% endblock %}
+{% block content %}
+<div class="section-header"><h2>Registers</h2></div>
+<div class="card"><div class="card-body">
+  <p class="text-muted text-sm">Record fines, deductions and overtime, then download the statutory register for a month. These registers are records only; they do not change salary.</p>
+  <div style="display:flex;gap:var(--sp-3);flex-wrap:wrap">
+    {% for key, title, url in items %}<a class="button" href="{{ url }}">{{ title }}</a>{% endfor %}
+  </div>
+</div></div>
+{% endblock %}

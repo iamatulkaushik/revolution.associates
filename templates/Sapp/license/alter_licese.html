@@ -53,6 +53,10 @@
 <label>Max Users</label>
 <input type="number" name="max_users" class="form-control" value="{{license.max_users}}">
 </div>
+<div class="form-group">
+<label>Max Employees <small>(blank = unlimited)</small></label>
+<input type="number" name="max_employees" class="form-control" min="1" value="{{license.max_employees|default_if_none:''}}">
+</div>
 </div>
 <div class="form-row">
 <div class="form-group">

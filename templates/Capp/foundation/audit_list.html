@@ -1,0 +1,22 @@
+{% extends 'Capp/base.html' %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block content %}
+<div class="section-header"><h2>{{ page_title }}</h2></div>
+<form method="get" style="margin-bottom:var(--sp-4)">
+  <input name="user" placeholder="User" value="{{ q.user }}">
+  <input name="action" placeholder="Action" value="{{ q.action }}">
+  <input type="date" name="from" value="{{ q.from }}"> <input type="date" name="to" value="{{ q.to }}">
+  <button class="button">Filter</button>
+</form>
+<div class="card"><div class="table-wrap"><table class="data-table"><thead><tr>
+  <th>When</th><th>User</th><th>Role</th><th>Action</th><th>Record</th><th>Detail</th><th>IP</th></tr></thead><tbody>
+  {% for r in page %}<tr><td>{{ r.at|date:"d-m-Y H:i" }}</td><td>{{ r.username }}</td><td>{{ r.role }}</td>
+    <td>{{ r.action }}</td><td>{{ r.model }} {{ r.object_id }}</td><td>{{ r.detail }}</td><td>{{ r.ip|default:"—" }}</td></tr>
+  {% empty %}<tr><td colspan="7">No entries.</td></tr>{% endfor %}
+</tbody></table></div></div>
+<p style="margin-top:var(--sp-3)">
+  {% if page.has_previous %}<a href="?page={{ page.previous_page_number }}&user={{ q.user }}&action={{ q.action }}&from={{ q.from }}&to={{ q.to }}">&laquo; Newer</a>{% endif %}
+  Page {{ page.number }} of {{ page.paginator.num_pages }}
+  {% if page.has_next %}<a href="?page={{ page.next_page_number }}&user={{ q.user }}&action={{ q.action }}&from={{ q.from }}&to={{ q.to }}">Older &raquo;</a>{% endif %}
+</p>
+{% endblock %}

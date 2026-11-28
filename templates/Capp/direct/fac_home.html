@@ -1,0 +1,35 @@
+{% extends 'Capp/base.html' %}
+{% block title %}Factory registers{% endblock %}
+{% block content %}
+<div class="section-header"><h2>Factory registers (Factories Act 1948)</h2></div>
+<div class="card"><div class="card-body">
+{% if not on %}
+  <p>The factory licence number is not on file, so these registers are off. <a href="{% url 'capp_dir_statutory' %}">Statutory setup</a></p>
+{% else %}
+  <div style="display:flex;gap:var(--sp-3);flex-wrap:wrap;margin-bottom:var(--sp-3)">
+    <a class="button" href="{% url 'capp_dir_factory_add' %}">Register a factory</a>
+    <a class="button" href="{% url 'capp_dir_returns' %}">Annual returns</a>
+  </div>
+  {% if factories %}
+  <table class="table">
+    <thead><tr><th>Licence no.</th><th>Occupier</th><th>Manager</th><th>Max workers (day / night)</th><th>Licence expiry</th><th></th></tr></thead>
+    <tbody>
+    {% for f in factories %}
+      <tr><td>{{ f.factory_license_no }}</td><td>{{ f.occupier_name }}</td><td>{{ f.manager_name }}</td>
+        <td>{{ f.max_workers_day }} / {{ f.max_workers_night }}</td>
+        <td>{{ f.license_expiry_date }}{% if f.license_expiry_date < today %} <strong style="color:#b00020">(expired)</strong>{% endif %}</td>
+        <td style="white-space:nowrap">
+          <a class="button" href="{% url 'capp_dir_factory_edit' f.factory_id %}">Edit</a>
+          <a class="button" href="{% url 'capp_dir_factory_cert' f.factory_id %}">Certificate PDF</a>
+          <a class="button" href="{% url 'capp_dir_fac_list' f.factory_id 'whitewash' %}">Whitewash</a>
+          <a class="button" href="{% url 'capp_dir_fac_list' f.factory_id 'vessels' %}">Vessels</a>
+          <a class="button" href="{% url 'capp_dir_fac_list' f.factory_id 'accidents' %}">Accidents</a>
+          <a class="button" href="{% url 'capp_dir_fac_ar' f.factory_id %}">Form 34</a>
+        </td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}<p class="text-muted">No factories registered yet.</p>{% endif %}
+{% endif %}
+</div></div>
+{% endblock %}

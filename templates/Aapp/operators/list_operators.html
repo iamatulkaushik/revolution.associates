@@ -1,0 +1,18 @@
+{% extends 'Aapp/base.html' %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block content %}
+<div class="section-header"><h2>{{ page_title }}</h2></div>
+<p class="text-muted" style="margin-bottom:var(--sp-4)">Operators are created by the company owner. Active: <strong>{{ active }} / {{ limit }}</strong>. Suspending blocks their login at once.</p>
+{% if messages %}<div class="messages-container">{% for message in messages %}
+<div class="message-alert {% if message.tags == 'error' %}message-error{% else %}message-success{% endif %}" role="alert">{{ message }}</div>{% endfor %}</div>{% endif %}
+<div class="card">
+{% if operators %}<div class="table-wrap"><table class="data-table"><thead><tr>
+  {% for c in columns %}<th>{{ c }}</th>{% endfor %}<th>Action</th></tr></thead><tbody>
+  {% for o in operators %}<tr><td>{{ o.user.username }}</td><td>{{ o.user.get_full_name|default:"—" }}</td>
+    <td>{% if o.is_active %}Active{% else %}Suspended{% endif %}</td><td>{{ o.created_at|date:"d-m-Y" }}</td><td>{{ o.last_login_ip|default:"—" }}</td>
+    <td><form method="post" action="{% url 'toggle_company_operator_aapp' o.pk %}">{% csrf_token %}
+      <button class="button">{% if o.is_active %}Suspend{% else %}Enable{% endif %}</button></form></td></tr>{% endfor %}
+</tbody></table></div>
+{% else %}<div class="card-body text-center" style="padding:var(--sp-8)"><p style="color:var(--c-muted)">This company has no operators.</p></div>{% endif %}
+</div>
+{% endblock %}

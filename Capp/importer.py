@@ -160,6 +160,8 @@ def parse(sheets, company):
                             e[f] = t.upper() if f == 'ifsc' else t
         notes.append(f'IFSC/mobile/address also read from sheet "{name}".')
 
+    from revolution.app.plan_limits import remaining
+    room = remaining(company)                  # None = unlimited
     out, seen = [], set()
     for idx, r in enumerate(sheets[master][hdr + 1:], start=hdr + 2):
         def cell(f):
@@ -221,6 +223,12 @@ def parse(sheets, company):
             if val and employee.objects.filter(**{field: val}).exclude(
                     pk=getattr(ex_emp, 'pk', None)).exists():
                 issues.append(f'{label} already registered to another employee.')
+        # Plan limit: only NEW employees use up room; updates are always allowed.
+        if action == 'create' and not issues and room is not None:
+            if room <= 0:
+                issues.append('Plan limit reached: upgrade the plan to add more employees.')
+            else:
+                room -= 1
         out.append({'row': idx, 'code': code, 'name': d['name'], 'action': action,
                     'issues': issues, 'data': d})
     return out, notes

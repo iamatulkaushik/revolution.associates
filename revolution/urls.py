@@ -25,7 +25,12 @@ from Sapp.app.marketing import (
     features, pricing, compliance, about, contact, contact_submit,
     privacy, terms, cookies, refund, robots_txt, sitemap_xml,
 )
+# Custom error pages (revolution/error_views.py). Each URLconf needs its own: django-hosts
+# serves every subdomain from its own URLconf, which Django asks for handler400/403/404/500.
+handler400 = 'revolution.error_views.custom_400'
+handler403 = 'revolution.error_views.custom_403'
 handler404 = 'revolution.error_views.custom_404'
+handler500 = 'revolution.error_views.custom_500'
 urlpatterns = [
     path('',base_home, name="base"),
     path('baseurls/', admin.site.urls),

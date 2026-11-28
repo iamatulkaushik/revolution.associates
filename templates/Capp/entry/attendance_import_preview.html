@@ -1,0 +1,18 @@
+{% extends 'Capp/base.html' %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block content %}
+<div class="section-header"><h2>{{ page_title }} — {{ month }}/{{ year }}</h2></div>
+<p>{{ ok }} row(s) ready, {{ bad }} with problems (skipped). Check the overtime amounts before you confirm: they are computed the way payroll will pay them (double the hourly rate from basic pay).</p>
+{% for n in notes %}<p class="text-muted text-sm">{{ n }}</p>{% endfor %}
+<div class="card"><div class="table-wrap"><table class="data-table"><thead><tr>
+  <th>Row</th><th>ID</th><th>Name</th><th>Days worked</th><th>Holidays</th><th>OT hours</th><th>OT amount (estimate)</th><th>Problems</th></tr></thead><tbody>
+  {% for r in rows %}<tr><td>{{ r.row }}</td><td>{{ r.code }}</td><td>{{ r.name }}</td>
+    <td>{{ r.vals.working_days|default:"—" }}</td><td>{{ r.vals.holidays|default:"—" }}</td><td>{{ r.vals.overtime_hours|default:"—" }}</td><td>{% if r.ot_estimate %}₹{{ r.ot_estimate }}{% else %}—{% endif %}</td>
+    <td>{% for i in r.issues %}<div class="text-sm" style="color:#b00020">{{ i }}</div>{% empty %}—{% endfor %}</td></tr>
+  {% empty %}<tr><td colspan="8">No rows.</td></tr>{% endfor %}
+</tbody></table></div></div>
+<form method="post" style="margin-top:var(--sp-4)">{% csrf_token %}
+  {% if ok %}<button name="confirm" value="1" class="button btn-primary">Import {{ ok }} row(s)</button>{% endif %}
+  <a href="{% url 'capp_ent_att_import' %}" class="button">Back</a>
+</form>
+{% endblock %}

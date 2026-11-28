@@ -1,0 +1,8 @@
+{% for i in items %}
+<div class="card" style="margin-bottom:var(--sp-3)"><div class="card-body">
+  <h3>{% if i.status == 'ok' %}[OK]{% elif i.status == 'warn' %}[CHECK]{% else %}[INFO]{% endif %} {{ i.title }}</h3>
+  <p>{{ i.detail }}</p>
+  {% if i.names %}<ul class="text-sm">{% for n in i.names %}<li>{{ n }}</li>{% endfor %}{% if i.more %}<li>and {{ i.more }} more</li>{% endif %}</ul>{% endif %}
+  {% if i.link %}<a href="{{ i.link }}">Open</a>{% endif %}
+</div></div>
+{% endfor %}

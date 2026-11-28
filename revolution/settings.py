@@ -32,6 +32,7 @@ SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-fallback-dev-k
 FIELD_ENCRYPTION_KEY = os.environ.get('FIELD_ENCRYPTION_KEY', 'xR9gxHjMRuaYcZBisFbIYKaVrVc3dYpXYJsmV77oCPs')
 FIELD_ENCRYPTION_ALGORITHM = 'xchacha20'  # or 'aes-gcm'
 DEBUG = os.environ.get('DJANGO_DEBUG', 'False') == 'True'
+CSRF_FAILURE_VIEW = 'revolution.error_views.custom_403_csrf'
 ALLOWED_HOSTS = [
     'localhost', '127.0.0.1', 'aapp.localhost', 'capp.localhost', 'sapp.localhost', 'cxapp.localhost',
     'www.localhost', 'admin.localhost',

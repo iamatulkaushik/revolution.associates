@@ -1,0 +1,44 @@
+{% extends 'Capp/base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="section-header"><h2>{{ title }}: {{ month_name }} {{ year }}</h2></div>
+<div class="card" style="margin-bottom:var(--sp-4)"><div class="card-body">
+  <form method="get" style="display:flex;gap:var(--sp-3);flex-wrap:wrap;align-items:end">
+    <div><label for="month">Month</label>
+      <select name="month" id="month" class="form-control">
+        {% for n, name in months %}<option value="{{ n }}"{% if n == month %} selected{% endif %}>{{ name }}</option>{% endfor %}
+      </select></div>
+    <div><label for="year">Year</label>
+      <select name="year" id="year" class="form-control">
+        {% for y in years %}<option value="{{ y }}"{% if y == year %} selected{% endif %}>{{ y }}</option>{% endfor %}
+      </select></div>
+    <button type="submit" class="button">Show</button>
+  </form>
+</div></div>
+
+{% if off %}
+<div class="card"><div class="card-body">
+  <p>This register is off: the Shop and Establishment Act number is not on file. <a href="{% url 'capp_dir_statutory' %}">Statutory setup</a></p>
+</div></div>
+{% else %}
+<div class="card"><div class="card-body">
+  <div style="display:flex;gap:var(--sp-3);flex-wrap:wrap;margin-bottom:var(--sp-3)">
+    <a class="button" href="{% url 'capp_dir_reg_add' key %}?month={{ month }}&year={{ year }}">Add entry</a>
+    <a class="button" href="{% url 'capp_dir_reg_download' key year month %}">Download register (PDF)</a>
+    <a class="button" href="{% url 'capp_dir_registers' %}">All registers</a>
+  </div>
+  {% if rows %}
+  <table class="table">
+    <thead><tr>{% for c in columns %}<th>{{ c }}</th>{% endfor %}<th></th></tr></thead>
+    <tbody>
+    {% for r in rows %}
+      <tr>{% for c in r.cells %}<td>{{ c }}</td>{% endfor %}
+        <td><form method="post" action="{% url 'capp_dir_reg_delete' key r.pk %}" onsubmit="return confirm('Delete this entry?')">{% csrf_token %}<button class="button" type="submit">Delete</button></form></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}<p class="text-muted">No entries for this month.</p>{% endif %}
+</div></div>
+{% endif %}
+{% endblock %}

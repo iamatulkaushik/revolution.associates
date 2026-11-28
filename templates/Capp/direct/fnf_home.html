@@ -1,0 +1,41 @@
+{% extends 'Capp/base.html' %}
+{% block title %}Relieving and final settlement{% endblock %}
+{% block content %}
+<div class="section-header"><h2>Relieving and final settlement</h2></div>
+<div class="card"><div class="card-body">
+  <div style="display:flex;gap:var(--sp-3);flex-wrap:wrap;margin-bottom:var(--sp-3)">
+    <a class="button" href="{% url 'capp_dir_relieve' %}">Relieve an employee</a>
+    <a class="button" href="{% url 'capp_dir_fnf_add' %}">Start final settlement</a>
+  </div>
+  <h3>Relieved, settlement not started</h3>
+  {% if waiting %}
+  <table class="table">
+    <thead><tr><th>Code</th><th>Name</th><th>Left on</th><th>Reason</th><th></th></tr></thead>
+    <tbody>
+    {% for e in waiting %}
+      <tr><td>{{ e.employeecode }}</td><td>{{ e.name }}</td><td>{{ e.dateofleaving }}</td><td>{{ e.leaving_reason|default:"—" }}</td>
+        <td style="white-space:nowrap">
+          <a class="button" href="{% url 'capp_dir_fnf_add' %}?employee={{ e.employeeid }}">Start settlement</a>
+          <form method="post" action="{% url 'capp_dir_reinstate' e.employeeid %}" style="display:inline" onsubmit="return confirm('Reinstate this employee?')">{% csrf_token %}<button class="button" type="submit">Reinstate</button></form>
+        </td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}<p class="text-muted">None.</p>{% endif %}
+</div></div>
+<div class="card" style="margin-top:var(--sp-4)"><div class="card-body">
+  <h3>Settlements</h3>
+  {% if settlements %}
+  <table class="table">
+    <thead><tr><th>Code</th><th>Name</th><th>Last working day</th><th>Net amount</th><th>Status</th><th></th></tr></thead>
+    <tbody>
+    {% for s in settlements %}
+      <tr><td>{{ s.employee.employeecode }}</td><td>{{ s.employee.name }}</td><td>{{ s.last_working_day }}</td>
+        <td>{{ s.net_settlement_amount }}</td><td>{{ s.get_status_display }}</td>
+        <td><a class="button" href="{% url 'capp_dir_fnf_view' s.settlement_id %}">Open</a></td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}<p class="text-muted">No settlements yet.</p>{% endif %}
+</div></div>
+{% endblock %}

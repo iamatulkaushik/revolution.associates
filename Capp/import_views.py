@@ -9,7 +9,9 @@ from django.shortcuts import redirect, render
 from Aapp.app.branch_department import branch
 from Capp import importer
 from Capp.billing_models import BillingClient
-from Capp.masters import masters_required, _style
+from Capp.access import capp_perm
+from Capp.audit import log_action
+from Capp.masters import _style
 
 MAX_BYTES = 2 * 1024 * 1024
 SESSION_KEY = 'capp_employee_import'
@@ -48,7 +50,7 @@ def _summary(rows):
             'bad': sum(1 for r in rows if r['issues'])}
 
 
-@masters_required
+@capp_perm('employees.add')
 def capp_import_employees(request):
     company = request.owned_company
     form = ImportForm(request.POST or None, request.FILES or None, company=company)
@@ -68,6 +70,7 @@ def capp_import_employees(request):
             return redirect('capp_import_employees')
         res = importer.apply(rows, company, br, request.user, saved['gender'], client)
         request.session.pop(SESSION_KEY, None)
+        log_action(request, 'import_employees', None, f"{res['created']} new, {res['updated']} updated, {res['skipped']} skipped")
         messages.success(request, f"Imported: {res['created']} new, {res['updated']} updated, "
                                   f"{res['skipped']} skipped.")
         return redirect('capp_import_employees')

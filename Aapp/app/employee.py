@@ -187,6 +187,17 @@ def list_employee(request):
 
 
 # ── create ────────────────────────────────────────────────────────────────────
+def _limit_error(company):
+    """Plan/licence employee cap (revolution.app.plan_limits). Returns a message or None.
+    Only ADDING is blocked; existing employees are never touched."""
+    from revolution.app.plan_limits import check_can_add, PlanLimitExceeded
+    try:
+        check_can_add(company)
+    except PlanLimitExceeded as e:
+        return str(e)
+    return None
+
+
 def create_employee(request):
     from django.contrib import messages
     company = _company_ctx(request)
@@ -206,6 +217,8 @@ def create_employee(request):
                     'temporaryaddress', 'temp_state', 'temp_district', 'temp_pincode']
         if not all(p.get(f) for f in required):
             messages.error(request, 'All required fields must be filled.')
+        elif (limit_msg := _limit_error(company)):
+            messages.error(request, limit_msg)
         elif employee.objects.filter(employeecode=p['employeecode'], CompanyID=company).exists():
             messages.error(request, f"Employee code '{p['employeecode']}' already exists.")
         elif employee.objects.filter(mobile=p['mobile']).exists():
@@ -391,11 +404,15 @@ def disable_employee(request, employee_id):
             emp.save()
             messages.success(request, f"Employee '{emp.name}' disabled.")
         elif action == 'enable':
-            emp.is_working = True
-            emp.dateofleaving = None
-            emp.leaving_reason = ''
-            emp.save()
-            messages.success(request, f"Employee '{emp.name}' re-enabled.")
+            limit_msg = _limit_error(company) if not emp.is_working else None
+            if limit_msg:
+                messages.error(request, limit_msg)
+            else:
+                emp.is_working = True
+                emp.dateofleaving = None
+                emp.leaving_reason = ''
+                emp.save()
+                messages.success(request, f"Employee '{emp.name}' re-enabled.")
         return redirect('list_employee')
 
     return render(request, 'Aapp/employees/disable_employee.html', {'emp': emp})
@@ -723,6 +740,12 @@ def bulk_excel_upload_Employees(request):
             district = District.objects.filter(state=state, name=temp_district_name).first()
             if not district:
                 error_rows.append(f"Row {row_num}: District '{temp_district_name}' not found in state '{temp_state_name}'.")
+                errors += 1
+                continue
+
+            limit_msg = _limit_error(company)
+            if limit_msg:
+                error_rows.append(f"Row {row_num}: {limit_msg}")
                 errors += 1
                 continue
 

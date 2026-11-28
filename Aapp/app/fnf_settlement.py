@@ -319,30 +319,33 @@ def finalize_fnf_settlement(request, settlement_id):
     return redirect('view_fnf_settlement', settlement_id=settlement_id)
 
 
+def _fnf_pdf_response(out):
+    from django.http import HttpResponse
+    pdf, fname = out
+    return HttpResponse(pdf, content_type='application/pdf', headers={
+        'Content-Disposition': f'attachment; filename="{fname}"'
+    })
+
+
 @login_required
 def download_fnf_settlement(request, settlement_id):
-    from django.http import HttpResponse
-    from Aapp.app.fnf_pdf import fnf_settlement_pdf
+    from Aapp.app.services import fnf as svc
 
     company = _company(request)
     settlement = get_object_or_404(FnFSettlement, settlement_id=settlement_id, company=company)
-    pdf_bytes = fnf_settlement_pdf(settlement)
-    return HttpResponse(pdf_bytes, content_type='application/pdf', headers={
-        'Content-Disposition': f'attachment; filename="fnf_settlement_{settlement_id}.pdf"'
-    })
+    return _fnf_pdf_response(svc.build_fnf_statement_pdf(settlement))
 
 
 @login_required
 def download_fnf_certificate(request, settlement_id, cert_type):
-    from django.http import HttpResponse, Http404
-    from Aapp.app.fnf_pdf import fnf_certificate_pdf
-
-    if cert_type not in CERTIFICATE_TYPES:
-        raise Http404("Unknown certificate type")
+    from django.http import Http404
+    from Aapp.app.services import fnf as svc
+    from Aapp.app.services.statutory_files import StatutoryFileError
 
     company = _company(request)
     settlement = get_object_or_404(FnFSettlement, settlement_id=settlement_id, company=company)
-    pdf_bytes = fnf_certificate_pdf(settlement, cert_type)
-    return HttpResponse(pdf_bytes, content_type='application/pdf', headers={
-        'Content-Disposition': f'attachment; filename="{cert_type}_certificate_{settlement_id}.pdf"'
-    })
+    try:
+        out = svc.build_fnf_certificate_pdf(settlement, cert_type)
+    except StatutoryFileError as e:
+        raise Http404(str(e))
+    return _fnf_pdf_response(out)
